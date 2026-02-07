@@ -12,122 +12,61 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# ========== ДИАГНОСТИКА ФАЙЛОВОЙ СИСТЕМЫ ==========
+# ========== ДИАГНОСТИКА ==========
 print("=" * 80)
-print("🔍 ДИАГНОСТИКА ФАЙЛОВОЙ СИСТЕМЫ НА RENDER")
+print("🚀 ЗАПУСК СЕРВЕРА BARBER BOOKING")
 print("=" * 80)
 
 current_dir = os.getcwd()
-print(f"📌 Текущая рабочая директория: {current_dir}")
-print(f"📌 Содержимое текущей директории: {os.listdir('.')}")
+print(f"📌 Текущая директория: {current_dir}")
 
-# Проверяем все возможные пути к файлам
-possible_paths = [
-    '.',  # текущая директория
-    '..', # на уровень выше
-    '/opt/render/project',
-    '/opt/render/project/src',
-    os.path.dirname(os.path.abspath(__file__))  # директория где лежит server.py
-]
+# Проверяем что есть вокруг
+print(f"📌 Содержимое текущей директории:")
+for item in os.listdir('.'):
+    print(f"   • {item}")
 
-print("📌 Поиск важных папок:")
-for path in possible_paths:
-    if os.path.exists(path):
-        print(f"\n📁 {path}:")
-        try:
-            files = os.listdir(path)
-            # Показываем только первые 10 файлов
-            for file in files[:10]:
-                print(f"   • {file}")
-            if len(files) > 10:
-                print(f"   • ... и еще {len(files) - 10} файлов")
-        except:
-            print(f"   ❌ Не могу прочитать содержимое")
+print(f"📌 Содержимое родительской директории:")
+try:
+    for item in os.listdir('..'):
+        print(f"   • {item}")
+except:
+    print("   ❌ Не могу прочитать")
 
-print("=" * 80)
-
-# ========== ФУНКЦИИ ДЛЯ ПОИСКА ФАЙЛОВ ==========
-def find_file(filename, extensions=None):
-    """Ищет файл в разных местах"""
-    if extensions is None:
-        extensions = ['']
-    
-    # Места где ищем файлы
+# ========== ФУНКЦИИ ПОИСКА ФАЙЛОВ ==========
+def find_file_anywhere(filename):
+    """Ищет файл везде"""
     search_paths = [
-        '.', '..', '../..',
-        'templates', '../templates', 
-        'css', '../css',
-        'js', '../js',
+        '.',  # текущая
+        '..', # на уровень выше
+        '../..', # на два уровня выше
+        'templates', '../templates', '../../templates',
         '/opt/render/project',
         '/opt/render/project/src',
         '/opt/render/project/templates'
     ]
     
     for path in search_paths:
-        for ext in extensions:
-            full_path = os.path.join(path, filename + ext)
-            if os.path.exists(full_path):
-                print(f"✅ Найден файл {filename}{ext} в {path}")
-                return path, filename + ext
-    
-    print(f"❌ Файл {filename} не найден")
-    return None, None
-
-def find_folder(folder_name):
-    """Ищет папку в разных местах"""
-    search_paths = [
-        '.', '..', '../..',
-        '/opt/render/project',
-        '/opt/render/project/src'
-    ]
-    
-    for path in search_paths:
-        full_path = os.path.join(path, folder_name)
-        if os.path.exists(full_path):
-            print(f"✅ Найдена папка {folder_name} в {path}")
+        filepath = os.path.join(path, filename)
+        if os.path.exists(filepath):
+            print(f"✅ Найден {filename} в {path}")
             return path
     
-    print(f"❌ Папка {folder_name} не найдена")
+    print(f"❌ Файл {filename} не найден нигде")
     return None
 
-# ========== НАХОДИМ ПУТИ К ПАПКАМ ==========
-templates_path = find_folder('templates')
-css_path = find_folder('css') or '.'
-js_path = find_folder('js') or '.'
+# Ищем index.html
+html_path = find_file_anywhere('index.html')
+css_path = find_file_anywhere('common.css')
+js_path = find_file_anywhere('home.js')
 
-print(f"📌 Используемые пути:")
-print(f"   • templates: {templates_path or 'НЕ НАЙДЕНА'}")
-print(f"   • css: {css_path}")
-print(f"   • js: {js_path}")
+print(f"📌 Результаты поиска:")
+print(f"   • index.html: {html_path or 'НЕ НАЙДЕН'}")
+print(f"   • common.css: {css_path or 'НЕ НАЙДЕН'}")
+print(f"   • home.js: {js_path or 'НЕ НАЙДЕН'}")
 
 # ========== БАЗА ДАННЫХ ==========
-def get_db_path():
-    """Определяем где создавать базу данных"""
-    possible_db_paths = [
-        'barber.db',
-        '/tmp/barber.db',
-        os.path.join(current_dir, 'barber.db')
-    ]
-    
-    for db_path in possible_db_paths:
-        try:
-            # Проверяем можем ли создать файл
-            with open(db_path, 'a'):
-                pass
-            print(f"📌 Будем использовать базу: {db_path}")
-            return db_path
-        except:
-            continue
-    
-    # Если не нашли подходящий путь, используем текущую директорию
-    default_path = os.path.join(current_dir, 'barber.db')
-    print(f"⚠️  Использую базу по умолчанию: {default_path}")
-    return default_path
-
 def init_db():
-    db_path = get_db_path()
-    
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect('barber.db')
     c = conn.cursor()
     
     # Барберы
@@ -136,8 +75,7 @@ def init_db():
                   name TEXT NOT NULL,
                   phone TEXT,
                   code TEXT UNIQUE NOT NULL,
-                  work_days TEXT DEFAULT '1,2,3,4,5,6',
-                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+                  work_days TEXT DEFAULT '1,2,3,4,5,6')''')
     
     # Услуги
     c.execute('''CREATE TABLE IF NOT EXISTS services
@@ -156,8 +94,7 @@ def init_db():
                   time TEXT NOT NULL,
                   is_available BOOLEAN DEFAULT 1,
                   client_name TEXT,
-                  client_phone TEXT,
-                  FOREIGN KEY(barber_id) REFERENCES barbers(id))''')
+                  client_phone TEXT)''')
     
     # Записи
     c.execute('''CREATE TABLE IF NOT EXISTS bookings
@@ -169,38 +106,36 @@ def init_db():
                   date TEXT NOT NULL,
                   time TEXT NOT NULL,
                   status TEXT DEFAULT 'pending',
-                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                  FOREIGN KEY(barber_id) REFERENCES barbers(id),
-                  FOREIGN KEY(service_id) REFERENCES services(id))''')
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     conn.commit()
     
-    # Создаем тестовые данные если таблицы пустые
+    # Тестовые данные
     c.execute("SELECT COUNT(*) FROM barbers")
     if c.fetchone()[0] == 0:
         print("📌 Создаю тестовые данные...")
         
-        # Тестовый барбер
+        # Барбер
         c.execute('''INSERT INTO barbers (id, name, phone, code) 
                      VALUES (?, ?, ?, ?)''',
                   (1, 'Александр', '+79991234567', 'B-ARBER003'))
         
-        # Тестовые услуги
-        test_services = [
+        # Услуги
+        services = [
             (1, 'Мужская стрижка', 1500, 45),
             (1, 'Детская стрижка', 1200, 30),
             (1, 'Бритьё', 800, 20),
             (1, 'Комплекс', 2500, 75)
         ]
         
-        for service in test_services:
+        for service in services:
             c.execute('''INSERT INTO services (barber_id, name, price, duration)
                          VALUES (?, ?, ?, ?)''', service)
         
-        # Расписание на 7 дней
+        # Расписание
         today = datetime.now().date()
         times = []
-        for hour in range(8, 20):  # 8:00 до 19:00
+        for hour in range(8, 20):
             times.append(f"{hour:02d}:00")
             times.append(f"{hour:02d}:30")
         
@@ -211,45 +146,50 @@ def init_db():
                 c.execute('''INSERT INTO schedule (barber_id, date, time, is_available)
                              VALUES (?, ?, ?, ?)''', (1, date_str, time, 1))
         
+        conn.commit()
         print("✅ Тестовые данные созданы")
     
-    conn.commit()
     conn.close()
     print("✅ База данных готова")
 
-# Инициализация БД
 init_db()
 
 # ========== ОБСЛУЖИВАНИЕ ФАЙЛОВ ==========
 @app.route('/')
 def index():
-    """Главная страница"""
+    """Главная страница - ВАЖНО: используем send_from_directory, НЕ render_template"""
     print(f"📄 Запрос главной страницы")
     
-    # Пробуем разные пути к index.html
-    possible_paths = [
+    # Пробуем найти index.html
+    search_paths = [
         ('templates', 'index.html'),
         ('.', 'index.html'),
         ('..', 'index.html'),
         ('../templates', 'index.html'),
-        ('/opt/render/project/templates', 'index.html')
+        ('../../templates', 'index.html')
     ]
     
-    for folder, filename in possible_paths:
+    for folder, filename in search_paths:
         filepath = os.path.join(folder, filename)
         if os.path.exists(filepath):
-            print(f"✅ Найден index.html в {folder}")
+            print(f"✅ Отдаю index.html из {folder}")
             return send_from_directory(folder, filename)
     
-    # Если файл не найден, возвращаем простую страницу
+    # Если не нашли, возвращаем простую HTML
     return """
     <!DOCTYPE html>
     <html>
     <head><title>Barber Booking</title></head>
-    <body>
+    <body style="font-family: Arial; padding: 20px;">
         <h1>Barber Booking System</h1>
-        <p>Сервер работает! Но index.html не найден.</p>
-        <p><a href="/api/test">Проверить API</a></p>
+        <p>✅ Сервер работает!</p>
+        <p>Но index.html не найден в ожидаемых местах.</p>
+        <p>Проверьте:</p>
+        <ul>
+            <li><a href="/api/test">API тест</a></li>
+            <li><a href="/client-login.html">Вход клиента</a></li>
+            <li><a href="/barber-login.html">Вход барбера</a></li>
+        </ul>
     </body>
     </html>
     """
@@ -259,56 +199,54 @@ def serve_file(filename):
     """Обслуживает все файлы"""
     print(f"📄 Запрос файла: {filename}")
     
-    # Определяем тип файла и где искать
+    # Определяем где искать
     if filename.endswith('.html'):
         folders = ['templates', '.', '..', '../templates']
-        file_to_send = filename
     elif filename.startswith('css/'):
         folders = ['css', '.', '..', '../css']
-        file_to_send = filename.replace('css/', '')
+        filename = filename.replace('css/', '')
     elif filename.startswith('js/'):
         folders = ['js', '.', '..', '../js']
-        file_to_send = filename.replace('js/', '')
+        filename = filename.replace('js/', '')
     else:
         folders = ['.', 'templates', 'css', 'js']
-        file_to_send = filename
     
     # Ищем файл
     for folder in folders:
-        filepath = os.path.join(folder, file_to_send)
+        filepath = os.path.join(folder, filename)
         if os.path.exists(filepath):
             print(f"✅ Найден в {folder}")
-            return send_from_directory(folder, file_to_send)
+            return send_from_directory(folder, filename)
     
     print(f"❌ Файл не найден: {filename}")
-    return "File not found", 404
+    return f"File {filename} not found", 404
 
 # ========== API ==========
-@app.route('/api/test', methods=['GET'])
+@app.route('/api/test')
 def test_api():
     """Тестовый endpoint"""
     return jsonify({
         'status': 'ok',
         'message': 'Сервер Barber Booking работает',
         'timestamp': datetime.now().isoformat(),
-        'current_dir': os.getcwd(),
-        'files_in_current_dir': os.listdir('.'),
-        'templates_exists': os.path.exists('templates'),
-        'templates_files': os.listdir('templates') if os.path.exists('templates') else []
+        'current_dir': current_dir,
+        'files_here': os.listdir('.'),
+        'has_templates': os.path.exists('templates'),
+        'has_index_html': os.path.exists('index.html') or os.path.exists('templates/index.html')
     })
 
-@app.route('/api/barbers', methods=['GET'])
+@app.route('/api/barbers')
 def get_barbers():
-    conn = sqlite3.connect(get_db_path())
+    conn = sqlite3.connect('barber.db')
     c = conn.cursor()
     c.execute("SELECT id, name, code FROM barbers")
     barbers = [{'id': row[0], 'name': row[1], 'code': row[2]} for row in c.fetchall()]
     conn.close()
     return jsonify(barbers)
 
-@app.route('/api/barber/<code>', methods=['GET'])
-def get_barber_by_code(code):
-    conn = sqlite3.connect(get_db_path())
+@app.route('/api/barber/<code>')
+def get_barber(code):
+    conn = sqlite3.connect('barber.db')
     c = conn.cursor()
     c.execute("SELECT id, name, code FROM barbers WHERE code = ?", (code,))
     row = c.fetchone()
@@ -318,21 +256,18 @@ def get_barber_by_code(code):
         return jsonify({'success': True, 'barber': {'id': row[0], 'name': row[1], 'code': row[2]}})
     return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
 
-@app.route('/api/services/<int:barber_id>', methods=['GET'])
+@app.route('/api/services/<int:barber_id>')
 def get_services(barber_id):
-    conn = sqlite3.connect(get_db_path())
+    conn = sqlite3.connect('barber.db')
     c = conn.cursor()
     c.execute("SELECT id, name, price, duration FROM services WHERE barber_id = ?", (barber_id,))
-    services = [
-        {'id': row[0], 'name': row[1], 'price': row[2], 'duration': row[3]}
-        for row in c.fetchall()
-    ]
+    services = [{'id': row[0], 'name': row[1], 'price': row[2], 'duration': row[3]} for row in c.fetchall()]
     conn.close()
     return jsonify(services)
 
-@app.route('/api/schedule/<int:barber_id>/<date>', methods=['GET'])
+@app.route('/api/schedule/<int:barber_id>/<date>')
 def get_schedule(barber_id, date):
-    conn = sqlite3.connect(get_db_path())
+    conn = sqlite3.connect('barber.db')
     c = conn.cursor()
     c.execute('''SELECT time, is_available FROM schedule 
                  WHERE barber_id = ? AND date = ? ORDER BY time''', (barber_id, date))
@@ -345,11 +280,11 @@ def get_schedule(barber_id, date):
 def book():
     data = request.json
     
-    conn = sqlite3.connect(get_db_path())
+    conn = sqlite3.connect('barber.db')
     c = conn.cursor()
     
     try:
-        # Проверяем доступность
+        # Проверка доступности
         c.execute('''SELECT is_available FROM schedule 
                      WHERE barber_id = ? AND date = ? AND time = ?''',
                   (data['barber_id'], data['date'], data['time']))
@@ -358,12 +293,12 @@ def book():
         if not slot or not slot[0]:
             return jsonify({'success': False, 'error': 'Время занято'}), 400
         
-        # Бронируем
+        # Бронирование
         c.execute('''UPDATE schedule SET is_available = 0, client_name = ?, client_phone = ?
                      WHERE barber_id = ? AND date = ? AND time = ?''',
                   (data['name'], data['phone'], data['barber_id'], data['date'], data['time']))
         
-        # Создаем запись
+        # Запись
         c.execute('''INSERT INTO bookings (barber_id, service_id, client_name, client_phone, date, time)
                      VALUES (?, ?, ?, ?, ?, ?)''',
                   (data['barber_id'], data.get('service_id'), data['name'], 
@@ -383,7 +318,7 @@ def master_login():
     data = request.json
     
     if data.get('username') == 'barber' and data.get('password') == '123456':
-        conn = sqlite3.connect(get_db_path())
+        conn = sqlite3.connect('barber.db')
         c = conn.cursor()
         c.execute("SELECT id, name, code FROM barbers WHERE code = 'B-ARBER003'")
         barber = c.fetchone()
@@ -400,11 +335,12 @@ def master_login():
 # ========== ЗАПУСК СЕРВЕРА ==========
 if __name__ == '__main__':
     print("=" * 80)
-    print("🚀 СЕРВЕР ЗАПУЩЕН")
+    print("🌐 СЕРВЕР ЗАПУЩЕН")
     print("📌 Доступные маршруты:")
     print("   • / - Главная страница")
     print("   • /client-login.html - Вход клиента")
     print("   • /barber-login.html - Вход барбера")
+    print("   • /master-login.html - Вход мастера")
     print("   • /api/test - Тест API")
     print("   • /api/barbers - Список барберов")
     print("=" * 80)
