@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iWant - Премиум запись к мастеру</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="/" class="logo">
+                    <span class="logo-icon">#</span>
+                    <span>iWant</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Главная</a></li>
+                    <li><a href="/master-panel" class="nav-link">Для мастеров</a></li>
+                    <li><a href="#" class="nav-link">О сервисе</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="auth-container">
+                <div class="auth-card fade-in">
+                    <div class="auth-header">
+                        <h1><i class="fas fa-cut"></i> # iWant</h1>
+                        <p class="subtitle">Премиум запись к мастеру</p>
+                    </div>
+                    
+                    <form id="masterCodeForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="code" class="form-label">
+                                <i class="fas fa-key"></i> Введите код мастера
+                            </label>
+                            <input 
+                                type="text" 
+                                id="code" 
+                                class="form-input"
+                                placeholder="Пример: B-ABC123"
+                                value="B-ARBER003"
+                                required
+                            >
+                            <div class="form-hint">
+                                <i class="fas fa-info-circle"></i> Узнайте код у вашего мастера
+                            </div>
+                        </div>
+                        
+                        <div id="errorMessage" class="error-message"></div>
+                        
+                        <button type="submit" class="btn btn-block mb-20">
+                            <i class="fas fa-arrow-right"></i> Продолжить →
+                        </button>
+                    </form>
+                    
+                    <div class="divider">
+                        <span>или</span>
+                    </div>
+                    
+                    <button onclick="window.location.href='/master-panel'" class="btn-secondary btn-block">
+                        <i class="fas fa-user-tie"></i> Я мастер
+                    </button>
+                    
+                    <div class="auth-footer">
+                        <div class="stats">
+                            <div class="stat">
+                                <i class="fas fa-users"></i>
+                                <span>1000+ мастеров</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>5000+ записей</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-star"></i>
+                                <span>4.8 рейтинг</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="features-card card fade-in">
+                    <h3><i class="fas fa-crown"></i> Преимущества iWant</h3>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check-circle"></i> Запись за 30 секунд</li>
+                        <li><i class="fas fa-check-circle"></i> Уведомления о записи</li>
+                        <li><i class="fas fa-check-circle"></i> История посещений</li>
+                        <li><i class="fas fa-check-circle"></i> Онлайн-оплата</li>
+                        <li><i class="fas fa-check-circle"></i> Отзывы и рейтинг</li>
+                        <li><i class="fas fa-check-circle"></i> Персональные скидки</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" class="footer-link"><i class="fas fa-headset"></i> Поддержка</a>
+                    <a href="#" class="footer-link"><i class="fas fa-book"></i> Инструкция</a>
+                    <a href="#" class="footer-link"><i class="fas fa-shield-alt"></i> Сервис</a>
+                </div>
+                <div class="copyright">
+                    <i class="far fa-copyright"></i> 2024 iWant. Все права защищены
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/auth.js"></script>
+</body>
+</html>

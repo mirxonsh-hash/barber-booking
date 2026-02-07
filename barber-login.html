@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход для барбера | iWant</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-cut"></i> iWant
+                </a>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-link">Главная</a></li>
+                    <li><a href="client-login.html" class="nav-link">Для клиентов</a></li>
+                    <li><a href="barber-login.html" class="nav-link active">Для барберов</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="auth-container">
+                <div class="auth-card card fade-in">
+                    <div class="auth-header">
+                        <h1><i class="fas fa-user-tie"></i> Вход для барбера</h1>
+                        <p class="subtitle">Войдите в личный кабинет</p>
+                    </div>
+                    
+                    <form id="barberLoginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user"></i> Логин
+                            </label>
+                            <input 
+                                type="text" 
+                                id="username" 
+                                class="form-input"
+                                placeholder="Введите ваш логин"
+                                value="barber"
+                                required
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock"></i> Пароль
+                            </label>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                class="form-input"
+                                placeholder="Введите пароль"
+                                value="123456"
+                                required
+                            >
+                        </div>
+                        
+                        <div id="errorMessage" class="error-message"></div>
+                        
+                        <button type="submit" class="btn btn-block">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </button>
+                        
+                        <div class="form-footer">
+                            <a href="#" class="forgot-password">
+                                <i class="fas fa-key"></i> Забыли пароль?
+                            </a>
+                            <a href="#" class="register-link">
+                                <i class="fas fa-user-plus"></i> Регистрация барбера
+                            </a>
+                        </div>
+                    </form>
+                    
+                    <div class="test-data">
+                        <h4><i class="fas fa-vial"></i> Тестовые данные:</h4>
+                        <p>Логин: <strong>barber</strong></p>
+                        <p>Пароль: <strong>123456</strong></p>
+                        <p>Код мастера: <strong>B-ARBER003</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="copyright">
+                    © 2024 iWant. Все права защищены.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
