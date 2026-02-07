@@ -12,19 +12,122 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-# ========== НАСТРОЙКА ПУТЕЙ ДЛЯ ВАШЕЙ СТРУКТУРЫ ==========
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-print(f"📌 Текущая директория: {BASE_DIR}")
-print(f"📌 Файлы в директории: {os.listdir('.')}")
+# ========== ДИАГНОСТИКА ФАЙЛОВОЙ СИСТЕМЫ ==========
+print("=" * 80)
+print("🔍 ДИАГНОСТИКА ФАЙЛОВОЙ СИСТЕМЫ НА RENDER")
+print("=" * 80)
 
-# Проверяем существование папок
-TEMPLATES_DIR = 'templates'
-CSS_DIR = 'css'
-JS_DIR = 'js'
+current_dir = os.getcwd()
+print(f"📌 Текущая рабочая директория: {current_dir}")
+print(f"📌 Содержимое текущей директории: {os.listdir('.')}")
+
+# Проверяем все возможные пути к файлам
+possible_paths = [
+    '.',  # текущая директория
+    '..', # на уровень выше
+    '/opt/render/project',
+    '/opt/render/project/src',
+    os.path.dirname(os.path.abspath(__file__))  # директория где лежит server.py
+]
+
+print("📌 Поиск важных папок:")
+for path in possible_paths:
+    if os.path.exists(path):
+        print(f"\n📁 {path}:")
+        try:
+            files = os.listdir(path)
+            # Показываем только первые 10 файлов
+            for file in files[:10]:
+                print(f"   • {file}")
+            if len(files) > 10:
+                print(f"   • ... и еще {len(files) - 10} файлов")
+        except:
+            print(f"   ❌ Не могу прочитать содержимое")
+
+print("=" * 80)
+
+# ========== ФУНКЦИИ ДЛЯ ПОИСКА ФАЙЛОВ ==========
+def find_file(filename, extensions=None):
+    """Ищет файл в разных местах"""
+    if extensions is None:
+        extensions = ['']
+    
+    # Места где ищем файлы
+    search_paths = [
+        '.', '..', '../..',
+        'templates', '../templates', 
+        'css', '../css',
+        'js', '../js',
+        '/opt/render/project',
+        '/opt/render/project/src',
+        '/opt/render/project/templates'
+    ]
+    
+    for path in search_paths:
+        for ext in extensions:
+            full_path = os.path.join(path, filename + ext)
+            if os.path.exists(full_path):
+                print(f"✅ Найден файл {filename}{ext} в {path}")
+                return path, filename + ext
+    
+    print(f"❌ Файл {filename} не найден")
+    return None, None
+
+def find_folder(folder_name):
+    """Ищет папку в разных местах"""
+    search_paths = [
+        '.', '..', '../..',
+        '/opt/render/project',
+        '/opt/render/project/src'
+    ]
+    
+    for path in search_paths:
+        full_path = os.path.join(path, folder_name)
+        if os.path.exists(full_path):
+            print(f"✅ Найдена папка {folder_name} в {path}")
+            return path
+    
+    print(f"❌ Папка {folder_name} не найдена")
+    return None
+
+# ========== НАХОДИМ ПУТИ К ПАПКАМ ==========
+templates_path = find_folder('templates')
+css_path = find_folder('css') or '.'
+js_path = find_folder('js') or '.'
+
+print(f"📌 Используемые пути:")
+print(f"   • templates: {templates_path or 'НЕ НАЙДЕНА'}")
+print(f"   • css: {css_path}")
+print(f"   • js: {js_path}")
 
 # ========== БАЗА ДАННЫХ ==========
+def get_db_path():
+    """Определяем где создавать базу данных"""
+    possible_db_paths = [
+        'barber.db',
+        '/tmp/barber.db',
+        os.path.join(current_dir, 'barber.db')
+    ]
+    
+    for db_path in possible_db_paths:
+        try:
+            # Проверяем можем ли создать файл
+            with open(db_path, 'a'):
+                pass
+            print(f"📌 Будем использовать базу: {db_path}")
+            return db_path
+        except:
+            continue
+    
+    # Если не нашли подходящий путь, используем текущую директорию
+    default_path = os.path.join(current_dir, 'barber.db')
+    print(f"⚠️  Использую базу по умолчанию: {default_path}")
+    return default_path
+
 def init_db():
-    conn = sqlite3.connect('barber.db')
+    db_path = get_db_path()
+    
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
     # Барберы
@@ -33,154 +136,170 @@ def init_db():
                   name TEXT NOT NULL,
                   phone TEXT,
                   code TEXT UNIQUE NOT NULL,
-                  telegram_id TEXT UNIQUE,
+                  work_days TEXT DEFAULT '1,2,3,4,5,6',
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
-    # Услуги барберов
+    # Услуги
     c.execute('''CREATE TABLE IF NOT EXISTS services
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   barber_id INTEGER NOT NULL,
                   name TEXT NOT NULL,
-                  description TEXT,
                   price INTEGER NOT NULL,
-                  duration INTEGER NOT NULL,  # в минутах
-                  FOREIGN KEY(barber_id) REFERENCES barbers(id) ON DELETE CASCADE)''')
+                  duration INTEGER NOT NULL,
+                  FOREIGN KEY(barber_id) REFERENCES barbers(id))''')
     
-    # Расписание (с 8:00 до 20:00, каждые 30 минут)
+    # Расписание (8:00-20:00)
     c.execute('''CREATE TABLE IF NOT EXISTS schedule
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   barber_id INTEGER NOT NULL,
-                  service_id INTEGER,
                   date TEXT NOT NULL,
-                  time TEXT NOT NULL,  # формат "HH:MM"
+                  time TEXT NOT NULL,
                   is_available BOOLEAN DEFAULT 1,
                   client_name TEXT,
                   client_phone TEXT,
-                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                  FOREIGN KEY(barber_id) REFERENCES barbers(id),
-                  FOREIGN KEY(service_id) REFERENCES services(id))''')
+                  FOREIGN KEY(barber_id) REFERENCES barbers(id))''')
     
-    # Записи клиентов
-    c.execute('''CREATE TABLE IF NOT EXISTS appointments
+    # Записи
+    c.execute('''CREATE TABLE IF NOT EXISTS bookings
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   barber_id INTEGER NOT NULL,
-                  service_id INTEGER NOT NULL,
+                  service_id INTEGER,
                   client_name TEXT NOT NULL,
                   client_phone TEXT NOT NULL,
                   date TEXT NOT NULL,
                   time TEXT NOT NULL,
-                  status TEXT DEFAULT 'pending',  # pending, confirmed, completed, cancelled
+                  status TEXT DEFAULT 'pending',
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   FOREIGN KEY(barber_id) REFERENCES barbers(id),
                   FOREIGN KEY(service_id) REFERENCES services(id))''')
     
     conn.commit()
-    conn.close()
-    print("✅ База данных инициализирована")
-
-def create_test_data():
-    """Создаем тестовые данные для демонстрации"""
-    conn = sqlite3.connect('barber.db')
-    c = conn.cursor()
     
-    try:
-        # Очищаем старые данные
-        c.execute('DELETE FROM barbers')
-        c.execute('DELETE FROM services')
-        c.execute('DELETE FROM schedule')
-        c.execute('DELETE FROM appointments')
+    # Создаем тестовые данные если таблицы пустые
+    c.execute("SELECT COUNT(*) FROM barbers")
+    if c.fetchone()[0] == 0:
+        print("📌 Создаю тестовые данные...")
         
-        # Барбер 1
+        # Тестовый барбер
         c.execute('''INSERT INTO barbers (id, name, phone, code) 
                      VALUES (?, ?, ?, ?)''',
                   (1, 'Александр', '+79991234567', 'B-ARBER003'))
         
-        # Услуги барбера 1
-        services = [
-            (1, 'Мужская стрижка', 'Классическая мужская стрижка', 1500, 45),
-            (1, 'Детская стрижка', 'Стрижка для детей', 1200, 30),
-            (1, 'Бритьё', 'Бритьё опасной бритвой', 800, 20),
-            (1, 'Комплекс', 'Стрижка + бритьё + укладка', 2500, 75)
+        # Тестовые услуги
+        test_services = [
+            (1, 'Мужская стрижка', 1500, 45),
+            (1, 'Детская стрижка', 1200, 30),
+            (1, 'Бритьё', 800, 20),
+            (1, 'Комплекс', 2500, 75)
         ]
         
-        for service in services:
-            c.execute('''INSERT INTO services (barber_id, name, description, price, duration)
-                         VALUES (?, ?, ?, ?, ?)''', service)
+        for service in test_services:
+            c.execute('''INSERT INTO services (barber_id, name, price, duration)
+                         VALUES (?, ?, ?, ?)''', service)
         
-        # Создаем расписание на 7 дней вперед (8:00 - 20:00, каждые 30 минут)
+        # Расписание на 7 дней
         today = datetime.now().date()
+        times = []
+        for hour in range(8, 20):  # 8:00 до 19:00
+            times.append(f"{hour:02d}:00")
+            times.append(f"{hour:02d}:30")
         
         for day in range(7):
             date = today + timedelta(days=day)
             date_str = date.strftime('%Y-%m-%d')
-            
-            # Временные слоты: 8:00 - 20:00, каждые 30 минут
-            for hour in range(8, 20):
-                for minute in [0, 30]:
-                    time_str = f"{hour:02d}:{minute:02d}"
-                    c.execute('''INSERT INTO schedule (barber_id, date, time, is_available)
-                                 VALUES (?, ?, ?, ?)''', 
-                             (1, date_str, time_str, 1))
+            for time in times:
+                c.execute('''INSERT INTO schedule (barber_id, date, time, is_available)
+                             VALUES (?, ?, ?, ?)''', (1, date_str, time, 1))
         
-        conn.commit()
         print("✅ Тестовые данные созданы")
-        print("   👨‍💼 Барбер: Александр (код: B-ARBER003)")
-        print("   ✂️  Услуги: 4 услуги")
-        print("   ⏰ Расписание: 8:00-20:00, 7 дней вперед")
-        
-    except Exception as e:
-        print(f"⚠️ Ошибка создания тестовых данных: {e}")
-        conn.rollback()
-    finally:
-        conn.close()
+    
+    conn.commit()
+    conn.close()
+    print("✅ База данных готова")
 
 # Инициализация БД
 init_db()
-create_test_data()
 
-# ========== ОБСЛУЖИВАНИЕ СТАТИЧЕСКИХ ФАЙЛОВ ==========
+# ========== ОБСЛУЖИВАНИЕ ФАЙЛОВ ==========
 @app.route('/')
-def serve_index():
+def index():
     """Главная страница"""
-    return send_from_directory(TEMPLATES_DIR, 'index.html')
-
-@app.route('/<path:path>')
-def serve_static(path):
-    """Обслуживаем все статические файлы"""
-    # Проверяем, является ли путь HTML файлом
-    if path.endswith('.html'):
-        return send_from_directory(TEMPLATES_DIR, path)
+    print(f"📄 Запрос главной страницы")
     
-    # Проверяем CSS файлы
-    elif path.startswith('css/') or path.endswith('.css'):
-        filename = path.replace('css/', '') if path.startswith('css/') else path
-        return send_from_directory(CSS_DIR, filename)
-    
-    # Проверяем JS файлы
-    elif path.startswith('js/') or path.endswith('.js'):
-        filename = path.replace('js/', '') if path.startswith('js/') else path
-        return send_from_directory(JS_DIR, filename)
-    
-    # Пробуем найти файл в разных местах
+    # Пробуем разные пути к index.html
     possible_paths = [
-        (TEMPLATES_DIR, path),
-        (CSS_DIR, path),
-        (JS_DIR, path),
-        ('.', path)
+        ('templates', 'index.html'),
+        ('.', 'index.html'),
+        ('..', 'index.html'),
+        ('../templates', 'index.html'),
+        ('/opt/render/project/templates', 'index.html')
     ]
     
     for folder, filename in possible_paths:
         filepath = os.path.join(folder, filename)
         if os.path.exists(filepath):
+            print(f"✅ Найден index.html в {folder}")
             return send_from_directory(folder, filename)
     
+    # Если файл не найден, возвращаем простую страницу
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head><title>Barber Booking</title></head>
+    <body>
+        <h1>Barber Booking System</h1>
+        <p>Сервер работает! Но index.html не найден.</p>
+        <p><a href="/api/test">Проверить API</a></p>
+    </body>
+    </html>
+    """
+
+@app.route('/<path:filename>')
+def serve_file(filename):
+    """Обслуживает все файлы"""
+    print(f"📄 Запрос файла: {filename}")
+    
+    # Определяем тип файла и где искать
+    if filename.endswith('.html'):
+        folders = ['templates', '.', '..', '../templates']
+        file_to_send = filename
+    elif filename.startswith('css/'):
+        folders = ['css', '.', '..', '../css']
+        file_to_send = filename.replace('css/', '')
+    elif filename.startswith('js/'):
+        folders = ['js', '.', '..', '../js']
+        file_to_send = filename.replace('js/', '')
+    else:
+        folders = ['.', 'templates', 'css', 'js']
+        file_to_send = filename
+    
+    # Ищем файл
+    for folder in folders:
+        filepath = os.path.join(folder, file_to_send)
+        if os.path.exists(filepath):
+            print(f"✅ Найден в {folder}")
+            return send_from_directory(folder, file_to_send)
+    
+    print(f"❌ Файл не найден: {filename}")
     return "File not found", 404
 
-# ========== API ДЛЯ КЛИЕНТОВ ==========
+# ========== API ==========
+@app.route('/api/test', methods=['GET'])
+def test_api():
+    """Тестовый endpoint"""
+    return jsonify({
+        'status': 'ok',
+        'message': 'Сервер Barber Booking работает',
+        'timestamp': datetime.now().isoformat(),
+        'current_dir': os.getcwd(),
+        'files_in_current_dir': os.listdir('.'),
+        'templates_exists': os.path.exists('templates'),
+        'templates_files': os.listdir('templates') if os.path.exists('templates') else []
+    })
+
 @app.route('/api/barbers', methods=['GET'])
 def get_barbers():
-    """Получить список барберов"""
-    conn = sqlite3.connect('barber.db')
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
     c.execute("SELECT id, name, code FROM barbers")
     barbers = [{'id': row[0], 'name': row[1], 'code': row[2]} for row in c.fetchall()]
@@ -189,8 +308,7 @@ def get_barbers():
 
 @app.route('/api/barber/<code>', methods=['GET'])
 def get_barber_by_code(code):
-    """Получить барбера по коду"""
-    conn = sqlite3.connect('barber.db')
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
     c.execute("SELECT id, name, code FROM barbers WHERE code = ?", (code,))
     row = c.fetchone()
@@ -198,106 +316,74 @@ def get_barber_by_code(code):
     
     if row:
         return jsonify({'success': True, 'barber': {'id': row[0], 'name': row[1], 'code': row[2]}})
-    else:
-        return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
+    return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
 
 @app.route('/api/services/<int:barber_id>', methods=['GET'])
-def get_barber_services(barber_id):
-    """Получить услуги барбера"""
-    conn = sqlite3.connect('barber.db')
+def get_services(barber_id):
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
-    c.execute('''SELECT id, name, description, price, duration 
-                 FROM services WHERE barber_id = ?''', (barber_id,))
+    c.execute("SELECT id, name, price, duration FROM services WHERE barber_id = ?", (barber_id,))
     services = [
-        {
-            'id': row[0],
-            'name': row[1],
-            'description': row[2],
-            'price': row[3],
-            'duration': row[4]
-        }
+        {'id': row[0], 'name': row[1], 'price': row[2], 'duration': row[3]}
         for row in c.fetchall()
     ]
     conn.close()
     return jsonify(services)
 
 @app.route('/api/schedule/<int:barber_id>/<date>', methods=['GET'])
-def get_barber_schedule(barber_id, date):
-    """Получить расписание барбера на конкретную дату"""
-    conn = sqlite3.connect('barber.db')
+def get_schedule(barber_id, date):
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
+    c.execute('''SELECT time, is_available FROM schedule 
+                 WHERE barber_id = ? AND date = ? ORDER BY time''', (barber_id, date))
     
-    # Получаем доступные временные слоты
-    c.execute('''SELECT time, is_available 
-                 FROM schedule 
-                 WHERE barber_id = ? AND date = ? 
-                 ORDER BY time''', (barber_id, date))
-    
-    times = [
-        {'time': row[0], 'available': bool(row[1])}
-        for row in c.fetchall()
-    ]
-    
+    times = [{'time': row[0], 'available': bool(row[1])} for row in c.fetchall()]
     conn.close()
     return jsonify({'date': date, 'times': times})
 
 @app.route('/api/book', methods=['POST'])
-def create_booking():
-    """Создать запись"""
+def book():
     data = request.json
     
-    conn = sqlite3.connect('barber.db')
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
     
     try:
-        # Проверяем доступность времени
+        # Проверяем доступность
         c.execute('''SELECT is_available FROM schedule 
                      WHERE barber_id = ? AND date = ? AND time = ?''',
                   (data['barber_id'], data['date'], data['time']))
+        
         slot = c.fetchone()
-        
         if not slot or not slot[0]:
-            return jsonify({'success': False, 'error': 'Время уже занято'}), 400
+            return jsonify({'success': False, 'error': 'Время занято'}), 400
         
-        # Бронируем время
-        c.execute('''UPDATE schedule 
-                     SET is_available = 0, client_phone = ?
+        # Бронируем
+        c.execute('''UPDATE schedule SET is_available = 0, client_name = ?, client_phone = ?
                      WHERE barber_id = ? AND date = ? AND time = ?''',
-                  (data['phone'], data['barber_id'], data['date'], data['time']))
+                  (data['name'], data['phone'], data['barber_id'], data['date'], data['time']))
         
         # Создаем запись
-        c.execute('''INSERT INTO appointments 
-                     (barber_id, service_id, client_name, client_phone, date, time, status)
-                     VALUES (?, ?, ?, ?, ?, ?, 'pending')''',
-                  (data['barber_id'], data.get('service_id'), 
-                   data['name'], data['phone'], data['date'], data['time']))
+        c.execute('''INSERT INTO bookings (barber_id, service_id, client_name, client_phone, date, time)
+                     VALUES (?, ?, ?, ?, ?, ?)''',
+                  (data['barber_id'], data.get('service_id'), data['name'], 
+                   data['phone'], data['date'], data['time']))
         
-        appointment_id = c.lastrowid
         conn.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Запись создана успешно',
-            'appointment_id': appointment_id
-        })
-        
+        return jsonify({'success': True, 'message': 'Запись создана'})
+    
     except Exception as e:
         conn.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         conn.close()
 
-# ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/master/login', methods=['POST'])
 def master_login():
-    """Вход для барберов"""
     data = request.json
-    username = data.get('username')
-    password = data.get('password')
     
-    # Простая проверка (в продакшене используйте хеширование!)
-    if username == 'barber' and password == '123456':
-        conn = sqlite3.connect('barber.db')
+    if data.get('username') == 'barber' and data.get('password') == '123456':
+        conn = sqlite3.connect(get_db_path())
         c = conn.cursor()
         c.execute("SELECT id, name, code FROM barbers WHERE code = 'B-ARBER003'")
         barber = c.fetchone()
@@ -306,75 +392,22 @@ def master_login():
         if barber:
             return jsonify({
                 'success': True,
-                'barber': {
-                    'id': barber[0],
-                    'name': barber[1],
-                    'code': barber[2]
-                }
+                'barber': {'id': barber[0], 'name': barber[1], 'code': barber[2]}
             })
     
     return jsonify({'success': False, 'error': 'Неверные данные'}), 401
 
-@app.route('/api/master/appointments/<int:barber_id>', methods=['GET'])
-def get_master_appointments(barber_id):
-    """Получить записи барбера"""
-    conn = sqlite3.connect('barber.db')
-    c = conn.cursor()
-    
-    c.execute('''SELECT a.id, a.client_name, a.client_phone, a.date, a.time, a.status,
-                        s.name as service_name, s.price
-                 FROM appointments a
-                 LEFT JOIN services s ON a.service_id = s.id
-                 WHERE a.barber_id = ?
-                 ORDER BY a.date, a.time''', (barber_id,))
-    
-    appointments = [
-        {
-            'id': row[0],
-            'client_name': row[1],
-            'client_phone': row[2],
-            'date': row[3],
-            'time': row[4],
-            'status': row[5],
-            'service_name': row[6],
-            'price': row[7]
-        }
-        for row in c.fetchall()
-    ]
-    
-    conn.close()
-    return jsonify(appointments)
-
-# ========== ТЕСТОВЫЙ ЭНДПОИНТ ==========
-@app.route('/api/test', methods=['GET'])
-def test_api():
-    """Тестовый endpoint"""
-    return jsonify({
-        'status': 'ok',
-        'message': 'Сервер Barber Booking работает',
-        'timestamp': datetime.now().isoformat(),
-        'structure': {
-            'templates': os.listdir(TEMPLATES_DIR) if os.path.exists(TEMPLATES_DIR) else 'not found',
-            'css': os.listdir(CSS_DIR) if os.path.exists(CSS_DIR) else 'not found',
-            'js': os.listdir(JS_DIR) if os.path.exists(JS_DIR) else 'not found'
-        }
-    })
-
 # ========== ЗАПУСК СЕРВЕРА ==========
 if __name__ == '__main__':
-    print("=" * 60)
-    print("✅ СЕРВЕР ЗАПУЩЕН ДЛЯ TELEGRAM MINI APP")
-    print("📌 Структура файлов:")
-    print(f"   • templates/: {os.listdir(TEMPLATES_DIR) if os.path.exists(TEMPLATES_DIR) else 'NOT FOUND'}")
-    print(f"   • css/: {os.listdir(CSS_DIR) if os.path.exists(CSS_DIR) else 'NOT FOUND'}")
-    print(f"   • js/: {os.listdir(JS_DIR) if os.path.exists(JS_DIR) else 'NOT FOUND'}")
-    print("=" * 60)
-    print("🌐 Доступные маршруты:")
+    print("=" * 80)
+    print("🚀 СЕРВЕР ЗАПУЩЕН")
+    print("📌 Доступные маршруты:")
     print("   • / - Главная страница")
+    print("   • /client-login.html - Вход клиента")
+    print("   • /barber-login.html - Вход барбера")
     print("   • /api/test - Тест API")
     print("   • /api/barbers - Список барберов")
-    print("   • /api/barber/B-ARBER003 - Инфо о барбере")
-    print("=" * 60)
+    print("=" * 80)
     
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
