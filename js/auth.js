@@ -1,10 +1,8 @@
 // js/auth.js - Обработка форм авторизации
-const API_BASE_URL = window.location.origin; // Автоматически определяем URL сервера
+const API_BASE_URL = 'https://barber-booking-db.onrender.com'; // ЯВНО указываем Render сервер
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Форма входа для клиентов (по коду) - БЕЗ ИЗМЕНЕНИЙ
-    
-    // Форма входа для барберов - ИСПРАВЛЕНА
+    // Форма входа для барберов - ИСПРАВЛЕНА ДЛЯ RENDER
     const barberForm = document.getElementById('barberLoginForm');
     if (barberForm) {
         barberForm.addEventListener('submit', async function(e) {
@@ -28,11 +26,15 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             
             try {
-                // Логин через API
+                console.log('Отправка запроса на:', API_BASE_URL + '/api/barber/login');
+                console.log('Данные:', { code: code, password: password });
+                
+                // Логин через API на Render
                 const response = await fetch(`${API_BASE_URL}/api/barber/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         code: code,
@@ -40,37 +42,53 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                 });
                 
+                console.log('Статус ответа:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error('Ошибка сети');
+                    const errorText = await response.text();
+                    console.error('Ошибка сервера:', errorText);
+                    
+                    // Пробуем распарсить как JSON
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        throw new Error(errorData.error || 'Ошибка сервера: ' + response.status);
+                    } catch {
+                        throw new Error('Ошибка сервера: ' + response.status);
+                    }
                 }
                 
                 const result = await response.json();
+                console.log('Результат входа:', result);
                 
                 if (result.success) {
                     // Сохраняем токен и данные барбера
                     if (result.token) {
                         localStorage.setItem('barber_token', result.token);
+                        console.log('Токен сохранен:', result.token.substring(0, 20) + '...');
                     }
-                    localStorage.setItem('barber_code', result.barber.code);
-                    localStorage.setItem('barber_name', result.barber.name);
-                    localStorage.setItem('barber_id', result.barber.id);
+                    if (result.barber) {
+                        localStorage.setItem('barber_code', result.barber.code);
+                        localStorage.setItem('barber_name', result.barber.name);
+                        localStorage.setItem('barber_id', result.barber.id);
+                    }
                     
                     showSuccess('Вход выполнен! Перенаправляем...');
                     
                     // ВАЖНО: Перенаправляем с токеном в URL
                     setTimeout(() => {
                         if (result.token) {
-                            window.location.href = '/barber-panel?token=' + encodeURIComponent(result.token);
+                            // Редирект на панель барбера на Render сервере
+                            window.location.href = API_BASE_URL + '/barber-panel?token=' + encodeURIComponent(result.token);
                         } else {
-                            window.location.href = '/barber-panel';
+                            window.location.href = API_BASE_URL + '/barber-panel';
                         }
                     }, 500);
                 } else {
                     showError(result.error || 'Ошибка входа');
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
-                showError('Ошибка соединения с сервером');
+                console.error('Ошибка входа:', error);
+                showError(error.message || 'Ошибка соединения с сервером');
             } finally {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -80,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (errorMessage) {
                     errorMessage.textContent = message;
                     errorMessage.style.display = 'block';
+                } else {
+                    alert(message); // На всякий случай
                 }
             }
             
@@ -100,98 +120,95 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Проверка авторизации на странице барбера - ИСПРАВЛЕНА
-    if (window.location.pathname.includes('barber-panel')) {
-        checkBarberAuth();
-    }
 });
 
-// Проверка авторизации барбера - ИСПРАВЛЕНА
+// Проверка авторизации барбера - ИСПРАВЛЕНА ДЛЯ RENDER
 async function checkBarberAuth() {
     const token = localStorage.getItem('barber_token');
     
-    // Проверяем токен в localStorage
     if (!token) {
-        // Если нет токена в localStorage, проверяем URL параметр
+        // Проверяем URL параметр
         const urlParams = new URLSearchParams(window.location.search);
         const urlToken = urlParams.get('token');
         
         if (urlToken) {
-            // Сохраняем токен из URL в localStorage
             localStorage.setItem('barber_token', urlToken);
-            
-            // Проверяем токен через API
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/barber/check`, {
-                    headers: {
-                        'Authorization': 'Bearer ' + urlToken
-                    }
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.authenticated) {
-                        // Сохраняем данные барбера
-                        localStorage.setItem('barber_code', result.barber.code);
-                        localStorage.setItem('barber_name', result.barber.name);
-                        localStorage.setItem('barber_id', result.barber.id);
-                        return; // Всё ок, остаемся на странице
-                    }
-                }
-            } catch (error) {
-                console.error('Ошибка проверки токена:', error);
-            }
+            console.log('Токен из URL сохранен');
+        } else {
+            // Редирект на страницу логина на Render
+            window.location.href = API_BASE_URL + '/barber-login';
+            return false;
         }
-        
-        // Если дошли сюда, значит не авторизованы
-        localStorage.removeItem('barber_token');
-        localStorage.removeItem('barber_code');
-        localStorage.removeItem('barber_name');
-        localStorage.removeItem('barber_id');
-        window.location.href = '/barber-login';
-        return;
     }
     
-    // Проверяем существующий токен
+    // Проверяем токен через API
     try {
+        console.log('Проверка токена...');
         const response = await fetch(`${API_BASE_URL}/api/barber/check`, {
             headers: {
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + (token || localStorage.getItem('barber_token')),
+                'Accept': 'application/json'
             }
         });
         
+        console.log('Статус проверки:', response.status);
+        
         if (response.status === 401) {
-            // Токен устарел, редирект на логин
+            console.log('Токен недействителен');
             localStorage.removeItem('barber_token');
             localStorage.removeItem('barber_code');
             localStorage.removeItem('barber_name');
             localStorage.removeItem('barber_id');
-            window.location.href = '/barber-login';
+            window.location.href = API_BASE_URL + '/barber-login';
+            return false;
         }
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Результат проверки:', result);
+            
+            if (result.authenticated && result.barber) {
+                // Сохраняем актуальные данные
+                localStorage.setItem('barber_code', result.barber.code);
+                localStorage.setItem('barber_name', result.barber.name);
+                localStorage.setItem('barber_id', result.barber.id);
+                return true;
+            }
+        }
+        
+        return false;
     } catch (error) {
         console.error('Ошибка проверки авторизации:', error);
+        return false;
     }
 }
 
-// Функция выхода - БЕЗ ИЗМЕНЕНИЙ
+// Функция выхода
 function logoutBarber() {
-    localStorage.removeItem('barber_token');
-    localStorage.removeItem('barber_code');
-    localStorage.removeItem('barber_name');
-    localStorage.removeItem('barber_id');
-    window.location.href = '/barber-login';
+    if (confirm('Вы действительно хотите выйти?')) {
+        localStorage.removeItem('barber_token');
+        localStorage.removeItem('barber_code');
+        localStorage.removeItem('barber_name');
+        localStorage.removeItem('barber_id');
+        window.location.href = API_BASE_URL + '/barber-login';
+    }
 }
 
-// Добавляем кнопку выхода - БЕЗ ИЗМЕНЕНИЙ
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.location.pathname.includes('barber-panel')) {
-        // Создаем кнопку выхода если её нет
-        setTimeout(() => {
-            const logoutBtn = document.getElementById('logoutBtn') || document.querySelector('.logout-btn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', logoutBarber);
-            }
-        }, 1000);
-    }
-});
+// Проверяем авторизацию на странице панели
+if (window.location.href.includes('barber-panel')) {
+    document.addEventListener('DOMContentLoaded', async function() {
+        const isAuthenticated = await checkBarberAuth();
+        if (!isAuthenticated) {
+            console.log('Не авторизован, редирект...');
+        } else {
+            console.log('Авторизован, показываем панель');
+        }
+    });
+}
+
+// Экспорт для использования в других файлах
+window.Auth = {
+    checkBarberAuth,
+    logoutBarber,
+    API_BASE_URL: API_BASE_URL
+};
