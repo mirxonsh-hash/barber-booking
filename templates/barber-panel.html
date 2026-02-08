@@ -481,3 +481,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </body>
 </html>
+<!-- В конце barber-panel.html -->
+<script src="/js/api.js"></script>
+<script src="/js/panel.js"></script>
+<script>
+    // Проверяем авторизацию при загрузке панели
+    document.addEventListener('DOMContentLoaded', async function() {
+        const auth = await BarberSystem.checkAuth();
+        
+        if (!auth.authenticated) {
+            // Если нет авторизации, редирект на логин
+            window.location.href = '/barber-login.html';
+            return;
+        }
+        
+        // Загружаем записи
+        loadAppointments();
+    });
+</script>
+
