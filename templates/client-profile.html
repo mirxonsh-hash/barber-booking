@@ -1046,6 +1046,90 @@
             }
         `;
         document.head.appendChild(style);
+        <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль клиента</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/client-profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка профиля -->
+        <div class="profile-header">
+            <div class="avatar-section" id="avatarSection">
+                <div class="avatar-circle" id="profileAvatar">
+                    <div class="avatar-initials" id="avatarInitials"></div>
+                </div>
+                <div class="avatar-info">
+                    <h2 id="profileName">Загрузка...</h2>
+                    <p id="profileUsername">@username</p>
+                </div>
+            </div>
+            <button class="btn-edit" onclick="editProfile()">Редактировать</button>
+        </div>
+
+        <!-- Секция телефона -->
+        <div class="info-section">
+            <h3>Телефон</h3>
+            <div class="info-item">
+                <span id="profilePhone">Не указан</span>
+                <button class="btn-icon" onclick="editPhone()">✏️</button>
+            </div>
+        </div>
+
+        <!-- Секция барберов -->
+        <div class="info-section">
+            <div class="section-header">
+                <h3>Мои барберы</h3>
+                <button class="btn-add" onclick="addBarber()" id="addBarberBtn">
+                    + Добавить барбера
+                </button>
+            </div>
+            
+            <!-- КОНТЕЙНЕР ДЛЯ БАРБЕРОВ (ВАЖНО!) -->
+            <div id="barbers-container" class="barbers-container">
+                <!-- Барберы будут загружаться сюда -->
+                <div class="loading">Загрузка барберов...</div>
+            </div>
+            
+            <!-- Сообщение, если нет барберов -->
+            <div id="no-barbers-message" class="no-barbers-message" style="display: none;">
+                <p>У вас пока нет добавленных барберов</p>
+            </div>
+        </div>
+
+        <!-- Уведомления -->
+        <div class="info-section">
+            <h3>Уведомления</h3>
+            <div class="toggle-item">
+                <span>Напоминания о записях</span>
+                <label class="switch">
+                    <input type="checkbox" id="notificationsToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления барбера -->
+    <div id="addBarberModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Добавить барбера</h3>
+            <p>Перейдите в Telegram-бота и найдите барбера</p>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="closeModal()">Отмена</button>
+                <button class="btn-primary" onclick="openTelegramBot()">Открыть Telegram</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/client-profile.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+</body>
+</html>
     </script>
 </body>
 </html>
