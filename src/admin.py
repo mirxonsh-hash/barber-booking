@@ -326,3 +326,184 @@ if __name__ == "__main__":
     main_menu()
     
     conn.close()
+
+# ========== НОВЫЙ ENDPOINT: ПОЛУЧЕНИЕ ЗАНЯТЫХ ВРЕМЕН ==========
+@app.route('/api/barber/<code>/booked-times', methods=['GET'])
+def get_barber_booked_times(code):
+    """Получение занятых времен для конкретного барбера и даты"""
+    try:
+        date = request.args.get('date')
+        
+        if not date:
+            return jsonify({'success': False, 'error': 'Не указана дата'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT appointment_time 
+        FROM appointments 
+        WHERE barber_code = %s 
+          AND appointment_date = %s
+          AND status != 'cancelled'
+        ORDER BY appointment_time
+        ''', (code, date))
+        
+        booked_times = []
+        for row in cursor.fetchall():
+            if row[0]:
+                # Преобразуем время в строку HH:MM
+                time_str = str(row[0])
+                if ':' in time_str:
+                    booked_times.append(time_str[:5])  # Берем только HH:MM
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'barber_code': code,
+            'date': date,
+            'booked_times': booked_times,
+            'count': len(booked_times)
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения занятых времен: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ========== ИСПРАВЛЕННЫЙ API ДЛЯ СОЗДАНИЯ ЗАПИСИ (с проверкой конфликта) ==========
+@app.route('/api/appointments/create', methods=['POST'])
+def create_client_appointment():
+    """Создание записи - РАБОЧАЯ ВЕРСИЯ С ПРОВЕРКОЙ КОНФЛИКТА"""
+    try:
+        data = request.json
+        logger.info(f"📥 Получен запрос на создание записи: {data}")
+        
+        required_fields = ['barber_code', 'client_name', 'client_phone', 'service_name', 'price', 'date', 'time']
+        missing_fields = []
+        for field in required_fields:
+            if not data.get(field):
+                missing_fields.append(field)
+        
+        if missing_fields:
+            error_msg = f'Отсутствуют обязательные поля: {", ".join(missing_fields)}'
+            logger.error(error_msg)
+            return jsonify({'success': False, 'error': error_msg}), 400
+        
+        barber_code = data['barber_code']
+        appointment_date = data['date']
+        appointment_time = data['time']
+        
+        logger.info(f"✂️ Создание записи для барбера: {barber_code} на {appointment_date} в {appointment_time}")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 1. Проверяем существование барбера
+        cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (barber_code,))
+        barber = cursor.fetchone()
+        
+        if not barber:
+            logger.error(f"❌ Барбер с кодом {barber_code} не найден в базе")
+            conn.close()
+            return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
+        
+        barber_name = barber[1] if barber[1] else f"Барбер {barber_code}"
+        
+        # 2. ПРОВЕРЯЕМ КОНФЛИКТ ВРЕМЕНИ - НОВАЯ ПРОВЕРКА!
+        cursor.execute('''
+        SELECT id, client_name, client_phone, service_name, appointment_time
+        FROM appointments 
+        WHERE barber_code = %s 
+          AND appointment_date = %s 
+          AND appointment_time = %s
+          AND status != 'cancelled'  # Не считаем отмененные записи
+        ''', (barber_code, appointment_date, appointment_time))
+        
+        conflicting_appointment = cursor.fetchone()
+        
+        if conflicting_appointment:
+            conn.close()
+            logger.warning(f"⏰ Время уже занято! ID конфликтной записи: {conflicting_appointment[0]}")
+            return jsonify({
+                'success': False, 
+                'error': 'Это время уже занято другим клиентом',
+                'conflict_with': {
+                    'id': conflicting_appointment[0],
+                    'client_name': conflicting_appointment[1],
+                    'client_phone': conflicting_appointment[2],
+                    'service': conflicting_appointment[3],
+                    'time': str(conflicting_appointment[4])
+                }
+            }), 409  # HTTP 409 Conflict
+        
+        # 3. Если время свободно - создаем запись
+        try:
+            cursor.execute('''
+            INSERT INTO appointments 
+            (barber_code, client_name, client_phone, service_name, price, 
+             appointment_date, appointment_time, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
+            RETURNING id
+            ''', (
+                barber_code,
+                data['client_name'],
+                data['client_phone'],
+                data['service_name'],
+                data['price'],
+                appointment_date,
+                appointment_time
+            ))
+            
+            result = cursor.fetchone()
+            appointment_id = result[0]
+            
+            conn.commit()
+            
+            logger.info(f"✅ Запись успешно создана! ID: {appointment_id}")
+            
+            appointment_data = {
+                'appointment_id': appointment_id,
+                'barber_code': barber_code,
+                'barber_name': barber_name,
+                'client_name': data['client_name'],
+                'client_phone': data['client_phone'],
+                'service_name': data['service_name'],
+                'price': data['price'],
+                'date': data['date'],
+                'time': data['time']
+            }
+            
+            try:
+                send_telegram_notification(appointment_data)
+            except Exception as tg_error:
+                logger.warning(f"⚠️ Ошибка отправки в Telegram: {tg_error}")
+            
+            conn.close()
+            
+            return jsonify({
+                'success': True, 
+                'message': 'Запись успешно создана',
+                'appointment_id': appointment_id,
+                'appointment': {
+                    'id': appointment_id,
+                    'client_name': data['client_name'],
+                    'client_phone': data['client_phone'],
+                    'service_name': data['service_name'],
+                    'price': data['price'],
+                    'date': data['date'],
+                    'time': data['time'],
+                    'barber_code': barber_code
+                }
+            })
+            
+        except Exception as db_error:
+            logger.error(f"❌ Ошибка при вставке в БД: {db_error}")
+            conn.rollback()
+            conn.close()
+            return jsonify({'success': False, 'error': f'Ошибка базы данных: {db_error}'}), 500
+        
+    except Exception as e:
+        logger.error(f"❌ Общая ошибка создания записи: {e}")
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
+
