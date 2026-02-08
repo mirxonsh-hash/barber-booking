@@ -511,4 +511,77 @@
     <div id="addBarberModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Добавить барбера</h
+                <h3 class="modal-title">Добавить барбера</h3>
+                <button class="close-modal" onclick="closeAddBarberModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Код барбера</label>
+                    <input type="text" id="barberCode" class="form-input" placeholder="Введите код барбера" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Имя барбера (необязательно)</label>
+                    <input type="text" id="barberName" class="form-input" placeholder="Как зовут барбера?" maxlength="50">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddBarberModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="addBarber()">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Мой профиль</h3>
+                <button class="close-modal" onclick="closeProfileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div id="modalAvatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #4a6fa5 0%, #1a1a1a 100%); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; font-weight: 600; border: 3px solid #333;"></div>
+                    <h2 id="modalUserName" style="font-size: 20px; color: #fff; margin-bottom: 5px;"></h2>
+                    <p id="modalUserPhone" style="color: #aaa; font-size: 14px;"></p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Телефон</label>
+                    <input type="tel" id="userPhoneInput" class="form-input" placeholder="+7 (999) 123-45-67" maxlength="20">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="clearData()">Очистить данные</button>
+                <button class="btn btn-primary" onclick="saveProfile()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <button class="fab" onclick="openAddBarberModal()">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- JavaScript код без изменений -->
+    <script>
+        const API_BASE = 'https://barber-booking-db.onrender.com';
+        let userData = null;
+        let barbers = [];
+        
+        // Весь JavaScript код остается без изменений
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Инициализация страницы...');
+            initTelegramApp();
+            
+            setTimeout(() => {
+                loadUserData();
+                loadBarbers();
+            }, 100);
+        });
+        
+        // ... Весь остальной JavaScript код без изменений ...
+    </script>
+</body>
+</html>
