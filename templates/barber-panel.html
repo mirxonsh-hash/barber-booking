@@ -500,3 +500,90 @@
     });
 </script>
 
+<!-- В конце barber-panel.html -->
+<script>
+// Проверка авторизации - ИСПРАВЛЕННАЯ ВЕРСИЯ
+document.addEventListener('DOMContentLoaded', function() {
+    // Проверяем токен в URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+        // Сохраняем токен из URL в localStorage
+        localStorage.setItem('barber_token', token);
+        console.log('Токен из URL сохранен');
+        
+        // Загружаем записи
+        loadAppointments();
+    } else {
+        // Если нет токена в URL, проверяем localStorage
+        const localToken = localStorage.getItem('barber_token');
+        if (localToken) {
+            // Токен есть в localStorage - загружаем записи
+            console.log('Используем токен из localStorage');
+            loadAppointments();
+        } else {
+            // Нет токена нигде - показываем сообщение
+            document.getElementById('appointmentsList').innerHTML = `
+                <div class="empty-state">
+                    <h3>⚠️ Требуется авторизация</h3>
+                    <p>Пожалуйста, войдите в систему</p>
+                    <button onclick="window.location.href='https://barber-booking-db.onrender.com/barber-login'" 
+                            class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </button>
+                </div>
+            `;
+        }
+    }
+});
+
+// Функция загрузки записей
+async function loadAppointments() {
+    const token = localStorage.getItem('barber_token') || 
+                  new URLSearchParams(window.location.search).get('token');
+    
+    if (!token) {
+        console.error('Нет токена для загрузки записей');
+        return;
+    }
+    
+    try {
+        // Загружаем записи с сервера
+        const response = await fetch('https://barber-booking-db.onrender.com/api/barber/appointments', {
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+        
+        if (response.status === 401) {
+            // Токен недействителен
+            localStorage.removeItem('barber_token');
+            showLoginPrompt();
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.appointments) {
+            // Отображаем записи
+            renderAppointments(data.appointments);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки записей:', error);
+    }
+}
+
+function showLoginPrompt() {
+    document.getElementById('appointmentsList').innerHTML = `
+        <div class="empty-state">
+            <h3>⚠️ Сессия истекла</h3>
+            <p>Пожалуйста, войдите снова</p>
+            <button onclick="window.location.href='https://barber-booking-db.onrender.com/barber-login'" 
+                    class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Войти снова
+            </button>
+        </div>
+    `;
+}
+</script>
