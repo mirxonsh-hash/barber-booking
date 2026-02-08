@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, session, render_template
+from flask import Flask, request, jsonify, send_from_directory, session, render_template, redirect
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import os
@@ -75,59 +75,6 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
-           # ========== РЕДИРЕКТЫ ДЛЯ .HTML ССЫЛОК ==========
-@app.route('/barber-login.html')
-def redirect_barber_login():
-    return redirect('/barber-login')
-
-@app.route('/client-login.html')
-def redirect_client_login():
-    return redirect('/client-login')
-
-@app.route('/profile.html')
-def redirect_profile():
-    return redirect('/profile')
-
-@app.route('/barber-panel.html')
-def redirect_barber_panel():
-    return redirect('/barber-panel')
-
-@app.route('/master-login.html')
-def redirect_master_login():
-    return redirect('/master-login')
-
-@app.route('/master-panel.html')
-def redirect_master_panel():
-    return redirect('/master-panel')
-
-@app.route('/schedule.html')
-def redirect_schedule():
-    return redirect('/schedule')
-
-@app.route('/index.html')
-def redirect_index():
-    return redirect('/')
-
-           # Добавьте эти строки для поддержки .html ссылок
-@app.route('/client-login.html')
-def client_login_html():
-    return redirect('/client-login')
-
-@app.route('/barber-login.html')
-def barber_login_html():
-    return redirect('/barber-login')
-
-@app.route('/profile.html')
-def profile_html():
-    return redirect('/profile')
-
-@app.route('/barber-panel.html')
-def barber_panel_html():
-    return redirect('/barber-panel')
-
-@app.route('/index.html')
-def index_html():
-    return redirect('/')
     
     conn.commit()
     conn.close()
@@ -172,6 +119,44 @@ def master_panel_page():
 @app.route('/schedule')
 def schedule_page():
     return render_template('schedule.html')
+
+# ========== РЕДИРЕКТЫ ДЛЯ .HTML ССЫЛОК ==========
+@app.route('/barber-login.html')
+def redirect_barber_login():
+    return redirect('/barber-login')
+
+@app.route('/client-login.html')
+def redirect_client_login():
+    return redirect('/client-login')
+
+@app.route('/profile.html')
+def redirect_profile():
+    return redirect('/profile')
+
+@app.route('/barber-panel.html')
+def redirect_barber_panel():
+    return redirect('/barber-panel')
+
+@app.route('/master-login.html')
+def redirect_master_login():
+    return redirect('/master-login')
+
+@app.route('/master-panel.html')
+def redirect_master_panel():
+    return redirect('/master-panel')
+
+@app.route('/schedule.html')
+def redirect_schedule():
+    return redirect('/schedule')
+
+@app.route('/index.html')
+def redirect_index():
+    return redirect('/')
+
+@app.route('/client-profile.html')
+def redirect_client_profile():
+    code = request.args.get('code', '')
+    return redirect(f'/profile?code={code}')
 
 # ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/barber/login', methods=['POST'])
