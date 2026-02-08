@@ -1267,6 +1267,201 @@
         function goToProfile() {
             window.location.href = API_BASE + '/client-profile';
         }
+        <!-- Вставьте этот скрипт в конец client-panel.html перед закрывающим </script> -->
+<script>
+// Обновляем функцию успешной записи
+async function submitBooking() {
+    if (!validateStep4()) {
+        return;
+    }
+    
+    if (!bookingData.barber || !bookingData.service || !bookingData.date || !bookingData.time || !bookingData.clientName || !bookingData.clientPhone) {
+        showError('Заполните все данные');
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    try {
+        submitBtn.innerHTML = '<span class="loading-spinner"></span> Создание записи...';
+        submitBtn.disabled = true;
+        
+        console.log('📤 Отправка записи на сервер:', bookingData);
+        
+        // Получаем данные пользователя для отправки telegram_id
+        const savedUser = localStorage.getItem('telegram_user');
+        let telegram_id = null;
+        let first_name = '';
+        let last_name = '';
+        
+        if (savedUser) {
+            const userData = JSON.parse(savedUser);
+            telegram_id = userData.id;
+            first_name = userData.firstName || '';
+            last_name = userData.lastName || '';
+        }
+        
+        const response = await fetch(`${API_BASE}/api/appointments/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                barber_code: bookingData.barber.code,
+                client_name: bookingData.clientName,
+                client_phone: bookingData.clientPhone,
+                service_name: bookingData.service.name,
+                price: bookingData.service.price,
+                date: bookingData.date,
+                time: bookingData.time,
+                telegram_id: telegram_id,
+                first_name: first_name,
+                last_name: last_name
+            })
+        });
+        
+        const result = await response.json();
+        console.log('📥 Ответ сервера:', result);
+        
+        if (result.success) {
+            // Сохраняем барбера для будущих записей
+            localStorage.setItem('last_barber_code', bookingData.barber.code);
+            
+            // Сохраняем запись в историю
+            const appointment = {
+                id: result.appointment_id,
+                service: bookingData.service.name,
+                price: bookingData.service.price,
+                date: bookingData.date,
+                time: bookingData.time,
+                barber: bookingData.barber.name,
+                barber_code: bookingData.barber.code,
+                status: 'active'
+            };
+            
+            // Сохраняем в localStorage для быстрого доступа
+            const savedHistory = localStorage.getItem('user_appointments');
+            let history = [];
+            if (savedHistory) {
+                history = JSON.parse(savedHistory);
+            }
+            history.unshift(appointment);
+            localStorage.setItem('user_appointments', JSON.stringify(history));
+            
+            // Обновляем данные пользователя
+            if (savedUser) {
+                const userData = JSON.parse(savedUser);
+                userData.last_barber_code = bookingData.barber.code;
+                localStorage.setItem('telegram_user', JSON.stringify(userData));
+            }
+            
+            // Показываем экран успеха с таймером
+            showSuccessWithTimer(result);
+            
+        } else {
+            showError(result.error || 'Ошибка создания записи');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка при создании записи:', error);
+        showError('Ошибка соединения с сервером. Попробуйте еще раз.');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+// Показываем экран успеха с таймером редиректа
+function showSuccessWithTimer(result) {
+    // Скрываем текущий шаг
+    const currentStepElement = document.querySelector(`.step[data-step="${currentStep}"]`);
+    const currentContent = document.getElementById(`step${currentStep}`);
+    
+    if (currentStepElement && currentContent) {
+        currentStepElement.classList.remove('active');
+        currentContent.classList.remove('active');
+    }
+    
+    // Показываем шаг успеха
+    currentStep = 5;
+    const successStepElement = document.querySelector('.step[data-step="5"]');
+    const successContent = document.getElementById('step5');
+    
+    if (successStepElement && successContent) {
+        successStepElement.classList.add('active');
+        successContent.classList.add('active');
+    }
+    
+    // Обновляем информацию в успешном сообщении
+    if (bookingData.displayDate && bookingData.time) {
+        document.getElementById('confirmDateTime').textContent = 
+            `${bookingData.displayDate} в ${bookingData.time}`;
+    }
+    document.getElementById('confirmBarberName').textContent = bookingData.barber.name;
+    
+    // Добавляем информацию о записи
+    const successMessage = document.querySelector('#step5 .success-message');
+    if (successMessage) {
+        successMessage.innerHTML = `
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 style="margin-bottom: 15px; color: #28a745;">Запись подтверждена! 🎉</h2>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left;">
+                <p style="margin-bottom: 10px;"><strong>Барбер:</strong> ${bookingData.barber.name}</p>
+                <p style="margin-bottom: 10px;"><strong>Дата и время:</strong> ${bookingData.displayDate} в ${bookingData.time}</p>
+                <p style="margin-bottom: 10px;"><strong>Услуга:</strong> ${bookingData.service.name}</p>
+                <p style="margin-bottom: 10px;"><strong>Цена:</strong> ${bookingData.service.price} руб.</p>
+                <p style="margin-bottom: 10px;"><strong>ID записи:</strong> ${result.appointment_id}</p>
+            </div>
+            <p style="margin-bottom: 10px; color: #666;">Барбер ожидает вас в указанное время</p>
+            <p style="margin-bottom: 25px; color: #666; font-size: 14px;" id="redirectTimer">Через 5 секунд вы будете перенаправлены в профиль...</p>
+            <button class="btn" onclick="goToProfile()" style="margin-bottom: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-user"></i> Перейти в профиль сейчас
+            </button>
+            <button class="btn btn-secondary" onclick="createAnotherAppointment()">
+                <i class="fas fa-plus"></i> Создать еще одну запись
+            </button>
+        `;
+        
+        // Запускаем таймер редиректа
+        startRedirectTimer();
+    }
+}
+
+// Таймер редиректа
+let redirectTimer = 5;
+let timerInterval;
+
+function startRedirectTimer() {
+    const timerElement = document.getElementById('redirectTimer');
+    if (!timerElement) return;
+    
+    timerInterval = setInterval(() => {
+        redirectTimer--;
+        timerElement.textContent = `Через ${redirectTimer} секунд вы будете перенаправлены в профиль...`;
+        
+        if (redirectTimer <= 0) {
+            clearInterval(timerInterval);
+            goToProfile();
+        }
+    }, 1000);
+}
+
+// Функция для создания еще одной записи
+function createAnotherAppointment() {
+    clearInterval(timerInterval);
+    window.location.reload();
+}
+
+// Переход в профиль
+function goToProfile() {
+    clearInterval(timerInterval);
+    window.location.href = API_BASE + '/client-profile';
+}
+</script>
     </script>
 </body>
 </html>
