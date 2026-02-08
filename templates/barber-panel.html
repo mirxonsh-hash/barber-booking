@@ -145,6 +145,11 @@
             cursor: pointer;
             font-size: 12px;
             margin-right: 5px;
+            transition: opacity 0.3s;
+        }
+        
+        .action-btn:hover {
+            opacity: 0.8;
         }
         
         .btn-confirm {
@@ -190,6 +195,10 @@
             font-weight: bold;
             color: #667eea;
             margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            display: inline-block;
         }
         
         .code-label {
@@ -225,6 +234,10 @@
         
         .btn-primary:hover {
             background: #5a6fd8;
+        }
+        
+        .loading {
+            opacity: 0.7;
         }
     </style>
 </head>
@@ -292,7 +305,7 @@
         const API_BASE = 'https://barber-booking-db.onrender.com';
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Панель барбера загружается...');
+            console.log('🚀 Панель барбера загружается...');
             
             // Получаем токен из URL или localStorage
             const urlParams = new URLSearchParams(window.location.search);
@@ -304,7 +317,7 @@
             if (tokenFromUrl) {
                 // Сохраняем токен из URL в localStorage
                 localStorage.setItem('barber_token', tokenFromUrl);
-                console.log('Токен из URL сохранен в localStorage');
+                console.log('🔑 Токен из URL сохранен в localStorage');
             }
             
             if (!token) {
@@ -319,7 +332,7 @@
         
         async function checkAuthAndLoadData(token) {
             try {
-                console.log('Проверяем авторизацию с токеном...');
+                console.log('🔍 Проверяем авторизацию с токеном...');
                 
                 // Проверяем токен
                 const authResponse = await fetch(`${API_BASE}/api/barber/check`, {
@@ -331,7 +344,7 @@
                 
                 if (authResponse.ok) {
                     const authData = await authResponse.json();
-                    console.log('Данные авторизации:', authData);
+                    console.log('✅ Данные авторизации:', authData);
                     
                     if (authData.authenticated && authData.barber) {
                         // Сохраняем данные барбера
@@ -349,14 +362,14 @@
                     }
                 } else if (authResponse.status === 401) {
                     // Токен невалидный
-                    console.log('Токен недействителен');
+                    console.log('❌ Токен недействителен');
                     localStorage.removeItem('barber_token');
                     showLoginPrompt();
                 } else {
                     throw new Error('Ошибка проверки токена');
                 }
             } catch (error) {
-                console.error('Ошибка проверки авторизации:', error);
+                console.error('❌ Ошибка проверки авторизации:', error);
                 showLoginPrompt();
             }
         }
@@ -374,7 +387,7 @@
         }
         
         async function loadAppointments(token) {
-            console.log('Загружаем записи...');
+            console.log('📥 Загружаем записи...');
             
             try {
                 const response = await fetch(`${API_BASE}/api/barber/appointments`, {
@@ -386,7 +399,7 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Записи загружены:', data);
+                    console.log('✅ Записи загружены:', data);
                     
                     if (data.appointments) {
                         displayAppointments(data.appointments);
@@ -403,7 +416,7 @@
                     throw new Error('Ошибка загрузки записей');
                 }
             } catch (error) {
-                console.error('Ошибка загрузки записей:', error);
+                console.error('❌ Ошибка загрузки записей:', error);
                 showErrorMessage('Ошибка загрузки записей');
             }
         }
@@ -446,10 +459,10 @@
                 html += `
                     <tr>
                         <td>${dateStr} ${app.time || ''}</td>
-                        <td>${app.client_name || 'Клиент'}</td>
-                        <td>${app.client_phone || ''}</td>
+                        <td><strong>${app.client_name || 'Клиент'}</strong></td>
+                        <td><code>${app.client_phone || ''}</code></td>
                         <td>${app.service_name || ''}</td>
-                        <td>${app.price || ''} руб.</td>
+                        <td><strong>${app.price || ''} руб.</strong></td>
                         <td><span class="status ${statusClass}">${getStatusText(app.status)}</span></td>
                         <td>
                             ${(!app.status || app.status === 'active') ? `
@@ -501,7 +514,7 @@
         }
         
         async function updateStatus(appointmentId, newStatus) {
-            if (!confirm('Вы уверены, что хотите изменить статус записи?')) {
+            if (!confirm(`Вы уверены, что хотите изменить статус записи #${appointmentId} на "${getStatusText(newStatus)}"?`)) {
                 return;
             }
             
@@ -512,8 +525,8 @@
             }
             
             try {
-                // Отправляем запрос на обновление статуса
-                // (нужно добавить этот endpoint на сервере)
+                console.log(`🔄 Обновление статуса записи #${appointmentId} на "${newStatus}"`);
+                
                 const response = await fetch(`${API_BASE}/api/appointments/${appointmentId}/status`, {
                     method: 'PUT',
                     headers: {
@@ -524,15 +537,31 @@
                 });
                 
                 if (response.ok) {
-                    alert(`Статус записи #${appointmentId} изменен на "${getStatusText(newStatus)}"`);
-                    loadAppointments(token);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(`✅ Статус записи #${appointmentId} изменен на "${getStatusText(newStatus)}"`);
+                        // Обновляем записи
+                        loadAppointments(token);
+                    } else {
+                        alert('❌ Ошибка: ' + result.error);
+                    }
+                } else if (response.status === 404) {
+                    alert('❌ Запись не найдена');
+                } else if (response.status === 403) {
+                    alert('❌ Нет прав для изменения этой записи');
+                } else if (response.status === 405) {
+                    // Если endpoint еще не добавлен на сервер
+                    alert('⚠️ Функция изменения статуса временно недоступна');
+                    console.log('Endpoint /api/appointments/<id>/status не настроен на сервере');
                 } else {
-                    alert('Ошибка обновления статуса');
+                    const errorText = await response.text();
+                    console.error('Ошибка сервера:', errorText);
+                    alert('❌ Ошибка сервера: ' + response.status);
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
-                alert('Демо: Статус изменен локально');
-                loadAppointments(token); // Перезагружаем
+                console.error('❌ Ошибка сети:', error);
+                alert('⚠️ Ошибка соединения с сервером');
             }
         }
         
@@ -575,9 +604,22 @@
         setInterval(() => {
             const token = localStorage.getItem('barber_token');
             if (token) {
+                console.log('🔄 Авто-обновление записей...');
                 loadAppointments(token);
             }
         }, 60000);
+        
+        // Кнопка для ручного обновления
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                const token = localStorage.getItem('barber_token');
+                if (token) {
+                    console.log('🔄 Ручное обновление записей...');
+                    loadAppointments(token);
+                }
+            }
+        });
     </script>
 </body>
 </html>
