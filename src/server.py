@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, session, render_template, redirect
+from flask import Flask, request, jsonify, send_from_directory, session, render_template, redirect, url_for
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import os
@@ -145,7 +145,10 @@ def barber_panel_page():
 
 @app.route('/client-login')
 def client_login_page():
-    return render_template('client-login.html')
+    """Страница входа клиента с поиском барбера"""
+    error = request.args.get('error', '')
+    code = request.args.get('code', '')
+    return render_template('client-login.html', error=error, code=code)
 
 @app.route('/client-panel')
 def client_panel_page():
@@ -166,6 +169,37 @@ def master_login_page():
 def master_panel_page():
     # Редирект на barber-panel (убираем master-panel)
     return redirect('/barber-panel')
+
+# ========== ПОИСК БАРБЕРА (КЛИЕНТСКИЙ ВХОД) ==========
+@app.route('/client/find', methods=['GET', 'POST'])
+def find_barber():
+    """Обработка поиска барбера - редирект на client-panel"""
+    if request.method == 'POST':
+        # Если POST запрос (из формы)
+        code = request.form.get('code', '').strip()
+    else:
+        # Если GET запрос (из URL или кнопки)
+        code = request.args.get('code', '').strip()
+    
+    if not code:
+        # Если код не указан, возвращаем на страницу входа
+        return redirect('/client-login')
+    
+    # Проверяем существование барбера
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (code,))
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        # Барбер найден - редирект на client-panel
+        logger.info(f"Клиент нашел барбера: {result[1]} (код: {code})")
+        return redirect(f'/client-panel?code={code}')
+    else:
+        # Барбер не найден - возвращаем с сообщением об ошибке
+        logger.warning(f"Клиент искал несуществующего барбера: {code}")
+        return redirect(url_for('client_login_page', error='Барбер с таким кодом не найден', code=code))
 
 # ========== РЕДИРЕКТЫ ДЛЯ .HTML ==========
 @app.route('/barber-login.html')
@@ -208,10 +242,10 @@ def redirect_client_profile():
 # ========== API ДЛЯ КЛИЕНТСКОГО ВХОДА ==========
 @app.route('/api/client/login', methods=['POST'])
 def client_login():
-    """Авторизация клиента по коду барбера и редирект на client-panel"""
+    """API авторизации клиента по коду барбера"""
     try:
         data = request.json
-        code = data.get('code')
+        code = data.get('code', '').strip()
         
         if not code:
             return jsonify({'success': False, 'error': 'Введите код барбера'}), 400
@@ -303,7 +337,7 @@ def check_barber_auth():
 
 @app.route('/api/barber/appointments', methods=['GET'])
 def get_barber_appointments():
-    """Получение записей для барбера с улучшенным логированием"""
+    """Получение записей для барбера"""
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     logger.info(f"Запрос на получение записей. Токен: {'представлен' if token else 'отсутствует'}")
     
@@ -590,6 +624,7 @@ if __name__ == '__main__':
     print("   • /barber-panel - Панель барбера")
     print("   • /client-login - Вход клиента")
     print("   • /client-panel - Панель записи клиента")
+    print("   • /client/find - Поиск барбера")
     print("   • /api/barber/login - API вход барбера")
     print("   • /api/client/login - API вход клиента")
     print("   • /api/barber/<code>/services - Услуги барбера")
