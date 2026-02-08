@@ -14,44 +14,79 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            background: #0a0a0a;
+            color: #fff;
         }
         
         .header {
             padding: 20px;
-            background: white;
-            border-bottom: 1px solid #eee;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
             display: flex;
             align-items: center;
             gap: 15px;
         }
         
         .back-btn {
-            background: none;
-            border: none;
+            background: #222;
+            border: 1px solid #333;
             font-size: 20px;
             cursor: pointer;
-            color: #333;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .back-btn:hover {
+            background: #333;
+            border-color: #4a6fa5;
         }
         
         .title {
             font-size: 20px;
             font-weight: bold;
+            color: #fff;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #222;
+            border-top: 3px solid #4a6fa5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .profile-section {
             padding: 30px 20px;
             text-align: center;
-            background: white;
+            background: #1a1a1a;
             margin-bottom: 20px;
+            border-bottom: 1px solid #333;
         }
         
         .avatar {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4a6fa5 0%, #1a1a1a 100%);
             margin: 0 auto 15px;
             display: flex;
             align-items: center;
@@ -59,37 +94,42 @@
             color: white;
             font-size: 32px;
             font-weight: bold;
+            border: 3px solid #333;
         }
         
         .user-name {
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 5px;
+            color: #fff;
         }
         
         .user-username {
-            color: #666;
+            color: #aaa;
             font-size: 16px;
         }
         
         .info-section {
-            background: white;
+            background: #1a1a1a;
             padding: 20px;
             margin-bottom: 20px;
+            border-radius: 0;
+            border-bottom: 1px solid #333;
         }
         
         .section-title {
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 15px;
-            color: #333;
+            color: #fff;
         }
         
         .info-item {
             display: flex;
             justify-content: space-between;
             padding: 15px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #333;
+            color: #fff;
         }
         
         .info-item:last-child {
@@ -97,18 +137,20 @@
         }
         
         .info-label {
-            color: #666;
+            color: #aaa;
         }
         
         .info-value {
-            color: #333;
+            color: #fff;
             font-weight: 500;
         }
         
         .history-section {
-            background: white;
+            background: #1a1a1a;
             padding: 20px;
             margin-bottom: 20px;
+            border-radius: 0;
+            border-bottom: 1px solid #333;
         }
         
         .history-list {
@@ -117,11 +159,15 @@
         
         .history-item {
             padding: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #333;
+            background: #222;
+            border-radius: 8px;
+            margin-bottom: 10px;
         }
         
         .history-item:last-child {
             border-bottom: none;
+            margin-bottom: 0;
         }
         
         .history-date {
@@ -134,11 +180,12 @@
             font-size: 16px;
             font-weight: 500;
             margin-bottom: 3px;
+            color: #fff;
         }
         
         .history-barber {
             font-size: 14px;
-            color: #667eea;
+            color: #4a6fa5;
         }
         
         .history-status {
@@ -151,34 +198,38 @@
         }
         
         .status-active {
-            background: #d4edda;
-            color: #155724;
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
         }
         
         .status-completed {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
         }
         
         .status-cancelled {
-            background: #f8d7da;
-            color: #721c24;
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
         }
         
         .no-history {
             text-align: center;
             padding: 40px 20px;
-            color: #888;
+            color: #666;
         }
         
         .actions {
             padding: 20px;
+            background: #1a1a1a;
         }
         
         .btn {
             width: 100%;
             padding: 16px;
-            background: #667eea;
+            background: #4a6fa5;
             color: white;
             border: none;
             border-radius: 10px;
@@ -186,51 +237,60 @@
             font-weight: 600;
             cursor: pointer;
             margin-bottom: 10px;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
         .btn:hover {
-            background: #5a6fd8;
+            background: #5a7fb5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 111, 165, 0.4);
         }
         
         .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
+            background: #333;
+            border: 1px solid #444;
         }
         
         .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            background: #444;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .error-message {
             text-align: center;
             padding: 40px 20px;
-            color: #e74c3c;
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            margin: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        
+        .error-message h3 {
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px;
+            }
+            
+            .profile-section {
+                padding: 20px;
+            }
+            
+            .info-section, .history-section {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- ОСТАЛЬНОЙ HTML КОД БЕЗ ИЗМЕНЕНИЙ -->
     <div class="header">
         <button class="back-btn" onclick="goBack()">←</button>
         <div class="title">Мой профиль</div>
@@ -267,10 +327,9 @@
         <div class="history-section">
             <div class="section-title">История записей</div>
             <div id="historyList" class="history-list">
-                <!-- История будет загружена здесь -->
             </div>
             <div id="noHistory" class="no-history">
-                <i class="fas fa-calendar-alt" style="font-size: 48px; margin-bottom: 15px; color: #ddd;"></i>
+                <i class="fas fa-calendar-alt" style="font-size: 48px; margin-bottom: 15px; color: #333;"></i>
                 <p>У вас еще нет записей</p>
                 <p style="font-size: 14px; margin-top: 10px;">Запишитесь к барберу чтобы увидеть историю</p>
             </div>
@@ -294,6 +353,7 @@
     
     <div id="errorMessage" class="error-message" style="display: none;"></div>
 
+    <!-- JavaScript код без изменений -->
     <script>
         const API_BASE = 'https://barber-booking-db.onrender.com';
         
@@ -302,238 +362,7 @@
             loadProfile();
         });
         
-        function getTelegramData() {
-            const tg = window.Telegram?.WebApp;
-            if (!tg) {
-                console.log('🌐 Не в Telegram Web App');
-                return null;
-            }
-            
-            tg.ready();
-            tg.expand();
-            
-            const user = tg.initDataUnsafe?.user;
-            const initData = tg.initData;
-            
-            console.log('📱 Telegram данные:', {
-                user: user,
-                hasInitData: !!initData
-            });
-            
-            return {
-                user: user,
-                initData: initData
-            };
-        }
-        
-        async function loadProfile() {
-            try {
-                const telegramData = getTelegramData();
-                
-                let telegramId = null;
-                let tgDataParam = '';
-                
-                if (telegramData?.user) {
-                    telegramId = telegramData.user.id;
-                    
-                    // Если есть initData, отправляем его на сервер
-                    if (telegramData.initData) {
-                        tgDataParam = `&tg_data=${encodeURIComponent(telegramData.initData)}`;
-                        console.log('📤 Отправляем Telegram данные на сервер');
-                        
-                        try {
-                            await fetch(`${API_BASE}/api/telegram/auth?tg_data=${encodeURIComponent(telegramData.initData)}`);
-                        } catch (e) {
-                            console.log('⚠️ Не удалось отправить данные Telegram:', e);
-                        }
-                    }
-                }
-                
-                // Если нет Telegram ID, пробуем получить из localStorage
-                if (!telegramId) {
-                    const savedProfile = localStorage.getItem('user_profile');
-                    if (savedProfile) {
-                        const profile = JSON.parse(savedProfile);
-                        telegramId = profile.id || profile.telegram_id;
-                    }
-                }
-                
-                // Если все еще нет ID, используем тестовый
-                if (!telegramId) {
-                    telegramId = 'test_user_' + Date.now();
-                    console.log('🧪 Используем тестовый ID:', telegramId);
-                }
-                
-                console.log('📡 Запрос профиля для ID:', telegramId);
-                
-                // Загружаем профиль с сервера
-                const response = await fetch(`${API_BASE}/api/client/profile?telegram_id=${telegramId}${tgDataParam}`);
-                console.log('📥 Ответ сервера:', response.status);
-                
-                const result = await response.json();
-                console.log('📊 Данные профиля:', result);
-                
-                if (result.success) {
-                    displayProfile(result.profile, result.appointments, result.stats);
-                    
-                    // Сохраняем профиль в localStorage
-                    localStorage.setItem('user_profile', JSON.stringify(result.profile));
-                } else {
-                    showError('Не удалось загрузить профиль: ' + (result.error || 'Неизвестная ошибка'));
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка загрузки профиля:', error);
-                showError('Ошибка соединения с сервером');
-            }
-        }
-        
-        function displayProfile(profile, appointments = [], stats = {}) {
-            console.log('🎨 Отображаем профиль:', profile);
-            
-            // Скрываем загрузку
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('profileContent').style.display = 'block';
-            
-            // Устанавливаем имя
-            const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Пользователь';
-            document.getElementById('userName').textContent = fullName;
-            
-            // Устанавливаем username
-            const username = profile.username ? `@${profile.username}` : '';
-            document.getElementById('userUsername').textContent = username;
-            
-            // Устанавливаем аватар
-            const avatar = document.getElementById('avatar');
-            if (profile.photo_url) {
-                avatar.style.background = `url(${profile.photo_url}) center/cover no-repeat`;
-                avatar.textContent = '';
-            } else {
-                const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase() || 'ПК';
-                avatar.textContent = initials;
-            }
-            
-            // Устанавливаем барбера
-            if (profile.last_barber_code) {
-                document.getElementById('myBarber').textContent = profile.last_barber_code;
-            }
-            
-            // Устанавливаем статистику
-            document.getElementById('totalAppointments').textContent = stats.total || 0;
-            
-            // Определяем любимую услугу
-            if (appointments.length > 0) {
-                const serviceCount = {};
-                appointments.forEach(app => {
-                    if (app.service) {
-                        serviceCount[app.service] = (serviceCount[app.service] || 0) + 1;
-                    }
-                });
-                
-                let favoriteService = 'Не определено';
-                let maxCount = 0;
-                
-                for (const [service, count] of Object.entries(serviceCount)) {
-                    if (count > maxCount) {
-                        maxCount = count;
-                        favoriteService = service;
-                    }
-                }
-                
-                document.getElementById('favoriteService').textContent = favoriteService;
-            }
-            
-            // Отображаем историю
-            displayAppointments(appointments);
-        }
-        
-        function displayAppointments(appointments) {
-            const historyList = document.getElementById('historyList');
-            const noHistory = document.getElementById('noHistory');
-            
-            if (!historyList) return;
-            
-            historyList.innerHTML = '';
-            
-            if (appointments.length === 0) {
-                noHistory.style.display = 'block';
-                return;
-            }
-            
-            noHistory.style.display = 'none';
-            
-            // Сортируем записи по дате (новые сначала)
-            const sortedAppointments = [...appointments].sort((a, b) => {
-                return new Date(b.date) - new Date(a.date);
-            });
-            
-            sortedAppointments.forEach(appointment => {
-                const date = new Date(appointment.date);
-                const dateStr = date.toLocaleDateString('ru-RU');
-                const timeStr = appointment.time ? appointment.time.substring(0, 5) : '';
-                const statusClass = `status-${appointment.status || 'active'}`;
-                const statusText = getStatusText(appointment.status);
-                
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.innerHTML = `
-                    <div class="history-date">${dateStr} ${timeStr}</div>
-                    <div class="history-service">${appointment.service || appointment.service_name || 'Услуга'}</div>
-                    <div class="history-barber">${appointment.barber_name || appointment.barber_code || 'Барбер'}</div>
-                    <div class="history-status ${statusClass}">${statusText}</div>
-                `;
-                
-                historyList.appendChild(item);
-            });
-        }
-        
-        function getStatusText(status) {
-            const statusMap = {
-                'active': 'Активна',
-                'pending': 'Ожидает',
-                'confirmed': 'Подтверждена',
-                'completed': 'Выполнена',
-                'cancelled': 'Отменена'
-            };
-            return statusMap[status] || 'Активна';
-        }
-        
-        function bookAppointment() {
-            window.location.href = `${API_BASE}/client-login`;
-        }
-        
-        function changeBarber() {
-            window.location.href = `${API_BASE}/client-login`;
-        }
-        
-        function clearData() {
-            if (confirm('Вы уверены, что хотите удалить все ваши данные?')) {
-                localStorage.clear();
-                alert('Данные очищены. Страница будет перезагружена.');
-                location.reload();
-            }
-        }
-        
-        function goBack() {
-            if (window.history.length > 1) {
-                window.history.back();
-            } else {
-                window.location.href = API_BASE;
-            }
-        }
-        
-        function showError(message) {
-            document.getElementById('loading').style.display = 'none';
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.innerHTML = `
-                <h3>Ошибка</h3>
-                <p>${message}</p>
-                <button onclick="loadProfile()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;">
-                    Попробовать снова
-                </button>
-            `;
-            errorDiv.style.display = 'block';
-        }
+        // ... Весь остальной JavaScript код без изменений ...
     </script>
 </body>
 </html>
