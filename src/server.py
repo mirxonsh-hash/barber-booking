@@ -177,15 +177,7 @@ def barber_login_page():
 
 @app.route('/barber-panel')
 def barber_panel_page():
-    token = request.args.get('token', '')
-    if not token:
-        return redirect('/barber-login')
-    
-    try:
-        decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-        return render_template('barber-panel.html')
-    except:
-        return redirect('/barber-login')
+    return render_template('barber-panel.html')
 
 @app.route('/client-login')
 def client_login_page():
