@@ -183,7 +183,7 @@ def init_db():
             ('barber', 'Стрижка + Бритьё', 2000, 60),
             ('barber', 'Королевское бритьё', 800, 30),
             ('barber', 'Стрижка машинкой', 1000, 30),
-            ('barber', 'Оформление бороды', 600, 20),
+            ('barber', 'Оформление борода', 600, 20),
             ('barber', 'Детская стрижка', 1200, 40)
         ]
         for service in test_services:
@@ -1050,7 +1050,8 @@ def create_client_appointment():
                     'price': data['price'],
                     'date': data['date'],
                     'time': data['time'],
-                    'barber_code': barber_code
+                    'barber_code': barber_code,
+                    'barber_name': barber_name
                 }
             })
             
