@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 # Определяем корень проекта (на уровень выше src/)
 BASE_DIR = Path(__file__).parent.parent
 
+# Настройка Flask с правильными путями
 app = Flask(__name__, 
            static_folder=str(BASE_DIR),  # Корень проекта для css/, js/
            static_url_path='',
@@ -76,6 +77,17 @@ def init_db():
     )
     ''')
     
+    # Создаем тестового барбера если его нет
+    cursor.execute("SELECT id FROM barbers WHERE code = 'barber'")
+    if not cursor.fetchone():
+        # Создаем тестового барбера
+        password_hash = hashlib.sha256('123456'.encode()).hexdigest()
+        cursor.execute('''
+        INSERT INTO barbers (name, code, password_hash) 
+        VALUES (%s, %s, %s)
+        ''', ('Тестовый Барбер', 'barber', password_hash))
+        print("✅ Тестовый барбер создан (код: barber, пароль: 123456)")
+    
     conn.commit()
     conn.close()
     print("✅ База данных PostgreSQL готова")
@@ -87,7 +99,7 @@ try:
 except Exception as e:
     print(f"❌ Ошибка инициализации БД: {e}")
 
-# ========== ОСНОВНЫЕ МАРШРУТЫ ==========
+# ========== ОСНОВНЫЕ МАРШРУТЫ HTML ==========
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -119,19 +131,6 @@ def master_panel_page():
 @app.route('/schedule')
 def schedule_page():
     return render_template('schedule.html')
-
-# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
-@app.route('/css/<path:filename>')
-def serve_css(filename):
-    return send_from_directory('css', filename)
-
-@app.route('/js/<path:filename>')
-def serve_js(filename):
-    return send_from_directory('js', filename)
-
-@app.route('/<path:filename>')
-def serve_static(filename):
-    return send_from_directory('.', filename)
 
 # ========== РЕДИРЕКТЫ ДЛЯ .HTML ССЫЛОК ==========
 @app.route('/barber-login.html')
@@ -174,40 +173,48 @@ def redirect_client_profile():
 # ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/barber/login', methods=['POST'])
 def barber_login():
-    data = request.json
-    code = data.get('code')
-    password = data.get('password')
-    
-    # Хешируем пароль для проверки
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute('''
-    SELECT id, name, code FROM barbers 
-    WHERE code = %s AND password_hash = %s
-    ''', (code, password_hash))
-    
-    result = cursor.fetchone()
-    conn.close()
-    
-    if result:
-        # Сохраняем в сессии
-        session['barber_id'] = result[0]
-        session['barber_code'] = result[2]
-        session['barber_name'] = result[1]
+    try:
+        data = request.json
+        code = data.get('code')
+        password = data.get('password')
         
-        return jsonify({
-            'success': True,
-            'barber': {
-                'id': result[0],
-                'name': result[1],
-                'code': result[2]
-            }
-        })
+        if not code or not password:
+            return jsonify({'success': False, 'error': 'Требуется код и пароль'}), 400
+        
+        # Хешируем пароль для проверки
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT id, name, code FROM barbers 
+        WHERE code = %s AND password_hash = %s
+        ''', (code, password_hash))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            # Сохраняем в сессии
+            session['barber_id'] = result[0]
+            session['barber_code'] = result[2]
+            session['barber_name'] = result[1]
+            
+            return jsonify({
+                'success': True,
+                'barber': {
+                    'id': result[0],
+                    'name': result[1],
+                    'code': result[2]
+                }
+            })
+        
+        return jsonify({'success': False, 'error': 'Неверный код или пароль'}), 401
     
-    return jsonify({'success': False, 'error': 'Неверный код или пароль'}), 401
+    except Exception as e:
+        logger.error(f"Ошибка входа: {e}")
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
 @app.route('/api/barber/check', methods=['GET'])
 def check_barber_auth():
@@ -290,6 +297,7 @@ def create_appointment():
         return jsonify({'success': True, 'message': 'Запись создана'})
     except Exception as e:
         conn.rollback()
+        logger.error(f"Ошибка создания записи: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         conn.close()
