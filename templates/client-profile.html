@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iWant - Мой профиль</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-top: 10px;
+        }
+        
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-3px);
+        }
+        
+        .logo {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid #667eea;
+            object-fit: cover;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .avatar-placeholder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            margin: 0 auto 15px;
+        }
+        
+        .user-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .user-phone {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .info-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            color: #667eea;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        
+        .info-grid {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+        }
+        
+        .info-item:hover {
+            background: #f0f2f5;
+            transform: translateY(-2px);
+        }
+        
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .info-content {
+            flex: 1;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 3px;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .history-section {
+            margin-top: 30px;
+        }
+        
+        .history-list {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .history-item:hover {
+            background: #f0f2f5;
+        }
+        
+        .history-details {
+            flex: 1;
+        }
+        
+        .history-date {
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .history-service {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+            margin: 5px 0;
+        }
+        
+        .history-barber {
+            font-size: 14px;
+            color: #667eea;
+        }
+        
+        .history-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-completed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .no-history {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        
+        .actions-section {
+            margin-top: 30px;
+        }
+        
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .action-btn.secondary {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .action-btn.secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 480px) {
+            .profile-card {
+                padding: 20px;
+            }
+            
+            .avatar, .avatar-placeholder {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="logo">iWant</div>
+            <div style="width: 40px;"></div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Загрузка профиля...</p>
+        </div>
+        
+        <div id="profileContent" style="display: none;">
+            <div class="profile-card">
+                <div class="avatar-section">
+                    <img id="userAvatar" class="avatar" alt="Аватар">
+                    <div id="avatarPlaceholder" class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h1 id="userName" class="user-name"></h1>
+                    <p id="userPhone" class="user-phone"></p>
+                </div>
+                
+                <div class="info-section">
+                    <h2 class="section-title">Моя информация</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Мой барбер</div>
+                                <div id="myBarber" class="info-value">Не выбран</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-scissors"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Всего записей</div>
+                                <div id="totalAppointments" class="info-value">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Любимая услуга</div>
+                                <div id="favoriteService" class="info-value">Не определено</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="history-section">
+                    <h2 class="section-title">История записей</h2>
+                    <div id="historyList" class="history-list">
+                        <!-- История будет загружена здесь -->
+                    </div>
+                    <div id="noHistory" class="no-history">
+                        <i class="fas fa-calendar-alt" style="font-size: 48px; margin-bottom: 15px; color: #ddd;"></i>
+                        <p>У вас еще нет записей</p>
+                        <p style="font-size: 14px; margin-top: 10px;">Запишитесь к барберу чтобы увидеть историю</p>
+                    </div>
+                </div>
+                
+                <div class="actions-section">
+                    <button class="action-btn" onclick="bookAppointment()">
+                        <i class="fas fa-calendar-plus"></i>
+                        Новая запись
+                    </button>
+                    <button class="action-btn secondary" onclick="changeBarber()">
+                        <i class="fas fa-exchange-alt"></i>
+                        Сменить барбера
+                    </button>
+                    <button class="action-btn secondary" onclick="clearData()">
+                        <i class="fas fa-trash-alt"></i>
+                        Очистить данные
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="errorMessage" class="error-message" style="display: none;">
+            <!-- Сообщения об ошибках -->
+        </div>
+        
+        <div class="footer">
+            © 2024 iWant. Премиум сервис записи
+        </div>
+    </div>
+
+    <script>
+        // Telegram Web App API
+        const tg = window.Telegram?.WebApp;
+        const API_BASE = 'https://barber-booking-db.onrender.com';
+        
+        // Состояние приложения
+        let userData = null;
+        let userHistory = [];
+        let lastBarberCode = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Профиль клиента загружается...');
+            
+            if (tg) {
+                // Инициализируем Telegram Web App
+                tg.ready();
+                tg.expand();
+                
+                // Получаем данные пользователя из Telegram
+                loadTelegramUserData();
+            } else {
+                // Если не в Telegram, используем тестовые данные или данные из localStorage
+                console.log('⚠️ Не в Telegram Web App');
+                loadLocalUserData();
+            }
+        });
+        
+        function loadTelegramUserData() {
+            try {
+                const initData = tg.initData || '';
+                const user = tg.initDataUnsafe?.user;
+                
+                if (user) {
+                    // Данные из Telegram
+                    userData = {
+                        id: user.id,
+                        firstName: user.first_name,
+                        lastName: user.last_name,
+                        username: user.username,
+                        photoUrl: user.photo_url,
+                        languageCode: user.language_code,
+                        isPremium: user.is_premium || false
+                    };
+                    
+                    console.log('✅ Данные из Telegram:', userData);
+                    
+                    // Сохраняем в localStorage для будущих сессий
+                    localStorage.setItem('telegram_user', JSON.stringify(userData));
+                    
+                    // Загружаем профиль с сервера
+                    loadUserProfile();
+                } else {
+                    console.log('❌ Нет данных пользователя в Telegram');
+                    showError('Не удалось получить данные из Telegram');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки данных Telegram:', error);
+                showError('Ошибка загрузки данных');
+            }
+        }
+        
+        function loadLocalUserData() {
+            // Пытаемся загрузить из localStorage
+            const savedUser = localStorage.getItem('telegram_user');
+            const savedBarber = localStorage.getItem('last_barber_code');
+            
+            if (savedUser) {
+                userData = JSON.parse(savedUser);
+                console.log('📱 Данные из localStorage:', userData);
+            } else {
+                // Создаем тестового пользователя
+                userData = {
+                    id: Date.now(),
+                    firstName: 'Тестовый',
+                    lastName: 'Клиент',
+                    username: 'test_user',
+                    photoUrl: null,
+                    languageCode: 'ru',
+                    isPremium: false
+                };
+                console.log('🧪 Тестовые данные пользователя');
+            }
+            
+            if (savedBarber) {
+                lastBarberCode = savedBarber;
+            }
+            
+            loadUserProfile();
+        }
+        
+        async function loadUserProfile() {
+            try {
+                // Показываем данные пользователя
+                updateUserInfo();
+                
+                // Загружаем историю записей
+                await loadUserHistory();
+                
+                // Загружаем данные барбера
+                if (lastBarberCode) {
+                    await loadBarberInfo(lastBarberCode);
+                }
+                
+                // Показываем контент
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('profileContent').style.display = 'block';
+                
+            } catch (error) {
+                console.error('❌ Ошибка загрузки профиля:', error);
+                showError('Ошибка загрузки профиля');
+            }
+        }
+        
+        function updateUserInfo() {
+            if (!userData) return;
+            
+            const name = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Пользователь';
+            const phone = userData.username ? `@${userData.username}` : 'Телефон не указан';
+            
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userPhone').textContent = phone;
+            
+            // Устанавливаем аватар
+            const avatarImg = document.getElementById('userAvatar');
+            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+            
+            if (userData.photoUrl) {
+                avatarImg.src = userData.photoUrl;
+                avatarImg.style.display = 'block';
+                avatarPlaceholder.style.display = 'none';
+            } else {
+                // Генерируем градиентный аватар на основе ID
+                const colors = [
+                    ['#667eea', '#764ba2'],
+                    ['#f093fb', '#f5576c'],
+                    ['#4facfe', '#00f2fe'],
+                    ['#43e97b', '#38f9d7'],
+                    ['#fa709a', '#fee140']
+                ];
+                
+                const colorIndex = Math.abs(userData.id) % colors.length;
+                const gradient = `linear-gradient(135deg, ${colors[colorIndex][0]} 0%, ${colors[colorIndex][1]} 100%)`;
+                
+                avatarPlaceholder.style.background = gradient;
+                avatarPlaceholder.style.display = 'flex';
+                avatarImg.style.display = 'none';
+                
+                // Показываем первую букву имени
+                const firstLetter = name.charAt(0).toUpperCase();
+                avatarPlaceholder.innerHTML = `<span style="font-size: 48px; font-weight: bold;">${firstLetter}</span>`;
+            }
+        }
+        
+        async function loadUserHistory() {
+            try {
+                // Здесь будет запрос к API для получения истории записей пользователя
+                // Пока используем тестовые данные
+                
+                // Проверяем, есть ли у нас ID пользователя
+                if (userData && userData.id) {
+                    // Можно сделать запрос к API: /api/client/history?user_id=...
+                    // const response = await fetch(`${API_BASE}/api/client/history?user_id=${userData.id}`);
+                    // userHistory = await response.json();
+                    
+                    // Тестовые данные
+                    userHistory = [
+                        {
+                            id: 1,
+                            date: '2024-12-15',
+                            service: 'Мужская стрижка',
+                            barber: 'Иван Иванов',
+                            price: 1500,
+                            status: 'completed'
+                        },
+                        {
+                            id: 2,
+                            date: '2024-12-10',
+                            service: 'Оформление бороды',
+                            barber: 'Иван Иванов',
+                            price: 600,
+                            status: 'completed'
+                        }
+                    ];
+                }
+                
+                updateHistoryList();
+                
+            } catch (error) {
+                console.error('❌ Ошибка загрузки истории:', error);
+                userHistory = [];
+            }
+        }
+        
+        function updateHistoryList() {
+            const historyList = document.getElementById('historyList');
+            const noHistory = document.getElementById('noHistory');
+            
+            if (!historyList) return;
+            
+            historyList.innerHTML = '';
+            
+            if (userHistory.length === 0) {
+                noHistory.style.display = 'block';
+                return;
+            }
+            
+            noHistory.style.display = 'none';
+            
+            userHistory.forEach(record => {
+                const date = new Date(record.date);
+                const dateStr = date.toLocaleDateString('ru-RU');
+                const statusClass = `status-${record.status}`;
+                const statusText = getStatusText(record.status);
+                
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div class="history-details">
+                        <div class="history-date">${dateStr}</div>
+                        <div class="history-service">${record.service}</div>
+                        <div class="history-barber">${record.barber}</div>
+                    </div>
+                    <div class="history-status ${statusClass}">${statusText}</div>
+                `;
+                
+                historyList.appendChild(item);
+            });
+            
+            // Обновляем статистику
+            document.getElementById('totalAppointments').textContent = userHistory.length;
+            
+            // Определяем любимую услугу
+            if (userHistory.length > 0) {
+                const serviceCount = {};
+                userHistory.forEach(record => {
+                    serviceCount[record.service] = (serviceCount[record.service] || 0) + 1;
+                });
+                
+                let favoriteService = Object.keys(serviceCount)[0];
+                let maxCount = 0;
+                
+                for (const [service, count] of Object.entries(serviceCount)) {
+                    if (count > maxCount) {
+                        maxCount = count;
+                        favoriteService = service;
+                    }
+                }
+                
+                document.getElementById('favoriteService').textContent = favoriteService;
+            }
+        }
+        
+        async function loadBarberInfo(barberCode) {
+            try {
+                const response = await fetch(`${API_BASE}/api/barber/${barberCode}`);
+                const data = await response.json();
+                
+                if (data.success && data.barber) {
+                    document.getElementById('myBarber').textContent = data.barber.name;
+                    document.getElementById('myBarber').dataset.code = barberCode;
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки барбера:', error);
+            }
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'active': 'Активна',
+                'pending': 'Ожидает',
+                'confirmed': 'Подтверждена',
+                'completed': 'Выполнена',
+                'cancelled': 'Отменена'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function bookAppointment() {
+            if (lastBarberCode) {
+                // Переходим к записи у текущего барбера
+                window.location.href = `${API_BASE}/client-panel?code=${lastBarberCode}`;
+            } else {
+                // Ищем нового барбера
+                window.location.href = `${API_BASE}/client-login`;
+            }
+        }
+        
+        function changeBarber() {
+            window.location.href = `${API_BASE}/client-login`;
+        }
+        
+        function clearData() {
+            if (confirm('Вы уверены, что хотите очистить все ваши данные? Это удалит историю записей и информацию о барбере.')) {
+                localStorage.removeItem('telegram_user');
+                localStorage.removeItem('last_barber_code');
+                localStorage.removeItem('user_appointments');
+                
+                // Обновляем страницу
+                window.location.reload();
+            }
+        }
+        
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = API_BASE;
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `
+                <h3 style="margin-bottom: 10px;">⚠️ Ошибка</h3>
+                <p>${message}</p>
+                <button onclick="location.reload()" 
+                        style="margin-top: 15px; padding: 10px 20px; background: white; color: #667eea; 
+                               border: none; border-radius: 5px; cursor: pointer;">
+                    Обновить страницу
+                </button>
+            `;
+            errorDiv.style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // Сохраняем ссылку на профиль в localStorage для быстрого доступа
+        if (tg) {
+            tg.MainButton.setText('Мой профиль');
+            tg.MainButton.show();
+            tg.MainButton.onClick(() => {
+                // Уже на странице профиля
+            });
+        }
+    </script>
+</body>
+</html>
