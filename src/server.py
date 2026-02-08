@@ -8,6 +8,7 @@ import logging
 import jwt
 from dotenv import load_dotenv
 from pathlib import Path
+import traceback  # ДОБАВЛЕН ЭТОТ ИМПОРТ
 
 load_dotenv()
 
@@ -179,13 +180,14 @@ def client_panel_page():
         barber_name = barber[1] if barber[1] else f"Барбер {code}"
         logger.info(f"Барбер найден: {barber_name} (код: {code})")
         
-        # Передаем код в шаблон для использования в JavaScript
-        return render_template('client_panel.html', 
+        # ИСПРАВЛЕНО: изменено имя файла шаблона
+        return render_template('client-panel.html',  # Было: client_panel.html
                              barber_code=code, 
                              barber_name=barber_name)
         
     except Exception as e:
         logger.error(f"Ошибка в функции client_panel_page: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")  # ДОБАВЛЕНО детальное логирование
         # В случае любой ошибки возвращаем на страницу входа
         return redirect(url_for('client_login_page', 
                              error='Ошибка сервера при загрузке страницы'))
