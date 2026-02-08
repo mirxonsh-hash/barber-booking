@@ -52,6 +52,18 @@ def init_db():
     )
     ''')
     
+    # Таблица услуг (добавляем barber_code вместо barber_id)
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS services (
+        id SERIAL PRIMARY KEY,
+        barber_code VARCHAR(20) NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        price INTEGER NOT NULL,
+        duration INTEGER NOT NULL,
+        active BOOLEAN DEFAULT TRUE
+    )
+    ''')
+    
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS appointments (
         id SERIAL PRIMARY KEY,
@@ -76,6 +88,24 @@ def init_db():
         VALUES (%s, %s, %s)
         ''', ('Тестовый Барбер', 'barber', password_hash))
         print("✅ Тестовый барбер создан")
+    
+    # Создаем тестовые услуги для барбера
+    cursor.execute("SELECT id FROM services WHERE barber_code = 'barber'")
+    if not cursor.fetchone():
+        test_services = [
+            ('barber', 'Мужская стрижка', 1500, 45),
+            ('barber', 'Стрижка + Бритьё', 2000, 60),
+            ('barber', 'Королевское бритьё', 800, 30),
+            ('barber', 'Стрижка машинкой', 1000, 30),
+            ('barber', 'Оформление бороды', 600, 20),
+            ('barber', 'Детская стрижка', 1200, 40)
+        ]
+        for service in test_services:
+            cursor.execute('''
+            INSERT INTO services (barber_code, name, price, duration)
+            VALUES (%s, %s, %s, %s)
+            ''', service)
+        print("✅ Тестовые услуги созданы")
     
     conn.commit()
     conn.close()
@@ -117,6 +147,10 @@ def barber_panel_page():
 def client_login_page():
     return render_template('client-login.html')
 
+@app.route('/client-panel')
+def client_panel_page():
+    return render_template('client_panel.html')
+
 @app.route('/profile')
 def profile_page():
     return render_template('profile.html')
@@ -143,6 +177,10 @@ def redirect_barber_panel():
 def redirect_client_login():
     return redirect('/client-login')
 
+@app.route('/client-panel.html')
+def redirect_client_panel():
+    return redirect('/client-panel')
+
 @app.route('/profile.html')
 def redirect_profile():
     return redirect('/profile')
@@ -162,7 +200,7 @@ def redirect_index():
 @app.route('/client-profile.html')
 def redirect_client_profile():
     code = request.args.get('code', '')
-    return redirect(f'/profile?code={code}')
+    return redirect(f'/client-panel?code={code}')
 
 # ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/barber/login', methods=['POST'])
@@ -299,15 +337,109 @@ def get_barber_by_code(code):
     
     return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
 
+# ========== API ДЛЯ УСЛУГ ==========
+@app.route('/api/barber/<code>/services', methods=['GET'])
+def get_barber_services(code):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT id, name, price, duration 
+        FROM services 
+        WHERE barber_code = %s AND active = TRUE
+        ORDER BY price
+        ''', (code,))
+        
+        services = []
+        for row in cursor.fetchall():
+            services.append({
+                'id': row[0],
+                'name': row[1],
+                'price': row[2],
+                'duration': row[3]
+            })
+        
+        conn.close()
+        
+        # Если услуг нет, возвращаем демо-услуги
+        if not services:
+            services = [
+                {'id': 1, 'name': 'Мужская стрижка', 'price': 1500, 'duration': 45},
+                {'id': 2, 'name': 'Стрижка + Бритьё', 'price': 2000, 'duration': 60},
+                {'id': 3, 'name': 'Королевское бритьё', 'price': 800, 'duration': 30}
+            ]
+        
+        return jsonify(services)
+        
+    except Exception as e:
+        logger.error(f"Ошибка загрузки услуг: {e}")
+        # Возвращаем демо-услуги при ошибке
+        return jsonify([
+            {'id': 1, 'name': 'Мужская стрижка', 'price': 1500, 'duration': 45},
+            {'id': 2, 'name': 'Стрижка + Бритьё', 'price': 2000, 'duration': 60},
+            {'id': 3, 'name': 'Королевское бритьё', 'price': 800, 'duration': 30}
+        ])
+
+# ========== API ДЛЯ СОЗДАНИЯ ЗАПИСИ ==========
+@app.route('/api/appointments/create', methods=['POST'])
+def create_client_appointment():
+    try:
+        data = request.json
+        
+        # Проверяем обязательные поля
+        required_fields = ['barber_code', 'client_name', 'client_phone', 'service_name', 'price', 'date', 'time']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Создаем запись
+        cursor.execute('''
+        INSERT INTO appointments 
+        (barber_code, client_name, client_phone, service_name, price, 
+         appointment_date, appointment_time, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
+        ''', (
+            data['barber_code'],
+            data['client_name'],
+            data['client_phone'],
+            data['service_name'],
+            data['price'],
+            data['date'],
+            data['time']
+        ))
+        
+        conn.commit()
+        appointment_id = cursor.lastrowid
+        conn.close()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Запись успешно создана',
+            'appointment_id': appointment_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка создания записи: {e}")
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
+
 # ========== ЗАПУСК СЕРВЕРА ==========
 if __name__ == '__main__':
     print("=" * 80)
     print("🌐 BARBER BOOKING API ЗАПУЩЕН")
     print(f"📌 JWT секрет: {JWT_SECRET[:10]}...")
     print("📌 Доступные маршруты:")
+    print("   • / - Главная страница")
     print("   • /barber-login - Вход барбера")
     print("   • /barber-panel - Панель барбера")
-    print("   • /api/barber/login - API вход (возвращает токен)")
+    print("   • /client-login - Вход клиента")
+    print("   • /client-panel - Панель записи клиента")
+    print("   • /api/barber/login - API вход барбера")
+    print("   • /api/barber/<code>/services - Услуги барбера")
+    print("   • /api/appointments/create - Создание записи")
     print("=" * 80)
     
     port = int(os.environ.get('PORT', 10000))
