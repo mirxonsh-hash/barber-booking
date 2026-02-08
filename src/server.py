@@ -75,6 +75,27 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
+
+           # Добавьте эти строки для поддержки .html ссылок
+@app.route('/client-login.html')
+def client_login_html():
+    return redirect('/client-login')
+
+@app.route('/barber-login.html')
+def barber_login_html():
+    return redirect('/barber-login')
+
+@app.route('/profile.html')
+def profile_html():
+    return redirect('/profile')
+
+@app.route('/barber-panel.html')
+def barber_panel_html():
+    return redirect('/barber-panel')
+
+@app.route('/index.html')
+def index_html():
+    return redirect('/')
     
     conn.commit()
     conn.close()
