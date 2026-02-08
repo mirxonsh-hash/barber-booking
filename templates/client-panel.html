@@ -308,6 +308,13 @@
             background: #5a6268;
         }
         
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
         .summary-card {
             background: #f8f9fa;
             border-radius: 12px;
@@ -356,6 +363,21 @@
             margin-bottom: 20px;
             text-align: center;
             display: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -509,6 +531,9 @@
     </div>
 
     <script>
+        // Конфигурация
+        const API_BASE = 'https://barber-booking-db.onrender.com';
+        
         // Данные записи
         let bookingData = {
             barber: null,
@@ -519,37 +544,61 @@
             clientPhone: ''
         };
         
+        // Текущий шаг
+        let currentStep = 1;
+        
         // Загрузка при открытии
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Клиентская панель загружается...');
             loadBarberData();
-            loadServices();
             generateDates();
+            initSteps();
         });
+        
+        // Инициализация шагов
+        function initSteps() {
+            // Убедимся что первый шаг активен
+            const firstStep = document.querySelector('.step[data-step="1"]');
+            const firstContent = document.getElementById('step1');
+            
+            if (firstStep && firstContent) {
+                firstStep.classList.add('active');
+                firstContent.classList.add('active');
+            }
+        }
         
         // Загрузка данных барбера
         async function loadBarberData() {
             const urlParams = new URLSearchParams(window.location.search);
             const barberCode = urlParams.get('code') || 'barber';
             
+            console.log(`🔍 Загрузка данных барбера: ${barberCode}`);
+            
             try {
-                const response = await fetch(`/api/barber/${barberCode}`);
+                // Загружаем данные барбера
+                const response = await fetch(`${API_BASE}/api/barber/${barberCode}`);
                 const result = await response.json();
                 
-                if (result.success) {
+                if (result.success && result.barber) {
                     bookingData.barber = result.barber;
                     displayBarberInfo(result.barber);
+                    
+                    // После загрузки барбера загружаем его услуги
+                    loadServices(barberCode);
                 } else {
-                    showError('Барбер не найден');
+                    showError('Барбер не найден. Проверьте код.');
+                    console.error('Барбер не найден:', result);
                 }
             } catch (error) {
-                console.error('Ошибка загрузки барбера:', error);
-                // Демо-данные
+                console.error('❌ Ошибка загрузки барбера:', error);
+                // Демо-данные для тестирования
                 bookingData.barber = {
                     name: "Александр Барбер",
                     code: barberCode,
                     id: 1
                 };
                 displayBarberInfo(bookingData.barber);
+                loadServices(barberCode);
             }
         }
         
@@ -567,9 +616,29 @@
         }
         
         // Загрузка услуг
-        async function loadServices() {
-            // В реальности здесь fetch к API
-            // Пока демо-услуги
+        async function loadServices(barberCode) {
+            console.log(`📋 Загрузка услуг для барбера: ${barberCode}`);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/barber/${barberCode}/services`);
+                const services = await response.json();
+                
+                if (Array.isArray(services) && services.length > 0) {
+                    displayServices(services);
+                } else {
+                    // Если услуг нет, показываем демо-услуги
+                    console.log('Услуг не найдено, показываем демо');
+                    showDemoServices();
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки услуг:', error);
+                // Демо-услуги при ошибке
+                showDemoServices();
+            }
+        }
+        
+        // Показать демо-услуги
+        function showDemoServices() {
             const demoServices = [
                 { id: 1, name: "Мужская стрижка", price: 1500, duration: 45 },
                 { id: 2, name: "Стрижка + Бритьё", price: 2000, duration: 60 },
@@ -585,11 +654,17 @@
         // Показать услуги
         function displayServices(services) {
             const container = document.getElementById('servicesList');
+            
+            if (!container) {
+                console.error('Контейнер услуг не найден');
+                return;
+            }
+            
             let html = '';
             
             services.forEach(service => {
                 html += `
-                    <div class="service-card" data-id="${service.id}" onclick="selectService(${service.id}, ${service.price}, '${service.name}')">
+                    <div class="service-card" data-id="${service.id}" onclick="selectService(${service.id}, ${service.price}, '${service.name.replace(/'/g, "\\'")}')">
                         <div class="service-name">${service.name}</div>
                         <div class="service-price">${service.price} руб.</div>
                         <div class="service-duration">${service.duration} мин.</div>
@@ -621,6 +696,12 @@
         // Генерация дат (7 дней вперед)
         function generateDates() {
             const container = document.getElementById('datePicker');
+            
+            if (!container) {
+                console.error('Контейнер дат не найден');
+                return;
+            }
+            
             let html = '';
             
             for (let i = 0; i < 7; i++) {
@@ -636,7 +717,7 @@
                 const dateStr = date.toISOString().split('T')[0];
                 
                 html += `
-                    <div class="date-option" data-date="${dateStr}" onclick="selectDate('${dateStr}', '${dayNumber} ${monthName}')">
+                    <div class="date-option" data-date="${dateStr}" onclick="selectDate('${dateStr}', '${dayNumber} ${monthName} (${dayName})')">
                         <div class="date-day">${dayName}</div>
                         <div class="date-number">${dayNumber}</div>
                         <div class="date-month">${monthName}</div>
@@ -672,6 +753,12 @@
         // Генерация временных слотов
         function generateTimeSlots() {
             const container = document.getElementById('timeSlots');
+            
+            if (!container) {
+                console.error('Контейнер времени не найден');
+                return;
+            }
+            
             let html = '';
             
             const timeSlots = [
@@ -680,13 +767,8 @@
             ];
             
             timeSlots.forEach(time => {
-                // Рандомно делаем некоторые слоты недоступными
-                const isAvailable = Math.random() > 0.3;
-                
                 html += `
-                    <div class="time-slot ${!isAvailable ? 'disabled' : ''}" 
-                         data-time="${time}"
-                         ${!isAvailable ? '' : `onclick="selectTime('${time}')"`}>
+                    <div class="time-slot" data-time="${time}" onclick="selectTime('${time}')">
                         ${time}
                     </div>
                 `;
@@ -717,7 +799,7 @@
         function updateSummary() {
             if (bookingData.service) {
                 document.getElementById('summaryService').textContent = 
-                    `${bookingData.service.name} (${bookingData.service.price} руб.)`;
+                    `${bookingData.service.name}`;
                 document.getElementById('summaryPrice').textContent = 
                     `${bookingData.service.price} руб.`;
             }
@@ -732,40 +814,101 @@
         }
         
         // Навигация по шагам
-        let currentStep = 1;
-        
         function nextStep() {
-            if (currentStep < 5) {
-                // Валидация
-                if (currentStep === 4) {
-                    if (!validateStep4()) return;
-                }
-                
-                document.getElementById(`step${currentStep}`).classList.remove('active');
-                document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
-                
-                currentStep++;
-                
-                document.getElementById(`step${currentStep}`).classList.add('active');
-                document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
-                
-                // Если это шаг 5 (подтверждение)
-                if (currentStep === 5) {
-                    showConfirmation();
-                }
+            // Валидация текущего шага
+            if (!validateCurrentStep()) {
+                return;
+            }
+            
+            const currentStepElement = document.querySelector(`.step[data-step="${currentStep}"]`);
+            const currentContent = document.getElementById(`step${currentStep}`);
+            
+            if (!currentStepElement || !currentContent) {
+                console.error(`Шаг ${currentStep} не найден`);
+                return;
+            }
+            
+            // Скрыть текущий шаг
+            currentStepElement.classList.remove('active');
+            currentContent.classList.remove('active');
+            
+            // Перейти к следующему шагу
+            currentStep++;
+            
+            const nextStepElement = document.querySelector(`.step[data-step="${currentStep}"]`);
+            const nextContent = document.getElementById(`step${currentStep}`);
+            
+            if (nextStepElement && nextContent) {
+                nextStepElement.classList.add('active');
+                nextContent.classList.add('active');
+            }
+            
+            // Если это шаг 5 (подтверждение)
+            if (currentStep === 5) {
+                showConfirmation();
             }
         }
         
         function prevStep() {
-            if (currentStep > 1) {
-                document.getElementById(`step${currentStep}`).classList.remove('active');
-                document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
-                
-                currentStep--;
-                
-                document.getElementById(`step${currentStep}`).classList.add('active');
-                document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+            if (currentStep <= 1) return;
+            
+            const currentStepElement = document.querySelector(`.step[data-step="${currentStep}"]`);
+            const currentContent = document.getElementById(`step${currentStep}`);
+            
+            if (!currentStepElement || !currentContent) {
+                console.error(`Шаг ${currentStep} не найден`);
+                return;
             }
+            
+            // Скрыть текущий шаг
+            currentStepElement.classList.remove('active');
+            currentContent.classList.remove('active');
+            
+            // Перейти к предыдущему шагу
+            currentStep--;
+            
+            const prevStepElement = document.querySelector(`.step[data-step="${currentStep}"]`);
+            const prevContent = document.getElementById(`step${currentStep}`);
+            
+            if (prevStepElement && prevContent) {
+                prevStepElement.classList.add('active');
+                prevContent.classList.add('active');
+            }
+        }
+        
+        // Валидация текущего шага
+        function validateCurrentStep() {
+            switch(currentStep) {
+                case 1: // Выбор услуги
+                    if (!bookingData.service) {
+                        showError('Выберите услугу');
+                        return false;
+                    }
+                    break;
+                    
+                case 2: // Выбор даты
+                    if (!bookingData.date) {
+                        showError('Выберите дату');
+                        return false;
+                    }
+                    break;
+                    
+                case 3: // Выбор времени
+                    if (!bookingData.time) {
+                        showError('Выберите время');
+                        return false;
+                    }
+                    break;
+                    
+                case 4: // Данные клиента
+                    if (!validateStep4()) {
+                        return false;
+                    }
+                    break;
+            }
+            
+            hideError();
+            return true;
         }
         
         // Валидация шага 4
@@ -773,24 +916,18 @@
             const name = document.getElementById('clientName').value.trim();
             const phone = document.getElementById('clientPhone').value.trim();
             
-            if (!name) {
-                showError('Введите ваше имя');
+            if (!name || name.length < 2) {
+                showError('Введите ваше имя (минимум 2 символа)');
                 return false;
             }
             
-            if (!phone) {
-                showError('Введите номер телефона');
-                return false;
-            }
-            
-            if (phone.replace(/\D/g, '').length < 10) {
-                showError('Введите корректный номер телефона');
+            if (!phone || phone.replace(/\D/g, '').length < 10) {
+                showError('Введите корректный номер телефона (минимум 10 цифр)');
                 return false;
             }
             
             bookingData.clientName = name;
             bookingData.clientPhone = phone;
-            hideError();
             return true;
         }
         
@@ -802,31 +939,89 @@
             }
         }
         
-        // Отправка записи
+        // Отправка записи на сервер
         async function submitBooking() {
+            // Валидация
+            if (!validateStep4()) {
+                return;
+            }
+            
+            // Проверяем все обязательные данные
+            if (!bookingData.barber || !bookingData.service || !bookingData.date || !bookingData.time || !bookingData.clientName || !bookingData.clientPhone) {
+                showError('Заполните все данные');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
             try {
-                // В реальности здесь fetch к API
-                // await fetch('/api/appointments/create', { ... })
+                // Показываем загрузку
+                submitBtn.innerHTML = '<span class="loading-spinner"></span> Создание записи...';
+                submitBtn.disabled = true;
                 
-                // Демо-успех
-                setTimeout(() => {
-                    nextStep(); // Перейти к шагу 5 (подтверждение)
-                }, 500);
+                console.log('📤 Отправка записи на сервер:', bookingData);
+                
+                // Отправляем запрос на сервер
+                const response = await fetch(`${API_BASE}/api/appointments/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        barber_code: bookingData.barber.code,
+                        client_name: bookingData.clientName,
+                        client_phone: bookingData.clientPhone,
+                        service_name: bookingData.service.name,
+                        price: bookingData.service.price,
+                        date: bookingData.date,
+                        time: bookingData.time
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('📥 Ответ сервера:', result);
+                
+                if (result.success) {
+                    // Успех - переходим к подтверждению
+                    hideError();
+                    nextStep();
+                } else {
+                    // Ошибка сервера
+                    showError(result.error || 'Ошибка создания записи');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
                 
             } catch (error) {
-                showError('Ошибка при создании записи. Попробуйте еще раз.');
+                console.error('❌ Ошибка при создании записи:', error);
+                showError('Ошибка соединения с сервером. Попробуйте еще раз.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         }
         
         // Вспомогательные функции
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                
+                // Автоматически скрыть через 5 секунд
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            } else {
+                alert(message);
+            }
         }
         
         function hideError() {
-            document.getElementById('errorMessage').style.display = 'none';
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
         }
         
         function goBack() {
