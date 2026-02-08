@@ -3,263 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iWant - Мой профиль</title>
+    <title>iWant - Ваши барберы</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/client-profile.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            background: #ffffff;
+            color: #333;
+            line-height: 1.4;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding-top: max(15px, env(safe-area-inset-top));
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #000;
+            letter-spacing: -0.5px;
+        }
+        
+        .icon-btn {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+        
+        .icon-btn:hover {
+            background-color: #f5f5f5;
         }
         
         .container {
             max-width: 500px;
             margin: 0 auto;
+            padding: 0 20px;
         }
         
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-top: 10px;
+        .welcome-section {
+            padding: 25px 0;
+            text-align: center;
         }
         
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateX(-3px);
-        }
-        
-        .logo {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        .profile-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        .welcome-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #666;
             margin-bottom: 20px;
         }
         
-        .avatar-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 5px solid #667eea;
-            object-fit: cover;
-            margin: 0 auto 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .avatar-placeholder {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 5px solid #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-            margin: 0 auto 15px;
-        }
-        
-        .user-name {
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .user-phone {
-            color: #666;
-            font-size: 16px;
-        }
-        
-        .info-section {
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 14px;
-            color: #667eea;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-        
-        .info-grid {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .info-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s;
-        }
-        
-        .info-item:hover {
-            background: #f0f2f5;
-            transform: translateY(-2px);
-        }
-        
-        .info-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        
-        .info-content {
-            flex: 1;
-        }
-        
-        .info-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 3px;
-        }
-        
-        .info-value {
-            font-size: 16px;
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .history-section {
-            margin-top: 30px;
-        }
-        
-        .history-list {
-            display: grid;
-            gap: 10px;
-        }
-        
-        .history-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        
-        .history-item:hover {
-            background: #f0f2f5;
-        }
-        
-        .history-details {
-            flex: 1;
-        }
-        
-        .history-date {
-            font-size: 14px;
-            color: #888;
-        }
-        
-        .history-service {
-            font-size: 16px;
-            color: #333;
-            font-weight: 500;
-            margin: 5px 0;
-        }
-        
-        .history-barber {
-            font-size: 14px;
-            color: #667eea;
-        }
-        
-        .history-status {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .status-active {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status-confirmed {
-            background: #cce5ff;
-            color: #004085;
-        }
-        
-        .status-completed {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        .status-cancelled {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .no-history {
-            text-align: center;
-            padding: 40px 20px;
-            color: #888;
-        }
-        
-        .actions-section {
-            margin-top: 30px;
-        }
-        
-        .action-btn {
+        .add-barber-btn {
             width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 10px;
+            padding: 18px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border: none;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -267,544 +92,845 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: all 0.3s;
-            margin-bottom: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+        }
+        
+        .add-barber-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+        }
+        
+        .add-barber-btn:active {
+            transform: translateY(0);
+        }
+        
+        .barbers-section {
+            margin-top: 30px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 15px;
+            padding: 0 5px;
+        }
+        
+        .barber-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .barber-card:hover {
+            background: #f0f2f5;
+            transform: translateY(-1px);
+            border-color: #e0e0e0;
+        }
+        
+        .barber-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .barber-info {
+            flex: 1;
+        }
+        
+        .barber-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 4px;
+        }
+        
+        .barber-code {
+            font-size: 14px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .barber-meta {
+            font-size: 13px;
+            color: #888;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .barber-stats {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            font-size: 12px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .barber-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.2s;
         }
         
         .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            background: #e8e8e8;
+            color: #333;
         }
         
-        .action-btn.secondary {
-            background: #f8f9fa;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-        
-        .action-btn.secondary:hover {
+        .action-btn.primary {
             background: #667eea;
             color: white;
         }
         
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: white;
+        .action-btn.primary:hover {
+            background: #5a6fd8;
         }
         
-        .spinner {
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state h3 {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 20px;
+        }
+        
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 1000;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .profile-avatar {
             width: 40px;
             height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-message {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            margin-top: 20px;
+            font-weight: 600;
+            cursor: pointer;
         }
         
-        .footer {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+        
+        .close-modal:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
             font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f0f0f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            background: #fafafa;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
         }
         
         @media (max-width: 480px) {
-            .profile-card {
-                padding: 20px;
+            .container {
+                padding: 0 15px;
             }
             
-            .avatar, .avatar-placeholder {
-                width: 100px;
-                height: 100px;
+            .header {
+                padding: 15px;
             }
+            
+            .barber-card {
+                padding: 15px;
+            }
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .barber-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Стили для скроллбара */
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <button class="icon-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="logo">iWant</div>
+        <div class="profile-avatar" id="profileAvatar" onclick="openProfile()">
+            <span id="avatarInitials">ТК</span>
+        </div>
+    </div>
+    
     <div class="container">
-        <div class="header">
-            <button class="back-btn" onclick="goBack()">
-                <i class="fas fa-arrow-left"></i>
+        <div class="welcome-section">
+            <h1 class="welcome-title">ваши барберы</h1>
+            <button class="add-barber-btn" onclick="openAddBarberModal()">
+                <i class="fas fa-plus"></i>
+                + добавить
             </button>
-            <div class="logo">iWant</div>
-            <div style="width: 40px;"></div>
         </div>
         
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>Загрузка профиля...</p>
-        </div>
-        
-        <div id="profileContent" style="display: none;">
-            <div class="profile-card">
-                <div class="avatar-section">
-                    <img id="userAvatar" class="avatar" alt="Аватар" style="display: none;">
-                    <div id="avatarPlaceholder" class="avatar-placeholder">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h1 id="userName" class="user-name"></h1>
-                    <p id="userPhone" class="user-phone"></p>
-                </div>
-                
-                <div class="info-section">
-                    <h2 class="section-title">Моя информация</h2>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="info-icon">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <div class="info-content">
-                                <div class="info-label">Мой барбер</div>
-                                <div id="myBarber" class="info-value">Не выбран</div>
-                            </div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-icon">
-                                <i class="fas fa-scissors"></i>
-                            </div>
-                            <div class="info-content">
-                                <div class="info-label">Всего записей</div>
-                                <div id="totalAppointments" class="info-value">0</div>
-                            </div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <div class="info-icon">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <div class="info-content">
-                                <div class="info-label">Любимая услуга</div>
-                                <div id="favoriteService" class="info-value">Не определено</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="history-section">
-                    <h2 class="section-title">История записей</h2>
-                    <div id="historyList" class="history-list">
-                        <!-- История будет загружена здесь -->
-                    </div>
-                    <div id="noHistory" class="no-history">
-                        <i class="fas fa-calendar-alt" style="font-size: 48px; margin-bottom: 15px; color: #ddd;"></i>
-                        <p>У вас еще нет записей</p>
-                        <p style="font-size: 14px; margin-top: 10px;">Запишитесь к барберу чтобы увидеть историю</p>
-                    </div>
-                </div>
-                
-                <div class="actions-section">
-                    <button class="action-btn" onclick="bookAppointment()">
-                        <i class="fas fa-calendar-plus"></i>
-                        Новая запись
-                    </button>
-                    <button class="action-btn secondary" onclick="changeBarber()">
-                        <i class="fas fa-exchange-alt"></i>
-                        Сменить барбера
-                    </button>
-                    <button class="action-btn secondary" onclick="clearData()">
-                        <i class="fas fa-trash-alt"></i>
-                        Очистить данные
-                    </button>
-                </div>
+        <div class="barbers-section" id="barbersSection">
+            <!-- Барберы будут загружены здесь -->
+            <div id="loadingBarbers" class="empty-state">
+                <div class="spinner" style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                <p>Загрузка барберов...</p>
             </div>
         </div>
-        
-        <div id="errorMessage" class="error-message" style="display: none;">
-            <!-- Сообщения об ошибках -->
-        </div>
-        
-        <div class="footer">
-            © 2024 iWant. Премиум сервис записи
+    </div>
+    
+    <!-- Модальное окно добавления барбера -->
+    <div id="addBarberModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Добавить барбера</h3>
+                <button class="close-modal" onclick="closeAddBarberModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Код барбера</label>
+                    <input type="text" id="barberCode" class="form-input" placeholder="Введите код барбера" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Имя барбера</label>
+                    <input type="text" id="barberName" class="form-input" placeholder="Как зовут барбера?" maxlength="50">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddBarberModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="addBarber()">Добавить</button>
+            </div>
         </div>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Модальное окно профиля -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Мой профиль</h3>
+                <button class="close-modal" onclick="closeProfileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div id="modalAvatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; font-weight: 600;"></div>
+                    <h2 id="modalUserName" style="font-size: 20px; color: #000; margin-bottom: 5px;"></h2>
+                    <p id="modalUserPhone" style="color: #666; font-size: 14px;"></p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Телефон</label>
+                    <input type="tel" id="userPhoneInput" class="form-input" placeholder="+7 (999) 123-45-67" maxlength="20">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email (необязательно)</label>
+                    <input type="email" id="userEmailInput" class="form-input" placeholder="email@example.com" maxlength="100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="clearData()">Очистить данные</button>
+                <button class="btn btn-primary" onclick="saveProfile()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <button class="fab" onclick="openAddBarberModal()">
+        <i class="fas fa-plus"></i>
+    </button>
+
     <script>
-        // Telegram Web App API
-        const tg = window.Telegram?.WebApp;
         const API_BASE = 'https://barber-booking-db.onrender.com';
-        
-        // Состояние приложения
         let userData = null;
-        let userHistory = [];
-        let lastBarberCode = null;
+        let barbers = [];
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Профиль клиента загружается...');
-            
-            // Инициализация Telegram Web App
-            initTelegramApp();
+            console.log('🚀 Загружаем данные...');
             
             // Загружаем данные пользователя
             loadUserData();
+            
+            // Загружаем барберов
+            loadBarbers();
+            
+            // Настраиваем Telegram Web App если есть
+            initTelegramApp();
         });
         
         function initTelegramApp() {
+            const tg = window.Telegram?.WebApp;
             if (tg) {
-                console.log('📱 Telegram Web App обнаружен');
-                
-                // Инициализируем Telegram Web App
                 tg.ready();
                 tg.expand();
-                
-                // Получаем данные пользователя из Telegram
-                const user = tg.initDataUnsafe?.user;
-                if (user) {
-                    // Отправляем данные на сервер для аутентификации
-                    const initData = tg.initData;
-                    if (initData) {
-                        sendTelegramDataToServer(user, initData);
-                    }
-                }
                 
                 // Настраиваем кнопку "Назад"
                 tg.BackButton.show();
                 tg.BackButton.onClick(() => {
                     goBack();
                 });
-            } else {
-                console.log('🌐 Не в Telegram Web App');
             }
         }
         
-        async function sendTelegramDataToServer(user, initData) {
+        async function loadUserData() {
             try {
-                console.log('📤 Отправка данных Telegram на сервер...');
+                // Пробуем получить из Telegram
+                const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
                 
-                const response = await fetch(`${API_BASE}/api/telegram/auth?tg_data=${encodeURIComponent(initData)}`);
-                const data = await response.json();
-                
-                console.log('✅ Ответ от сервера:', data);
-                if (data.success && data.profile) {
-                    // Сохраняем профиль в localStorage
-                    localStorage.setItem('user_profile', JSON.stringify(data.profile));
-                    console.log('💾 Профиль сохранен в localStorage');
-                }
-            } catch (error) {
-                console.error('❌ Ошибка отправки данных:', error);
-            }
-        }
-        
-        function loadUserData() {
-            // Пытаемся загрузить данные из разных источников
-            const telegramUser = tg?.initDataUnsafe?.user;
-            const savedProfile = localStorage.getItem('user_profile');
-            
-            if (telegramUser) {
-                // Используем данные из Telegram
-                userData = {
-                    id: telegramUser.id,
-                    firstName: telegramUser.first_name,
-                    lastName: telegramUser.last_name,
-                    username: telegramUser.username,
-                    photoUrl: telegramUser.photo_url,
-                    languageCode: telegramUser.language_code,
-                    isPremium: telegramUser.is_premium || false
-                };
-                console.log('✅ Данные из Telegram:', userData);
-            } else if (savedProfile) {
-                // Используем сохраненный профиль
-                const profile = JSON.parse(savedProfile);
-                userData = {
-                    id: profile.telegram_id,
-                    firstName: profile.first_name,
-                    lastName: profile.last_name,
-                    username: profile.username,
-                    photoUrl: profile.photo_url,
-                    phone: profile.phone
-                };
-                console.log('📱 Данные из localStorage:', userData);
-            } else {
-                // Используем тестовые данные
-                userData = {
-                    id: Date.now(),
-                    firstName: 'Тестовый',
-                    lastName: 'Клиент',
-                    username: 'test_user',
-                    photoUrl: null
-                };
-                console.log('🧪 Тестовые данные пользователя');
-            }
-            
-            // Загружаем профиль с сервера
-            loadUserProfile();
-        }
-        
-        async function loadUserProfile() {
-            try {
-                // Показываем данные пользователя
-                updateUserInfo();
-                
-                // Загружаем профиль с сервера
-                if (userData.id) {
-                    await fetchUserProfile(userData.id);
-                } else {
-                    // Если нет ID, показываем только базовую информацию
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('profileContent').style.display = 'block';
-                    document.getElementById('noHistory').style.display = 'block';
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка загрузки профиля:', error);
-                showError('Ошибка загрузки профиля');
-            }
-        }
-        
-        async function fetchUserProfile(telegramId) {
-            try {
-                // Запрашиваем профиль с сервера
-                const response = await fetch(`${API_BASE}/api/client/profile?telegram_id=${telegramId}`);
-                
-                if (response.ok) {
-                    const result = await response.json();
+                if (tgUser) {
+                    userData = {
+                        id: tgUser.id,
+                        firstName: tgUser.first_name,
+                        lastName: tgUser.last_name,
+                        username: tgUser.username,
+                        photoUrl: tgUser.photo_url
+                    };
                     
-                    if (result.success) {
-                        // Обновляем данные пользователя
-                        if (result.profile) {
-                            userData.firstName = result.profile.first_name || userData.firstName;
-                            userData.lastName = result.profile.last_name || userData.lastName;
-                            userData.username = result.profile.username || userData.username;
-                            userData.photoUrl = result.profile.photo_url || userData.photoUrl;
-                            userData.phone = result.profile.phone || userData.phone;
-                            
-                            // Сохраняем обновленный профиль
-                            localStorage.setItem('user_profile', JSON.stringify(result.profile));
-                        }
-                        
-                        // Обновляем историю записей
-                        userHistory = result.appointments || [];
-                        updateHistoryList();
-                        
-                        // Обновляем статистику
-                        if (result.stats) {
-                            document.getElementById('totalAppointments').textContent = result.stats.total || 0;
-                        }
-                        
-                        // Сохраняем последнего барбера
-                        if (result.profile && result.profile.last_barber_code) {
-                            lastBarberCode = result.profile.last_barber_code;
-                            localStorage.setItem('last_barber_code', lastBarberCode);
-                            await loadBarberInfo(lastBarberCode);
-                        }
-                        
-                        // Определяем любимую услугу
-                        updateFavoriteService();
-                        
-                    } else {
-                        console.warn('⚠️ Профиль не найден на сервере');
-                        userHistory = [];
-                        updateHistoryList();
+                    // Отправляем данные на сервер
+                    const initData = window.Telegram.WebApp.initData;
+                    if (initData) {
+                        await fetch(`${API_BASE}/api/telegram/auth?tg_data=${encodeURIComponent(initData)}`);
                     }
+                    
+                    console.log('✅ Данные из Telegram:', userData);
                 } else {
-                    console.warn('⚠️ Ошибка при запросе профиля');
-                    userHistory = [];
-                    updateHistoryList();
+                    // Проверяем localStorage
+                    const savedProfile = localStorage.getItem('user_profile');
+                    if (savedProfile) {
+                        userData = JSON.parse(savedProfile);
+                        console.log('📱 Данные из localStorage:', userData);
+                    } else {
+                        // Создаем тестового пользователя
+                        userData = {
+                            id: Date.now(),
+                            firstName: 'Тестовый',
+                            lastName: 'Клиент',
+                            username: 'test_user'
+                        };
+                        console.log('🧪 Тестовые данные пользователя');
+                    }
                 }
                 
-                // Показываем контент
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('profileContent').style.display = 'block';
+                // Обновляем аватар
+                updateAvatar();
                 
             } catch (error) {
-                console.error('❌ Ошибка загрузки профиля:', error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('profileContent').style.display = 'block';
-                document.getElementById('noHistory').style.display = 'block';
+                console.error('❌ Ошибка загрузки данных пользователя:', error);
             }
         }
         
-        function updateUserInfo() {
+        function updateAvatar() {
             if (!userData) return;
             
-            const name = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Пользователь';
-            const phone = userData.phone || (userData.username ? `@${userData.username}` : 'Телефон не указан');
+            const avatarElement = document.getElementById('profileAvatar');
+            const initialsElement = document.getElementById('avatarInitials');
             
-            document.getElementById('userName').textContent = name;
-            document.getElementById('userPhone').textContent = phone;
+            // Генерируем инициалы
+            const firstName = userData.firstName || '';
+            const lastName = userData.lastName || '';
+            const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'ТК';
             
-            // Устанавливаем аватар
-            const avatarImg = document.getElementById('userAvatar');
-            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+            initialsElement.textContent = initials;
             
+            // Если есть фото, устанавливаем как фон
             if (userData.photoUrl) {
-                avatarImg.src = userData.photoUrl;
-                avatarImg.onload = function() {
-                    avatarImg.style.display = 'block';
-                    avatarPlaceholder.style.display = 'none';
-                };
-                avatarImg.onerror = function() {
-                    showAvatarFallback(name);
-                };
-            } else {
-                showAvatarFallback(name);
+                avatarElement.style.background = `url(${userData.photoUrl}) center/cover no-repeat`;
+                initialsElement.style.display = 'none';
             }
         }
         
-        function showAvatarFallback(name) {
-            const avatarImg = document.getElementById('userAvatar');
-            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
-            
-            // Генерируем градиентный аватар на основе ID или имени
-            const colors = [
-                ['#667eea', '#764ba2'],
-                ['#f093fb', '#f5576c'],
-                ['#4facfe', '#00f2fe'],
-                ['#43e97b', '#38f9d7'],
-                ['#fa709a', '#fee140']
-            ];
-            
-            const id = userData?.id || 0;
-            const colorIndex = Math.abs(id) % colors.length;
-            const gradient = `linear-gradient(135deg, ${colors[colorIndex][0]} 0%, ${colors[colorIndex][1]} 100%)`;
-            
-            avatarPlaceholder.style.background = gradient;
-            avatarPlaceholder.style.display = 'flex';
-            avatarImg.style.display = 'none';
-            
-            // Показываем первую букву имени
-            const firstLetter = name.charAt(0).toUpperCase();
-            avatarPlaceholder.innerHTML = `<span style="font-size: 48px; font-weight: bold;">${firstLetter}</span>`;
-        }
-        
-        function updateHistoryList() {
-            const historyList = document.getElementById('historyList');
-            const noHistory = document.getElementById('noHistory');
-            
-            if (!historyList) return;
-            
-            historyList.innerHTML = '';
-            
-            if (userHistory.length === 0) {
-                noHistory.style.display = 'block';
-                document.getElementById('totalAppointments').textContent = '0';
-                return;
-            }
-            
-            noHistory.style.display = 'none';
-            
-            // Сортируем записи по дате (новые сначала)
-            const sortedHistory = [...userHistory].sort((a, b) => {
-                return new Date(b.date) - new Date(a.date);
-            });
-            
-            sortedHistory.forEach(record => {
-                const date = new Date(record.date);
-                const dateStr = date.toLocaleDateString('ru-RU');
-                const statusClass = `status-${record.status || 'active'}`;
-                const statusText = getStatusText(record.status);
-                
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.innerHTML = `
-                    <div class="history-details">
-                        <div class="history-date">${dateStr} ${record.time || ''}</div>
-                        <div class="history-service">${record.service || record.service_name || 'Услуга'}</div>
-                        <div class="history-barber">${record.barber || record.barber_name || 'Барбер'}</div>
-                    </div>
-                    <div class="history-status ${statusClass}">${statusText}</div>
-                `;
-                
-                historyList.appendChild(item);
-            });
-            
-            // Обновляем статистику
-            document.getElementById('totalAppointments').textContent = userHistory.length;
-        }
-        
-        function updateFavoriteService() {
-            if (userHistory.length === 0) {
-                document.getElementById('favoriteService').textContent = 'Не определено';
-                return;
-            }
-            
-            // Определяем любимую услугу
-            const serviceCount = {};
-            userHistory.forEach(record => {
-                const service = record.service || record.service_name;
-                if (service) {
-                    serviceCount[service] = (serviceCount[service] || 0) + 1;
-                }
-            });
-            
-            let favoriteService = 'Не определено';
-            let maxCount = 0;
-            
-            for (const [service, count] of Object.entries(serviceCount)) {
-                if (count > maxCount) {
-                    maxCount = count;
-                    favoriteService = service;
-                }
-            }
-            
-            document.getElementById('favoriteService').textContent = favoriteService;
-        }
-        
-        async function loadBarberInfo(barberCode) {
+        async function loadBarbers() {
             try {
-                const response = await fetch(`${API_BASE}/api/barber/${barberCode}`);
-                const data = await response.json();
+                // Для теста - создадим несколько барберов
+                setTimeout(() => {
+                    barbers = [
+                        {
+                            id: 1,
+                            name: 'Иван Барберов',
+                            code: 'IVAN123',
+                            phone: '+7 (999) 123-45-67',
+                            stats: {
+                                total: 12,
+                                upcoming: 3,
+                                rating: 4.8
+                            }
+                        },
+                        {
+                            id: 2,
+                            name: 'Алексей Стригун',
+                            code: 'ALEX456',
+                            phone: '+7 (999) 987-65-43',
+                            stats: {
+                                total: 8,
+                                upcoming: 1,
+                                rating: 4.9
+                            }
+                        }
+                    ];
+                    
+                    renderBarbers();
+                    
+                }, 1000);
                 
-                if (data.success && data.barber) {
-                    document.getElementById('myBarber').textContent = data.barber.name;
-                } else {
-                    document.getElementById('myBarber').textContent = `Барбер ${barberCode}`;
-                }
             } catch (error) {
-                console.error('❌ Ошибка загрузки барбера:', error);
-                document.getElementById('myBarber').textContent = `Барбер ${barberCode}`;
+                console.error('❌ Ошибка загрузки барберов:', error);
+                renderError();
             }
         }
         
-        function getStatusText(status) {
-            const statusMap = {
-                'active': 'Активна',
-                'pending': 'Ожидает',
-                'confirmed': 'Подтверждена',
-                'completed': 'Выполнена',
-                'cancelled': 'Отменена'
-            };
-            return statusMap[status] || 'Активна';
+        function renderBarbers() {
+            const barbersSection = document.getElementById('barbersSection');
+            
+            if (barbers.length === 0) {
+                barbersSection.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <h3>Нет барберов</h3>
+                        <p>Добавьте своего первого барбера, чтобы начать записываться</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            barbers.forEach(barber => {
+                // Получаем первую букву имени для аватара
+                const firstLetter = barber.name.charAt(0).toUpperCase();
+                
+                html += `
+                    <div class="barber-card" onclick="openBarberPanel('${barber.code}')">
+                        <div class="barber-avatar">
+                            ${firstLetter}
+                        </div>
+                        <div class="barber-info">
+                            <div class="barber-name">${barber.name}</div>
+                            <div class="barber-code">${barber.code}</div>
+                            <div class="barber-meta">
+                                <div class="barber-stats">
+                                    <span class="stat-item">
+                                        <i class="fas fa-calendar-check"></i>
+                                        ${barber.stats.total || 0}
+                                    </span>
+                                    <span class="stat-item">
+                                        <i class="fas fa-star"></i>
+                                        ${barber.stats.rating || 'Н/Д'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="barber-actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); removeBarber(${barber.id})" title="Удалить">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            barbersSection.innerHTML = html;
         }
         
-        function bookAppointment() {
-            if (lastBarberCode) {
-                // Переходим к записи у текущего барбера
-                window.location.href = `${API_BASE}/client-panel?code=${lastBarberCode}`;
-            } else {
-                // Ищем нового барбера
-                window.location.href = `${API_BASE}/client-login`;
+        function renderError() {
+            const barbersSection = document.getElementById('barbersSection');
+            barbersSection.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Ошибка загрузки</h3>
+                    <p>Не удалось загрузить список барберов</p>
+                    <button onclick="loadBarbers()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+                        Попробовать снова
+                    </button>
+                </div>
+            `;
+        }
+        
+        function openBarberPanel(code) {
+            window.location.href = `${API_BASE}/client-panel?code=${code}`;
+        }
+        
+        function openAddBarberModal() {
+            const modal = document.getElementById('addBarberModal');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('barberCode').focus();
+            }, 100);
+        }
+        
+        function closeAddBarberModal() {
+            const modal = document.getElementById('addBarberModal');
+            modal.style.display = 'none';
+            // Очищаем поля
+            document.getElementById('barberCode').value = '';
+            document.getElementById('barberName').value = '';
+        }
+        
+        function addBarber() {
+            const code = document.getElementById('barberCode').value.trim();
+            const name = document.getElementById('barberName').value.trim();
+            
+            if (!code) {
+                alert('Пожалуйста, введите код барбера');
+                document.getElementById('barberCode').focus();
+                return;
+            }
+            
+            if (!name) {
+                alert('Пожалуйста, введите имя барбера');
+                document.getElementById('barberName').focus();
+                return;
+            }
+            
+            // Проверяем, нет ли уже барбера с таким кодом
+            if (barbers.some(b => b.code === code)) {
+                alert('Барбер с таким кодом уже добавлен');
+                return;
+            }
+            
+            // Проверяем существование барбера на сервере
+            checkBarberExists(code).then(exists => {
+                if (exists) {
+                    // Добавляем барбера
+                    const newBarber = {
+                        id: Date.now(),
+                        name: name,
+                        code: code,
+                        phone: '',
+                        stats: {
+                            total: 0,
+                            upcoming: 0,
+                            rating: 'Н/Д'
+                        }
+                    };
+                    
+                    barbers.unshift(newBarber);
+                    renderBarbers();
+                    closeAddBarberModal();
+                    
+                    // Сохраняем в localStorage
+                    localStorage.setItem('barbers', JSON.stringify(barbers));
+                    
+                    // Сохраняем последнего барбера
+                    localStorage.setItem('last_barber_code', code);
+                    
+                    // Открываем панель барбера
+                    setTimeout(() => {
+                        openBarberPanel(code);
+                    }, 300);
+                } else {
+                    alert('Барбер с таким кодом не найден. Пожалуйста, проверьте код.');
+                }
+            }).catch(error => {
+                console.error('❌ Ошибка проверки барбера:', error);
+                alert('Не удалось проверить барбера. Пожалуйста, попробуйте снова.');
+            });
+        }
+        
+        async function checkBarberExists(code) {
+            try {
+                const response = await fetch(`${API_BASE}/api/barber/${code}`);
+                const data = await response.json();
+                return data.success;
+            } catch (error) {
+                console.error('❌ Ошибка проверки барбера:', error);
+                return false;
             }
         }
         
-        function changeBarber() {
-            window.location.href = `${API_BASE}/client-login`;
+        function removeBarber(barberId) {
+            if (confirm('Удалить этого барбера из вашего списка?')) {
+                barbers = barbers.filter(b => b.id !== barberId);
+                renderBarbers();
+                localStorage.setItem('barbers', JSON.stringify(barbers));
+            }
+        }
+        
+        function openProfile() {
+            const modal = document.getElementById('profileModal');
+            const modalAvatar = document.getElementById('modalAvatar');
+            const modalUserName = document.getElementById('modalUserName');
+            const modalUserPhone = document.getElementById('modalUserPhone');
+            const userPhoneInput = document.getElementById('userPhoneInput');
+            
+            // Заполняем данные
+            if (userData) {
+                const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Пользователь';
+                modalUserName.textContent = fullName;
+                modalUserPhone.textContent = userData.phone || 'Телефон не указан';
+                userPhoneInput.value = userData.phone || '';
+                
+                // Устанавливаем аватар
+                if (userData.photoUrl) {
+                    modalAvatar.style.background = `url(${userData.photoUrl}) center/cover no-repeat`;
+                    modalAvatar.textContent = '';
+                } else {
+                    const initials = `${userData.firstName?.charAt(0) || ''}${userData.lastName?.charAt(0) || ''}`.toUpperCase() || 'ТК';
+                    modalAvatar.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    modalAvatar.textContent = initials;
+                }
+            }
+            
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                userPhoneInput.focus();
+            }, 100);
+        }
+        
+        function closeProfileModal() {
+            const modal = document.getElementById('profileModal');
+            modal.style.display = 'none';
+        }
+        
+        function saveProfile() {
+            const phone = document.getElementById('userPhoneInput').value.trim();
+            const email = document.getElementById('userEmailInput').value.trim();
+            
+            if (!phone) {
+                alert('Пожалуйста, укажите телефон');
+                document.getElementById('userPhoneInput').focus();
+                return;
+            }
+            
+            // Обновляем данные пользователя
+            if (userData) {
+                userData.phone = phone;
+                if (email) userData.email = email;
+                
+                // Сохраняем в localStorage
+                localStorage.setItem('user_profile', JSON.stringify(userData));
+                
+                // Закрываем модальное окно
+                closeProfileModal();
+                
+                // Обновляем отображение
+                updateAvatar();
+                
+                alert('Профиль сохранен!');
+            }
         }
         
         function clearData() {
-            if (confirm('Вы уверены, что хотите очистить все ваши данные? Это удалит историю записей и информацию о барбере.')) {
-                localStorage.removeItem('user_profile');
-                localStorage.removeItem('last_barber_code');
-                
-                // Обновляем страницу
-                window.location.reload();
+            if (confirm('Вы уверены, что хотите удалить все ваши данные? Это действие нельзя отменить.')) {
+                localStorage.clear();
+                alert('Данные очищены. Страница будет перезагружена.');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         }
         
@@ -816,29 +942,33 @@
             }
         }
         
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.innerHTML = `
-                <h3 style="margin-bottom: 10px;">⚠️ Ошибка</h3>
-                <p>${message}</p>
-                <button onclick="location.reload()" 
-                        style="margin-top: 15px; padding: 10px 20px; background: white; color: #667eea; 
-                               border: none; border-radius: 5px; cursor: pointer;">
-                    Обновить страницу
-                </button>
-            `;
-            errorDiv.style.display = 'block';
-            document.getElementById('loading').style.display = 'none';
-        }
-        
-        // Инициализируем кнопки Telegram
-        if (tg) {
-            tg.MainButton.setText('Мой профиль');
-            tg.MainButton.show();
-            tg.MainButton.onClick(() => {
-                // Уже на странице профиля
+        // Закрытие модальных окон по клику вне их
+        document.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
             });
-        }
+        });
+        
+        // Обработка нажатия Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAddBarberModal();
+                closeProfileModal();
+            }
+        });
+        
+        // Анимация спиннера
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
