@@ -33,7 +33,7 @@
                         <p class="subtitle">Введите код барбера для записи</p>
                     </div>
                     
-                    <form id="clientLoginForm" class="auth-form">
+                    <form id="clientLoginForm" class="auth-form" method="POST" action="/client/find">
                         <div class="form-group">
                             <label for="masterCode" class="form-label">
                                 <i class="fas fa-key"></i> Код барбера
@@ -41,6 +41,7 @@
                             <input 
                                 type="text" 
                                 id="masterCode" 
+                                name="code"
                                 class="form-input"
                                 placeholder="Пример: B-ARBER003 или barber"
                                 value="barber"
@@ -88,7 +89,108 @@
         </div>
     </footer>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
+    <script>
+        // JavaScript для обработки ошибок
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('clientLoginForm');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Проверяем URL на наличие параметра ошибки
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorFromServer = urlParams.get('error');
+            const codeFromServer = urlParams.get('code');
+            
+            if (errorFromServer) {
+                errorMessage.textContent = decodeURIComponent(errorFromServer);
+                errorMessage.style.display = 'block';
+                
+                // Заполняем поле кодом если он есть
+                if (codeFromServer) {
+                    document.getElementById('masterCode').value = decodeURIComponent(codeFromServer);
+                }
+            }
+            
+            // Очистка сообщений при вводе
+            document.getElementById('masterCode').addEventListener('input', function() {
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+            });
+            
+            // AJAX отправка формы (опционально)
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Отключаем стандартную отправку для AJAX
+                
+                const code = document.getElementById('masterCode').value.trim();
+                
+                if (!code) {
+                    errorMessage.textContent = 'Пожалуйста, введите код барбера';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Показываем загрузку
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Поиск...';
+                submitBtn.disabled = true;
+                
+                // Используем API для проверки
+                fetch('/api/client/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code: code })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Перенаправляем на client-panel
+                        window.location.href = data.redirect_url;
+                    } else {
+                        // Показываем ошибку
+                        errorMessage.textContent = data.error;
+                        errorMessage.style.display = 'block';
+                        
+                        // Восстанавливаем кнопку
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    
+                    // Если AJAX не сработал, используем стандартную отправку формы
+                    errorMessage.textContent = 'Ошибка подключения. Пробуем другой способ...';
+                    errorMessage.style.display = 'block';
+                    
+                    // Восстанавливаем кнопку и отправляем форму стандартным способом
+                    setTimeout(() => {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                        
+                        // Переключаем на стандартную отправку
+                        const tempForm = document.createElement('form');
+                        tempForm.method = 'POST';
+                        tempForm.action = '/client/find';
+                        tempForm.style.display = 'none';
+                        
+                        const codeInput = document.createElement('input');
+                        codeInput.type = 'hidden';
+                        codeInput.name = 'code';
+                        codeInput.value = code;
+                        
+                        tempForm.appendChild(codeInput);
+                        document.body.appendChild(tempForm);
+                        tempForm.submit();
+                    }, 2000);
+                });
+            });
+            
+            // Также обрабатываем стандартную отправку формы если JS отключен
+            // Форма сама отправится на /client/find с методом POST
+        });
+    </script>
 </body>
 </html>
