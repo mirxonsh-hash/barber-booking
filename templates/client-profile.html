@@ -6,6 +6,7 @@
     <title>iWant - Ваши барберы</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* ТВОИ СТИЛИ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ */
         * {
             margin: 0;
             padding: 0;
@@ -551,71 +552,133 @@
         let barbers = [];
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Загружаем данные...');
+            console.log('🚀 Инициализация страницы...');
             
-            // Загружаем данные пользователя
-            loadUserData();
-            
-            // Загружаем барберов из localStorage
-            loadBarbers();
-            
-            // Настраиваем Telegram Web App если есть
+            // ПЕРВОЕ - инициализируем Telegram
             initTelegramApp();
+            
+            // ВТОРОЕ - загружаем данные
+            setTimeout(() => {
+                loadUserData();
+                loadBarbers();
+            }, 100);
         });
         
         function initTelegramApp() {
-            const tg = window.Telegram?.WebApp;
-            if (tg) {
-                tg.ready();
-                tg.expand();
+            // ПРОВЕРЯЕМ Telegram Web App
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                console.log('✅ Telegram Web App обнаружен!');
                 
-                // Настраиваем кнопку "Назад"
+                const tg = Telegram.WebApp;
+                
+                // Настраиваем приложение
+                tg.expand();
+                tg.ready();
+                
+                // Кнопка "Назад"
                 tg.BackButton.show();
                 tg.BackButton.onClick(() => {
                     goBack();
                 });
+                
+                // ПОЛУЧАЕМ ВСЕ ДАННЫЕ
+                const user = tg.initDataUnsafe?.user;
+                const initData = tg.initData; // ВАЖНО: получаем полные данные
+                
+                console.log('👤 Telegram User:', user);
+                console.log('🔑 Init Data доступен:', initData ? 'ДА' : 'НЕТ');
+                
+                if (user) {
+                    // Сохраняем в localStorage
+                    localStorage.setItem('telegram_user', JSON.stringify(user));
+                    localStorage.setItem('telegram_user_id', user.id.toString());
+                    
+                    if (initData) {
+                        localStorage.setItem('telegram_init_data', initData);
+                        
+                        // Отправляем данные на сервер ДЛЯ СОХРАНЕНИЯ ПРОФИЛЯ
+                        fetch(`${API_BASE}/api/client/profile?tg_data=${encodeURIComponent(initData)}&telegram_id=${user.id}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log('📊 Ответ сервера:', data);
+                                if (data.success && data.profile) {
+                                    console.log('✅ Профиль сохранен на сервере');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('❌ Ошибка отправки данных:', error);
+                            });
+                    }
+                    
+                    // Создаем объект пользователя
+                    userData = {
+                        id: user.id,
+                        firstName: user.first_name || '',
+                        lastName: user.last_name || '',
+                        username: user.username || '',
+                        photoUrl: user.photo_url,
+                        phone: ''
+                    };
+                    
+                    console.log('✅ Данные Telegram сохранены:', userData);
+                    
+                    // Обновляем аватар СРАЗУ
+                    updateAvatar();
+                    
+                    // Загружаем профиль с сервера (для телефона и других данных)
+                    loadUserProfile(user.id);
+                    
+                } else {
+                    console.log('🌐 Telegram данные не получены');
+                    loadFromLocalStorage();
+                }
+                
+                // Настраиваем внешний вид
+                tg.setHeaderColor('#667eea');
+                tg.setBackgroundColor('#ffffff');
+                
+            } else {
+                console.log('🌐 НЕ в Telegram Web App');
+                loadFromLocalStorage();
             }
         }
         
-        async function loadUserData() {
-            try {
-                // Пробуем получить из Telegram
-                const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-                
-                if (tgUser) {
-                    userData = {
-                        id: tgUser.id,
-                        firstName: tgUser.first_name,
-                        lastName: tgUser.last_name,
-                        username: tgUser.username,
-                        photoUrl: tgUser.photo_url
-                    };
-                    
-                    console.log('✅ Данные из Telegram:', userData);
-                    
-                    // Обновляем аватар
+        function loadFromLocalStorage() {
+            console.log('📂 Загрузка из localStorage...');
+            
+            const profileStr = localStorage.getItem('user_profile');
+            const telegramId = localStorage.getItem('telegram_user_id');
+            
+            if (profileStr) {
+                try {
+                    userData = JSON.parse(profileStr);
+                    console.log('✅ Загружено из localStorage:', userData);
                     updateAvatar();
-                    
-                    // Загружаем профиль с сервера
-                    await loadUserProfile(tgUser.id);
-                } else {
-                    // Проверяем localStorage
-                    const savedProfile = localStorage.getItem('user_profile');
-                    if (savedProfile) {
-                        userData = JSON.parse(savedProfile);
-                        console.log('📱 Данные из localStorage:', userData);
-                    } else {
-                        // Загружаем тестовый профиль с сервера
-                        await loadUserProfile('test_user');
-                    }
-                    
-                    // Обновляем аватар
-                    updateAvatar();
+                } catch (e) {
+                    console.error('❌ Ошибка парсинга профиля:', e);
+                    createDefaultUserData();
                 }
-                
-            } catch (error) {
-                console.error('❌ Ошибка загрузки данных пользователя:', error);
+            } else if (telegramId) {
+                // Есть ID Telegram, но нет профиля
+                loadUserProfile(telegramId);
+            } else {
+                // Нет ничего - создаем тестового пользователя
+                createDefaultUserData();
             }
+        }
+        
+        function createDefaultUserData() {
+            userData = {
+                id: 'test_user',
+                firstName: 'Тестовый',
+                lastName: 'Пользователь',
+                username: 'test_user',
+                photoUrl: '',
+                phone: ''
+            };
+            
+            localStorage.setItem('user_profile', JSON.stringify(userData));
+            updateAvatar();
         }
         
         async function loadUserProfile(telegramId) {
@@ -633,12 +696,8 @@
                         phone: data.profile.phone || ''
                     };
                     
-                    // Сохраняем в localStorage
                     localStorage.setItem('user_profile', JSON.stringify(userData));
-                    
                     console.log('✅ Профиль загружен с сервера:', userData);
-                    
-                    // Обновляем аватар
                     updateAvatar();
                 }
             } catch (error) {
@@ -646,43 +705,94 @@
             }
         }
         
+        function loadUserData() {
+            console.log('👤 Загружаем данные пользователя...');
+            // Уже загружено в initTelegramApp или loadFromLocalStorage
+        }
+        
         function updateAvatar() {
-            if (!userData) return;
+            if (!userData) {
+                console.warn('⚠️ Нет данных пользователя для обновления аватара');
+                return;
+            }
             
             const avatarElement = document.getElementById('profileAvatar');
             const initialsElement = document.getElementById('avatarInitials');
+            
+            if (!avatarElement || !initialsElement) {
+                console.error('❌ Элементы аватара не найдены');
+                return;
+            }
             
             // Генерируем инициалы
             const firstName = userData.firstName || '';
             const lastName = userData.lastName || '';
             const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'ПК';
             
+            console.log('🎨 Обновляем аватар:', { firstName, lastName, initials });
+            
             initialsElement.textContent = initials;
             
             // Если есть фото, устанавливаем как фон
             if (userData.photoUrl) {
+                console.log('📸 Устанавливаем фото:', userData.photoUrl);
                 avatarElement.style.background = `url(${userData.photoUrl}) center/cover no-repeat`;
                 initialsElement.style.display = 'none';
             } else {
+                console.log('🎨 Устанавливаем цветной фон с инициалами');
+                avatarElement.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                 initialsElement.style.display = 'flex';
+            }
+            
+            // Обновляем модальное окно если нужно
+            updateProfileModal();
+        }
+        
+        function updateProfileModal() {
+            if (!userData) return;
+            
+            const modalAvatar = document.getElementById('modalAvatar');
+            const modalUserName = document.getElementById('modalUserName');
+            const modalUserPhone = document.getElementById('modalUserPhone');
+            const userPhoneInput = document.getElementById('userPhoneInput');
+            
+            if (modalUserName) {
+                const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Пользователь';
+                modalUserName.textContent = fullName;
+            }
+            
+            if (modalUserPhone) {
+                modalUserPhone.textContent = userData.phone || 'Телефон не указан';
+            }
+            
+            if (userPhoneInput) {
+                userPhoneInput.value = userData.phone || '';
+            }
+            
+            if (modalAvatar) {
+                if (userData.photoUrl) {
+                    modalAvatar.style.background = `url(${userData.photoUrl}) center/cover no-repeat`;
+                    modalAvatar.textContent = '';
+                } else {
+                    const initials = `${userData.firstName?.charAt(0) || ''}${userData.lastName?.charAt(0) || ''}`.toUpperCase() || 'ПК';
+                    modalAvatar.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    modalAvatar.textContent = initials;
+                }
             }
         }
         
         function loadBarbers() {
             try {
-                // Загружаем барберов из localStorage
                 const savedBarbers = localStorage.getItem('barbers');
                 if (savedBarbers) {
                     barbers = JSON.parse(savedBarbers);
                     renderBarbers();
                 } else {
-                    // Если нет сохраненных барберов, показываем пустое состояние
                     setTimeout(() => {
                         document.getElementById('loadingBarbers').style.display = 'none';
                         renderBarbers();
                     }, 1000);
                 }
-                
             } catch (error) {
                 console.error('❌ Ошибка загрузки барберов:', error);
                 renderError();
@@ -692,7 +802,11 @@
         function renderBarbers() {
             const barbersSection = document.getElementById('barbersSection');
             
-            // Скрываем спиннер загрузки
+            if (!barbersSection) {
+                console.error('❌ Не найден элемент barbersSection');
+                return;
+            }
+            
             document.getElementById('loadingBarbers').style.display = 'none';
             
             if (barbers.length === 0) {
@@ -711,7 +825,6 @@
             let html = '';
             
             barbers.forEach(barber => {
-                // Получаем первую букву имени для аватара
                 const firstLetter = barber.name.charAt(0).toUpperCase();
                 
                 html += `
@@ -775,7 +888,6 @@
         function closeAddBarberModal() {
             const modal = document.getElementById('addBarberModal');
             modal.style.display = 'none';
-            // Очищаем поля
             document.getElementById('barberCode').value = '';
             document.getElementById('barberName').value = '';
         }
@@ -790,19 +902,16 @@
                 return;
             }
             
-            // Проверяем, нет ли уже барбера с таким кодом
             if (barbers.some(b => b.code === code)) {
                 alert('Барбер с таким кодом уже добавлен');
                 return;
             }
             
-            // Проверяем существование барбера на сервере
             try {
                 const response = await fetch(`${API_BASE}/api/barber/${code}`);
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Добавляем барбера
                     const barberName = name || data.barber.name || `Барбер ${code}`;
                     const newBarber = {
                         code: code,
@@ -817,13 +926,9 @@
                     renderBarbers();
                     closeAddBarberModal();
                     
-                    // Сохраняем в localStorage
                     localStorage.setItem('barbers', JSON.stringify(barbers));
-                    
-                    // Сохраняем последнего барбера
                     localStorage.setItem('last_barber_code', code);
                     
-                    // Открываем панель барбера
                     setTimeout(() => {
                         openBarberPanel(code);
                     }, 300);
@@ -846,32 +951,11 @@
         
         function openProfile() {
             const modal = document.getElementById('profileModal');
-            const modalAvatar = document.getElementById('modalAvatar');
-            const modalUserName = document.getElementById('modalUserName');
-            const modalUserPhone = document.getElementById('modalUserPhone');
-            const userPhoneInput = document.getElementById('userPhoneInput');
-            
-            // Заполняем данные
-            if (userData) {
-                const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Пользователь';
-                modalUserName.textContent = fullName;
-                modalUserPhone.textContent = userData.phone || 'Телефон не указан';
-                userPhoneInput.value = userData.phone || '';
-                
-                // Устанавливаем аватар
-                if (userData.photoUrl) {
-                    modalAvatar.style.background = `url(${userData.photoUrl}) center/cover no-repeat`;
-                    modalAvatar.textContent = '';
-                } else {
-                    const initials = `${userData.firstName?.charAt(0) || ''}${userData.lastName?.charAt(0) || ''}`.toUpperCase() || 'ПК';
-                    modalAvatar.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                    modalAvatar.textContent = initials;
-                }
-            }
-            
+            updateProfileModal(); // Обновляем данные перед открытием
             modal.style.display = 'flex';
             setTimeout(() => {
-                userPhoneInput.focus();
+                const userPhoneInput = document.getElementById('userPhoneInput');
+                if (userPhoneInput) userPhoneInput.focus();
             }, 100);
         }
         
@@ -889,14 +973,10 @@
                 return;
             }
             
-            // Обновляем данные пользователя
             if (userData) {
                 userData.phone = phone;
-                
-                // Сохраняем в localStorage
                 localStorage.setItem('user_profile', JSON.stringify(userData));
                 
-                // Сохраняем на сервере
                 if (userData.id) {
                     try {
                         await fetch(`${API_BASE}/api/client/profile/update`, {
@@ -918,12 +998,8 @@
                     }
                 }
                 
-                // Закрываем модальное окно
                 closeProfileModal();
-                
-                // Обновляем отображение
                 updateAvatar();
-                
                 alert('Профиль сохранен!');
             }
         }
@@ -946,7 +1022,6 @@
             }
         }
         
-        // Закрытие модальных окон по клику вне их
         document.addEventListener('click', function(event) {
             const modals = document.querySelectorAll('.modal');
             modals.forEach(modal => {
@@ -956,7 +1031,6 @@
             });
         });
         
-        // Обработка нажатия Escape
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeAddBarberModal();
@@ -964,7 +1038,6 @@
             }
         });
         
-        // Анимация спиннера
         const style = document.createElement('style');
         style.textContent = `
             @keyframes spin {
