@@ -149,7 +149,10 @@ def client_login_page():
 
 @app.route('/client-panel')
 def client_panel_page():
-    return render_template('client_panel.html')
+    # Получаем код барбера из параметра URL
+    code = request.args.get('code', '')
+    # Передаем код в шаблон для использования в JavaScript
+    return render_template('client_panel.html', barber_code=code)
 
 @app.route('/profile')
 def profile_page():
@@ -201,6 +204,38 @@ def redirect_index():
 def redirect_client_profile():
     code = request.args.get('code', '')
     return redirect(f'/client-panel?code={code}')
+
+# ========== API ДЛЯ КЛИЕНТСКОГО ВХОДА ==========
+@app.route('/api/client/login', methods=['POST'])
+def client_login():
+    """Авторизация клиента по коду барбера и редирект на client-panel"""
+    try:
+        data = request.json
+        code = data.get('code')
+        
+        if not code:
+            return jsonify({'success': False, 'error': 'Введите код барбера'}), 400
+        
+        # Проверяем существование барбера с таким кодом
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT id, name, code FROM barbers WHERE code = %s', (code,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            # Барбер найден - возвращаем URL для редиректа
+            return jsonify({
+                'success': True,
+                'redirect_url': f'/client-panel?code={code}'
+            })
+        
+        return jsonify({'success': False, 'error': 'Барбер с таким кодом не найден'}), 404
+    
+    except Exception as e:
+        logger.error(f"Ошибка входа клиента: {e}")
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
 # ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/barber/login', methods=['POST'])
@@ -438,6 +473,7 @@ if __name__ == '__main__':
     print("   • /client-login - Вход клиента")
     print("   • /client-panel - Панель записи клиента")
     print("   • /api/barber/login - API вход барбера")
+    print("   • /api/client/login - API вход клиента")
     print("   • /api/barber/<code>/services - Услуги барбера")
     print("   • /api/appointments/create - Создание записи")
     print("=" * 80)
