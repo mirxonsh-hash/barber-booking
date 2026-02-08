@@ -81,7 +81,7 @@ def send_telegram_notification(appointment_data):
         return False
 
 def send_barber_notification(barber_phone, appointment_data):
-    """Отправка уведомления барберу (в будущем можно сделать через SMS или другой мессенджер)"""
+    """Отправка уведомления барберу"""
     logger.info(f"📱 Уведомление для барбера {barber_phone}: Новая запись от {appointment_data['client_name']}")
     return True
 
@@ -132,6 +132,36 @@ def init_db():
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (barber_code) REFERENCES barbers(code) ON DELETE CASCADE
+    )
+    ''')
+    
+    # Таблица клиентов (для Telegram Mini App)
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS clients (
+        id SERIAL PRIMARY KEY,
+        telegram_id BIGINT UNIQUE,
+        first_name VARCHAR(100),
+        last_name VARCHAR(100),
+        username VARCHAR(100),
+        photo_url TEXT,
+        phone VARCHAR(20),
+        last_barber_code VARCHAR(20),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    
+    # Таблица расписания
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS schedule (
+        id SERIAL PRIMARY KEY,
+        barber_id INTEGER NOT NULL,
+        date DATE NOT NULL,
+        time TIME NOT NULL,
+        is_available BOOLEAN DEFAULT TRUE,
+        client_phone VARCHAR(20),
+        FOREIGN KEY (barber_id) REFERENCES barbers(id) ON DELETE CASCADE,
+        UNIQUE(barber_id, date, time)
     )
     ''')
     
@@ -231,6 +261,11 @@ def client_panel_page():
         return redirect(url_for('client_login_page', 
                              error='Ошибка сервера при загрузке страницы'))
 
+@app.route('/client-profile')
+def client_profile_page():
+    """Страница профиля клиента"""
+    return render_template('client-profile.html')
+
 @app.route('/profile')
 def profile_page():
     return render_template('profile.html')
@@ -312,6 +347,183 @@ def client_login():
         logger.error(f"Ошибка входа клиента: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
+# ========== API ДЛЯ КЛИЕНТСКОГО ПРОФИЛЯ ==========
+@app.route('/api/client/profile', methods=['GET'])
+def get_client_profile():
+    """Получение профиля клиента"""
+    try:
+        # Получаем данные из Telegram или сессии
+        telegram_id = request.args.get('telegram_id')
+        
+        if not telegram_id:
+            return jsonify({'success': False, 'error': 'ID пользователя не указан'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Проверяем, есть ли пользователь в базе
+        cursor.execute('''
+        SELECT id, telegram_id, first_name, last_name, username, 
+               photo_url, phone, last_barber_code, created_at
+        FROM clients 
+        WHERE telegram_id = %s
+        ''', (telegram_id,))
+        
+        result = cursor.fetchone()
+        
+        if result:
+            # Пользователь найден
+            profile = {
+                'id': result[0],
+                'telegram_id': result[1],
+                'first_name': result[2],
+                'last_name': result[3],
+                'username': result[4],
+                'photo_url': result[5],
+                'phone': result[6],
+                'last_barber_code': result[7],
+                'created_at': result[8].isoformat() if result[8] else None
+            }
+            
+            # Получаем историю записей
+            cursor.execute('''
+            SELECT a.id, a.service_name, a.price, a.appointment_date, 
+                   a.appointment_time, a.status, b.name as barber_name,
+                   b.code as barber_code
+            FROM appointments a
+            LEFT JOIN barbers b ON a.barber_code = b.code
+            WHERE a.client_phone = %s OR a.client_name = %s
+            ORDER BY a.appointment_date DESC, a.appointment_time DESC
+            LIMIT 10
+            ''', (profile.get('phone', ''), f"{profile['first_name']} {profile['last_name']}"))
+            
+            appointments = []
+            for row in cursor.fetchall():
+                appointments.append({
+                    'id': row[0],
+                    'service': row[1],
+                    'price': row[2],
+                    'date': row[3].isoformat() if row[3] else None,
+                    'time': str(row[4]) if row[4] else None,
+                    'status': row[5],
+                    'barber_name': row[6],
+                    'barber_code': row[7]
+                })
+            
+            # Получаем статистику
+            cursor.execute('''
+            SELECT COUNT(*) as total, 
+                   SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+            FROM appointments 
+            WHERE client_phone = %s OR client_name = %s
+            ''', (profile.get('phone', ''), f"{profile['first_name']} {profile['last_name']}"))
+            
+            stats = cursor.fetchone()
+            
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'profile': profile,
+                'appointments': appointments,
+                'stats': {
+                    'total': stats[0] if stats else 0,
+                    'completed': stats[1] if stats else 0
+                }
+            })
+        else:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'error': 'Профиль не найден',
+                'needs_registration': True
+            })
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения профиля: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/client/profile/update', methods=['POST'])
+def update_client_profile():
+    """Обновление или создание профиля клиента"""
+    try:
+        data = request.json
+        
+        # Проверяем обязательные поля
+        telegram_id = data.get('telegram_id')
+        if not telegram_id:
+            return jsonify({'success': False, 'error': 'ID Telegram обязателен'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Проверяем, есть ли пользователь
+        cursor.execute('SELECT id FROM clients WHERE telegram_id = %s', (telegram_id,))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            # Обновляем существующего пользователя
+            update_fields = []
+            update_values = []
+            
+            if 'first_name' in data:
+                update_fields.append('first_name = %s')
+                update_values.append(data['first_name'])
+            
+            if 'last_name' in data:
+                update_fields.append('last_name = %s')
+                update_values.append(data['last_name'])
+            
+            if 'username' in data:
+                update_fields.append('username = %s')
+                update_values.append(data['username'])
+            
+            if 'photo_url' in data:
+                update_fields.append('photo_url = %s')
+                update_values.append(data['photo_url'])
+            
+            if 'phone' in data:
+                update_fields.append('phone = %s')
+                update_values.append(data['phone'])
+            
+            if 'last_barber_code' in data:
+                update_fields.append('last_barber_code = %s')
+                update_values.append(data['last_barber_code'])
+            
+            if update_fields:
+                update_values.append(telegram_id)
+                query = f"UPDATE clients SET {', '.join(update_fields)}, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = %s"
+                cursor.execute(query, tuple(update_values))
+        else:
+            # Создаем нового пользователя
+            cursor.execute('''
+            INSERT INTO clients (telegram_id, first_name, last_name, username, 
+                               photo_url, phone, last_barber_code)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ''', (
+                telegram_id,
+                data.get('first_name', ''),
+                data.get('last_name', ''),
+                data.get('username', ''),
+                data.get('photo_url', ''),
+                data.get('phone', ''),
+                data.get('last_barber_code', '')
+            ))
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"✅ Профиль клиента обновлен: {telegram_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Профиль сохранен'
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка обновления профиля: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/barber/login', methods=['POST'])
 def barber_login():
@@ -380,7 +592,7 @@ def check_barber_auth():
 
 @app.route('/api/barber/appointments', methods=['GET'])
 def get_barber_appointments():
-    """Получение записей для барбера - ИСПРАВЛЕННЫЙ"""
+    """Получение записей для барбера"""
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     logger.info(f"📥 ЗАПРОС ЗАПИСЕЙ. Токен: {'представлен' if token else 'отсутствует'}")
     
@@ -439,27 +651,6 @@ def get_barber_appointments():
         logger.error(f"❌ ОШИБКА ПРИ ПОЛУЧЕНИИ ЗАПИСЕЙ: {e}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
-
-@app.route('/api/barber/stats', methods=['GET'])
-def get_barber_stats():
-    """Получение статистики для барбера"""
-    token = request.headers.get('Authorization', '').replace('Bearer ', '')
-    
-    if not token:
-        return jsonify({'success': False, 'error': 'Не авторизован'}), 401
-    
-    try:
-        decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-        barber_code = decoded['barber_code']
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Сегодняшние записи
-        cursor.execute('''
-        SELECT COUNT(*) FROM appointments 
-        WHERE barber_code = %
-               # ========== ПРОДОЛЖЕНИЕ server.py ==========
 
 @app.route('/api/barber/stats', methods=['GET'])
 def get_barber_stats():
@@ -665,10 +856,53 @@ def get_available_slots(code):
         logger.error(f"Ошибка получения слотов: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== ИСПРАВЛЕННЫЙ API ДЛЯ СОЗДАНИЯ ЗАПИСИ ==========
+@app.route('/api/barber/<code>/booked-times', methods=['GET'])
+def get_barber_booked_times(code):
+    """Получение занятых времен для конкретного барбера и даты"""
+    try:
+        date = request.args.get('date')
+        
+        if not date:
+            return jsonify({'success': False, 'error': 'Не указана дата'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT appointment_time 
+        FROM appointments 
+        WHERE barber_code = %s 
+          AND appointment_date = %s
+          AND status != 'cancelled'
+        ORDER BY appointment_time
+        ''', (code, date))
+        
+        booked_times = []
+        for row in cursor.fetchall():
+            if row[0]:
+                # Преобразуем время в строку HH:MM
+                time_str = str(row[0])
+                if ':' in time_str:
+                    booked_times.append(time_str[:5])  # Берем только HH:MM
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'barber_code': code,
+            'date': date,
+            'booked_times': booked_times,
+            'count': len(booked_times)
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения занятых времен: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ========== ИСПРАВЛЕННЫЙ API ДЛЯ СОЗДАНИЯ ЗАПИСИ (с проверкой конфликта) ==========
 @app.route('/api/appointments/create', methods=['POST'])
 def create_client_appointment():
-    """Создание записи - РАБОЧАЯ ВЕРСИЯ"""
+    """Создание записи - РАБОЧАЯ ВЕРСИЯ С ПРОВЕРКОЙ КОНФЛИКТА"""
     try:
         data = request.json
         logger.info(f"📥 Получен запрос на создание записи: {data}")
@@ -685,12 +919,16 @@ def create_client_appointment():
             return jsonify({'success': False, 'error': error_msg}), 400
         
         barber_code = data['barber_code']
-        logger.info(f"✂️ Создание записи для барбера: {barber_code}")
+        appointment_date = data['date']
+        appointment_time = data['time']
+        
+        logger.info(f"✂️ Создание записи для барбера: {barber_code} на {appointment_date} в {appointment_time}")
         
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute('SELECT id, name, phone FROM barbers WHERE code = %s', (barber_code,))
+        # 1. Проверяем существование барбера
+        cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (barber_code,))
         barber = cursor.fetchone()
         
         if not barber:
@@ -699,15 +937,41 @@ def create_client_appointment():
             return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
         
         barber_name = barber[1] if barber[1] else f"Барбер {barber_code}"
-        barber_phone = barber[2]
-        logger.info(f"✅ Барбер найден: {barber_name} (ID: {barber[0]})")
         
+        # 2. ПРОВЕРЯЕМ КОНФЛИКТ ВРЕМЕНИ
+        cursor.execute('''
+        SELECT id, client_name, client_phone, service_name, appointment_time
+        FROM appointments 
+        WHERE barber_code = %s 
+          AND appointment_date = %s 
+          AND appointment_time = %s
+          AND status != 'cancelled'
+        ''', (barber_code, appointment_date, appointment_time))
+        
+        conflicting_appointment = cursor.fetchone()
+        
+        if conflicting_appointment:
+            conn.close()
+            logger.warning(f"⏰ Время уже занято! ID конфликтной записи: {conflicting_appointment[0]}")
+            return jsonify({
+                'success': False, 
+                'error': 'Это время уже занято другим клиентом',
+                'conflict_with': {
+                    'id': conflicting_appointment[0],
+                    'client_name': conflicting_appointment[1],
+                    'client_phone': conflicting_appointment[2],
+                    'service': conflicting_appointment[3],
+                    'time': str(conflicting_appointment[4])
+                }
+            }), 409  # HTTP 409 Conflict
+        
+        # 3. Если время свободно - создаем запись
         try:
             cursor.execute('''
             INSERT INTO appointments 
             (barber_code, client_name, client_phone, service_name, price, 
-             appointment_date, appointment_time, status, notes)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, 'active', %s)
+             appointment_date, appointment_time, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
             RETURNING id
             ''', (
                 barber_code,
@@ -715,13 +979,41 @@ def create_client_appointment():
                 data['client_phone'],
                 data['service_name'],
                 data['price'],
-                data['date'],
-                data['time'],
-                data.get('notes', '')
+                appointment_date,
+                appointment_time
             ))
             
             result = cursor.fetchone()
             appointment_id = result[0]
+            
+            # 4. СОХРАНЯЕМ/ОБНОВЛЯЕМ ПРОФИЛЬ КЛИЕНТА (если есть telegram_id)
+            telegram_id = data.get('telegram_id')
+            if telegram_id:
+                # Проверяем, есть ли клиент
+                cursor.execute('SELECT id FROM clients WHERE telegram_id = %s', (telegram_id,))
+                existing_client = cursor.fetchone()
+                
+                if existing_client:
+                    # Обновляем существующего клиента
+                    cursor.execute('''
+                    UPDATE clients SET 
+                        last_barber_code = %s,
+                        phone = %s,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE telegram_id = %s
+                    ''', (barber_code, data['client_phone'], telegram_id))
+                else:
+                    # Создаем нового клиента
+                    cursor.execute('''
+                    INSERT INTO clients (telegram_id, first_name, last_name, phone, last_barber_code)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ''', (
+                        telegram_id,
+                        data.get('first_name', data['client_name'].split()[0] if data['client_name'] else ''),
+                        data.get('last_name', ''),
+                        data['client_phone'],
+                        barber_code
+                    ))
             
             conn.commit()
             
@@ -736,21 +1028,13 @@ def create_client_appointment():
                 'service_name': data['service_name'],
                 'price': data['price'],
                 'date': data['date'],
-                'time': data['time'],
-                'notes': data.get('notes', '')
+                'time': data['time']
             }
             
-            # Отправляем уведомления
             try:
                 send_telegram_notification(appointment_data)
             except Exception as tg_error:
                 logger.warning(f"⚠️ Ошибка отправки в Telegram: {tg_error}")
-            
-            if barber_phone:
-                try:
-                    send_barber_notification(barber_phone, appointment_data)
-                except Exception as sms_error:
-                    logger.warning(f"⚠️ Ошибка отправки барберу: {sms_error}")
             
             conn.close()
             
@@ -766,8 +1050,7 @@ def create_client_appointment():
                     'price': data['price'],
                     'date': data['date'],
                     'time': data['time'],
-                    'barber_code': barber_code,
-                    'barber_name': barber_name
+                    'barber_code': barber_code
                 }
             })
             
@@ -779,7 +1062,6 @@ def create_client_appointment():
         
     except Exception as e:
         logger.error(f"❌ Общая ошибка создания записи: {e}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
 # ========== API ДЛЯ ОБНОВЛЕНИЯ СТАТУСА ЗАПИСИ ==========
@@ -840,159 +1122,6 @@ def update_appointment_status(appointment_id):
     except Exception as e:
         logger.error(f"❌ Ошибка обновления статуса: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
-
-@app.route('/api/appointments/<int:appointment_id>', methods=['GET', 'PUT', 'DELETE'])
-def appointment_detail(appointment_id):
-    """Детальная информация о записи и операции с ней"""
-    try:
-        if request.method == 'GET':
-            # Получение информации о записи
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-            SELECT id, barber_code, client_name, client_phone, service_name, 
-                   price, appointment_date, appointment_time, status, notes, created_at
-            FROM appointments WHERE id = %s
-            ''', (appointment_id,))
-            
-            appointment = cursor.fetchone()
-            conn.close()
-            
-            if not appointment:
-                return jsonify({'success': False, 'error': 'Запись не найдена'}), 404
-            
-            return jsonify({
-                'success': True,
-                'appointment': {
-                    'id': appointment[0],
-                    'barber_code': appointment[1],
-                    'client_name': appointment[2],
-                    'client_phone': appointment[3],
-                    'service_name': appointment[4],
-                    'price': appointment[5],
-                    'date': appointment[6].isoformat() if appointment[6] else None,
-                    'time': str(appointment[7]) if appointment[7] else None,
-                    'status': appointment[8],
-                    'notes': appointment[9],
-                    'created_at': appointment[10].isoformat() if appointment[10] else None
-                }
-            })
-            
-        elif request.method == 'PUT':
-            # Обновление записи
-            token = request.headers.get('Authorization', '').replace('Bearer ', '')
-            if not token:
-                return jsonify({'success': False, 'error': 'Не авторизован'}), 401
-            
-            decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-            barber_code = decoded['barber_code']
-            
-            data = request.json
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Проверяем права
-            cursor.execute('SELECT barber_code FROM appointments WHERE id = %s', (appointment_id,))
-            appointment = cursor.fetchone()
-            
-            if not appointment:
-                conn.close()
-                return jsonify({'success': False, 'error': 'Запись не найдена'}), 404
-            
-            if appointment[0] != barber_code:
-                conn.close()
-                return jsonify({'success': False, 'error': 'Нет прав для изменения этой записи'}), 403
-            
-            # Обновляем поля
-            update_fields = []
-            update_values = []
-            
-            if 'client_name' in data:
-                update_fields.append('client_name = %s')
-                update_values.append(data['client_name'])
-            
-            if 'client_phone' in data:
-                update_fields.append('client_phone = %s')
-                update_values.append(data['client_phone'])
-            
-            if 'service_name' in data:
-                update_fields.append('service_name = %s')
-                update_values.append(data['service_name'])
-            
-            if 'price' in data:
-                update_fields.append('price = %s')
-                update_values.append(data['price'])
-            
-            if 'date' in data:
-                update_fields.append('appointment_date = %s')
-                update_values.append(data['date'])
-            
-            if 'time' in data:
-                update_fields.append('appointment_time = %s')
-                update_values.append(data['time'])
-            
-            if 'notes' in data:
-                update_fields.append('notes = %s')
-                update_values.append(data['notes'])
-            
-            if update_fields:
-                update_fields.append('updated_at = CURRENT_TIMESTAMP')
-                update_values.append(appointment_id)
-                
-                query = f"UPDATE appointments SET {', '.join(update_fields)} WHERE id = %s"
-                cursor.execute(query, tuple(update_values))
-                
-                conn.commit()
-            
-            conn.close()
-            
-            return jsonify({
-                'success': True,
-                'message': 'Запись обновлена',
-                'appointment_id': appointment_id
-            })
-            
-        elif request.method == 'DELETE':
-            # Удаление записи (только барбером или админом)
-            token = request.headers.get('Authorization', '').replace('Bearer ', '')
-            if not token:
-                return jsonify({'success': False, 'error': 'Не авторизован'}), 401
-            
-            decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-            barber_code = decoded['barber_code']
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Проверяем права
-            cursor.execute('SELECT barber_code FROM appointments WHERE id = %s', (appointment_id,))
-            appointment = cursor.fetchone()
-            
-            if not appointment:
-                conn.close()
-                return jsonify({'success': False, 'error': 'Запись не найдена'}), 404
-            
-            if appointment[0] != barber_code:
-                conn.close()
-                return jsonify({'success': False, 'error': 'Нет прав для удаления этой записи'}), 403
-            
-            cursor.execute('DELETE FROM appointments WHERE id = %s', (appointment_id,))
-            conn.commit()
-            conn.close()
-            
-            logger.info(f"🗑️ Запись {appointment_id} удалена барбером {barber_code}")
-            
-            return jsonify({
-                'success': True,
-                'message': 'Запись удалена',
-                'appointment_id': appointment_id
-            })
-            
-    except Exception as e:
-        logger.error(f"Ошибка в appointment_detail: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== API ДЛЯ РЕГИСТРАЦИИ БАРБЕРОВ ==========
 @app.route('/api/barber/register', methods=['POST'])
@@ -1071,162 +1200,6 @@ def register_barber():
         
     except Exception as e:
         logger.error(f"Ошибка регистрации барбера: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-# ========== API ДЛЯ УПРАВЛЕНИЯ УСЛУГАМИ ==========
-@app.route('/api/barber/services', methods=['GET', 'POST', 'PUT', 'DELETE'])
-def manage_barber_services():
-    """Управление услугами барбера"""
-    token = request.headers.get('Authorization', '').replace('Bearer ', '')
-    
-    if not token:
-        return jsonify({'success': False, 'error': 'Не авторизован'}), 401
-    
-    try:
-        decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-        barber_code = decoded['barber_code']
-        
-        if request.method == 'GET':
-            # Получение услуг барбера
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-            SELECT id, name, price, duration, active 
-            FROM services 
-            WHERE barber_code = %s
-            ORDER BY price
-            ''', (barber_code,))
-            
-            services = []
-            for row in cursor.fetchall():
-                services.append({
-                    'id': row[0],
-                    'name': row[1],
-                    'price': row[2],
-                    'duration': row[3],
-                    'active': row[4]
-                })
-            
-            conn.close()
-            
-            return jsonify({
-                'success': True,
-                'services': services
-            })
-            
-        elif request.method == 'POST':
-            # Создание новой услуги
-            data = request.json
-            
-            required_fields = ['name', 'price', 'duration']
-            for field in required_fields:
-                if not data.get(field):
-                    return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-            INSERT INTO services (barber_code, name, price, duration)
-            VALUES (%s, %s, %s, %s)
-            RETURNING id
-            ''', (barber_code, data['name'], data['price'], data['duration']))
-            
-            service_id = cursor.fetchone()[0]
-            conn.commit()
-            conn.close()
-            
-            logger.info(f"✅ Новая услуга создана для барбера {barber_code}: {data['name']}")
-            
-            return jsonify({
-                'success': True,
-                'message': 'Услуга создана',
-                'service_id': service_id
-            })
-            
-        elif request.method == 'PUT':
-            # Обновление услуги
-            data = request.json
-            service_id = data.get('id')
-            
-            if not service_id:
-                return jsonify({'success': False, 'error': 'ID услуги обязательно'}), 400
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Проверяем, что услуга принадлежит барберу
-            cursor.execute('SELECT id FROM services WHERE id = %s AND barber_code = %s', 
-                         (service_id, barber_code))
-            if not cursor.fetchone():
-                conn.close()
-                return jsonify({'success': False, 'error': 'Услуга не найдена или нет прав'}), 404
-            
-            # Обновляем поля
-            update_fields = []
-            update_values = []
-            
-            if 'name' in data:
-                update_fields.append('name = %s')
-                update_values.append(data['name'])
-            
-            if 'price' in data:
-                update_fields.append('price = %s')
-                update_values.append(data['price'])
-            
-            if 'duration' in data:
-                update_fields.append('duration = %s')
-                update_values.append(data['duration'])
-            
-            if 'active' in data:
-                update_fields.append('active = %s')
-                update_values.append(data['active'])
-            
-            if update_fields:
-                update_values.append(service_id)
-                query = f"UPDATE services SET {', '.join(update_fields)} WHERE id = %s"
-                cursor.execute(query, tuple(update_values))
-                
-                conn.commit()
-            
-            conn.close()
-            
-            return jsonify({
-                'success': True,
-                'message': 'Услуга обновлена'
-            })
-            
-        elif request.method == 'DELETE':
-            # Удаление услуги
-            service_id = request.args.get('id')
-            
-            if not service_id:
-                return jsonify({'success': False, 'error': 'ID услуги обязательно'}), 400
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Проверяем, что услуга принадлежит барберу
-            cursor.execute('SELECT id FROM services WHERE id = %s AND barber_code = %s', 
-                         (service_id, barber_code))
-            if not cursor.fetchone():
-                conn.close()
-                return jsonify({'success': False, 'error': 'Услуга не найдена или нет прав'}), 404
-            
-            cursor.execute('DELETE FROM services WHERE id = %s', (service_id,))
-            conn.commit()
-            conn.close()
-            
-            logger.info(f"🗑️ Услуга {service_id} удалена барбером {barber_code}")
-            
-            return jsonify({
-                'success': True,
-                'message': 'Услуга удалена'
-            })
-            
-    except Exception as e:
-        logger.error(f"Ошибка управления услугами: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== ДИАГНОСТИЧЕСКИЕ МАРШРУТЫ ==========
@@ -1422,6 +1395,9 @@ if __name__ == '__main__':
     print("   • PUT  /api/appointments/<id>/status - Обновление статуса")
     print("   • GET  /api/barber/<code>/services - Услуги барбера")
     print("   • GET  /api/barber/<code>/available-slots - Свободные слоты")
+    print("   • GET  /api/barber/<code>/booked-times - Занятые времена")
+    print("   • GET  /api/client/profile - Профиль клиента")
+    print("   • POST /api/client/profile/update - Обновление профиля клиента")
     print("=" * 80)
     
     port = int(os.environ.get('PORT', 10000))
