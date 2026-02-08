@@ -1,4 +1,4 @@
-// js/api.js - API для реального сервера
+// js/api.js - ПОЛНЫЙ API для Render сервера
 const BarberSystem = {
     baseURL: 'https://barber-booking-db.onrender.com',
     
@@ -19,7 +19,6 @@ const BarberSystem = {
             const data = await response.json();
             
             if (data.success && data.token) {
-                // Сохраняем токен в localStorage
                 localStorage.setItem('barberToken', data.token);
                 localStorage.setItem('barberData', JSON.stringify(data.barber));
                 
@@ -142,7 +141,6 @@ const BarberSystem = {
             };
         } catch (error) {
             console.error('Ошибка загрузки услуг:', error);
-            // Возвращаем тестовые услуги при ошибке
             return {
                 success: true,
                 services: [
@@ -157,6 +155,8 @@ const BarberSystem = {
     // Создать запись (клиент)
     createBooking: async function(bookingData) {
         try {
+            console.log('📤 Отправка записи на сервер:', bookingData);
+            
             const response = await fetch(`${this.baseURL}/api/appointments/create`, {
                 method: 'POST',
                 headers: {
@@ -166,16 +166,15 @@ const BarberSystem = {
             });
             
             const data = await response.json();
+            console.log('📥 Ответ сервера:', data);
             
             if (data.success) {
-                console.log('Запись успешно создана на сервере:', data);
-                
-                // Локально сохраняем для отображения (опционально)
+                // Сохраняем локально
                 const localBookings = JSON.parse(localStorage.getItem('barberBookings') || '[]');
                 localBookings.push({
                     id: data.appointment_id,
                     ...bookingData,
-                    status: 'pending',
+                    status: 'active',
                     created: new Date().toISOString()
                 });
                 localStorage.setItem('barberBookings', JSON.stringify(localBookings));
@@ -183,19 +182,58 @@ const BarberSystem = {
                 return {
                     success: true,
                     message: data.message || "Запись успешно создана!",
-                    booking: data.appointment || bookingData
+                    booking: data.appointment || bookingData,
+                    appointment_id: data.appointment_id
                 };
             } else {
+                console.error('❌ Ошибка сервера:', data.error);
                 return {
                     success: false,
                     error: data.error || "Ошибка создания записи"
                 };
             }
         } catch (error) {
-            console.error('Ошибка создания записи:', error);
+            console.error('❌ Ошибка сети:', error);
             return {
                 success: false,
                 error: "Ошибка соединения с сервером"
+            };
+        }
+    },
+
+    // Обновить статус записи (барбер)
+    updateBookingStatus: async function(bookingId, status) {
+        const token = localStorage.getItem('barberToken');
+        if (!token) {
+            return { success: false, error: "Требуется авторизация" };
+        }
+        
+        try {
+            // Пока просто локально, можно добавить API endpoint позже
+            const localBookings = JSON.parse(localStorage.getItem('barberBookings') || '[]');
+            const booking = localBookings.find(b => b.id == bookingId);
+            
+            if (booking) {
+                booking.status = status;
+                booking.updated = new Date().toISOString();
+                localStorage.setItem('barberBookings', JSON.stringify(localBookings));
+                
+                return {
+                    success: true,
+                    message: "Статус обновлен",
+                    booking: booking
+                };
+            }
+            
+            return {
+                success: false,
+                error: "Запись не найдена"
+            };
+        } catch (error) {
+            console.error('Ошибка обновления:', error);
+            return {
+                success: false,
+                error: "Ошибка обновления статуса"
             };
         }
     },
@@ -204,7 +242,7 @@ const BarberSystem = {
     logout: function() {
         localStorage.removeItem('barberToken');
         localStorage.removeItem('barberData');
-        localStorage.removeItem('barberSession');
+        localStorage.removeItem('barberBookings');
         window.location.href = '/barber-login.html';
     },
 
@@ -214,31 +252,7 @@ const BarberSystem = {
         return barberData ? JSON.parse(barberData) : null;
     },
 
-    // Обновить статус записи
-    updateBookingStatus: async function(bookingId, status) {
-        // Пока просто сохраняем локально
-        const localBookings = JSON.parse(localStorage.getItem('barberBookings') || '[]');
-        const booking = localBookings.find(b => b.id == bookingId);
-        
-        if (booking) {
-            booking.status = status;
-            booking.updated = new Date().toISOString();
-            localStorage.setItem('barberBookings', JSON.stringify(localBookings));
-            
-            return {
-                success: true,
-                message: "Статус обновлен локально",
-                booking: booking
-            };
-        }
-        
-        return {
-            success: false,
-            error: "Запись не найдена"
-        };
-    },
-
-    // Получить статистику (из локальных данных)
+    // Получить статистику
     getBarberStats: function() {
         const localBookings = JSON.parse(localStorage.getItem('barberBookings') || '[]');
         const currentBarber = this.getCurrentBarber();
@@ -249,7 +263,7 @@ const BarberSystem = {
         
         const barberBookings = localBookings.filter(b => b.barber_code === currentBarber.code);
         const completed = barberBookings.filter(b => b.status === 'completed').length;
-        const pending = barberBookings.filter(b => b.status === 'pending').length;
+        const pending = barberBookings.filter(b => b.status === 'active' || b.status === 'pending').length;
         const cancelled = barberBookings.filter(b => b.status === 'cancelled').length;
         
         return {
@@ -260,8 +274,46 @@ const BarberSystem = {
             completionRate: barberBookings.length > 0 ? 
                 Math.round((completed / barberBookings.length) * 100) : 0
         };
+    },
+
+    // Проверить доступность сервера
+    checkServerStatus: async function() {
+        try {
+            const response = await fetch(`${this.baseURL}/api/debug/all-appointments`);
+            return response.ok;
+        } catch (error) {
+            console.error('Сервер недоступен:', error);
+            return false;
+        }
+    },
+
+    // Получить все записи (для отладки)
+    getAllAppointments: async function() {
+        try {
+            const response = await fetch(`${this.baseURL}/api/debug/all-appointments`);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Ошибка загрузки всех записей:', error);
+            return { success: false, error: "Ошибка загрузки" };
+        }
     }
 };
 
 // Экспортируем для использования
 window.BarberSystem = BarberSystem;
+
+// Авто-проверка при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ BarberSystem API загружен');
+    console.log('🔗 Сервер:', BarberSystem.baseURL);
+    
+    // Проверяем доступность сервера
+    BarberSystem.checkServerStatus().then(isOnline => {
+        if (isOnline) {
+            console.log('🌐 Сервер доступен');
+        } else {
+            console.warn('⚠️ Сервер недоступен');
+        }
+    });
+});
