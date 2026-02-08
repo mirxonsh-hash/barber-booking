@@ -86,8 +86,20 @@ try:
     print("✅ База данных инициализирована")
 except Exception as e:
     print(f"❌ Ошибка инициализации БД: {e}")
+# Добавьте после строки 90:
 
-# ========== ОСНОВНЫЕ МАРШРУТЫ ==========
+# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    return send_from_directory('css', filename)
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory('js', filename)
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('.', filename)
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -157,6 +169,28 @@ def redirect_index():
 def redirect_client_profile():
     code = request.args.get('code', '')
     return redirect(f'/profile?code={code}')
+
+@app.route('/client-profile.html')
+def redirect_client_profile():
+    code = request.args.get('code', '')
+    return redirect(f'/profile?code={code}')
+
+# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========      <-- ВСТАВЬТЕ ЗДЕСЬ
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    return send_from_directory('css', filename)
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory('js', filename)
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('.', filename)
+
+# ========== API ДЛЯ БАРБЕРОВ ==========      <-- ЭТА СТРОКА УЖЕ ЕСТЬ В ВАШЕМ КОДЕ
+@app.route('/api/barber/login', methods=['POST'])
+def barber_login():
 
 # ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/barber/login', methods=['POST'])
