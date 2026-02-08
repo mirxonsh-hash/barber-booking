@@ -831,6 +831,34 @@
                 // Уже на странице профиля
             });
         }
+        <div class="profile-header">
+    <div class="avatar-container">
+        <img id="user-avatar" class="user-avatar" src="" alt="Аватар">
+        <div class="avatar-fallback" id="avatar-fallback"></div>
+    </div>
+    <div class="user-info">
+        <h2 id="user-name">Тестовый Клиент</h2>
+        <p id="user-username" class="username">@test_user</p>
+    </div>
+</div>
+
+<div class="stats-container">
+    <div class="stat-item">
+        <span class="stat-value" id="total-appointments">0</span>
+        <span class="stat-label">Всего записей</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value" id="completed-appointments">0</span>
+        <span class="stat-label">Выполнено</span>
+    </div>
+</div>
+
+<div class="appointments-history">
+    <h3>История записей</h3>
+    <div id="appointments-history">
+        <!-- Записи будут загружены здесь -->
+    </div>
+</div>
     </script>
 </body>
 </html>
