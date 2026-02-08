@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запись к барберу | iWant</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-cut"></i> iWant
+                </a>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-link">Главная</a></li>
+                    <li><a href="client-login.html" class="nav-link active">Записаться</a></li>
+                    <li><a href="barber-login.html" class="nav-link">Для барберов</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="auth-container">
+                <div class="auth-card card fade-in">
+                    <div class="auth-header">
+                        <h1><i class="fas fa-user"></i> Запись к барберу</h1>
+                        <p class="subtitle">Введите код мастера для записи</p>
+                    </div>
+                    
+                    <form id="clientLoginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="masterCode" class="form-label">
+                                <i class="fas fa-key"></i> Код мастера
+                            </label>
+                            <input 
+                                type="text" 
+                                id="masterCode" 
+                                class="form-input"
+                                placeholder="Пример: B-ARBER003"
+                                value="B-ARBER003"
+                                required
+                            >
+                            <div class="form-hint">
+                                Получите код у вашего барбера
+                            </div>
+                        </div>
+                        
+                        <div id="errorMessage" class="error-message"></div>
+                        <div id="successMessage" class="success-message"></div>
+                        
+                        <button type="submit" class="btn btn-block">
+                            <i class="fas fa-arrow-right"></i> Продолжить
+                        </button>
+                    </form>
+                    
+                    <div class="divider">
+                        <span>или</span>
+                    </div>
+                    
+                    <a href="barber-login.html" class="btn btn-secondary btn-block">
+                        <i class="fas fa-user-tie"></i> Я барбер
+                    </a>
+                    
+                    <div class="test-data">
+                        <h4><i class="fas fa-vial"></i> Тестовые данные:</h4>
+                        <p>Код мастера: <strong>B-ARBER003</strong></p>
+                        <p>Логин барбера: <strong>barber</strong></p>
+                        <p>Пароль барбера: <strong>123456</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="copyright">
+                    © 2024 iWant. Все права защищены.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iWant - Профиль мастера</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(to right, #1a1a1a, #2d2d2d);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .avatar-container {
+            margin: 20px auto;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .avatar-letter {
+            font-weight: bold;
+            font-size: 48px;
+        }
+        
+        .master-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .master-code {
+            color: #ccc;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .star {
+            color: gold;
+        }
+        
+        .info-section {
+            padding: 30px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-label {
+            color: #666;
+        }
+        
+        .info-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .action-btn {
+            display: block;
+            width: 100%;
+            margin-top: 30px;
+            padding: 18px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .action-btn i {
+            font-size: 20px;
+        }
+        
+        /* Анимация смены страниц */
+        .page {
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .page.slide-out {
+            transform: translateX(-100%);
+        }
+        
+        .page.slide-in {
+            transform: translateX(0);
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Страница 1: Профиль -->
+    <div class="container page" id="profilePage">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 style="margin-bottom: 10px;">Ваш мастер</h1>
+            <p>Запись к профессиональному барберу</p>
+        </div>
+        
+        <div class="avatar-container" id="avatar">
+            <span class="avatar-letter" id="avatarLetter">А</span>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div class="master-name" id="masterName">Александр Барбер</div>
+            <div class="master-code" id="masterCode">Код: B-ARBER003</div>
+            <div class="rating">
+                <i class="fas fa-star star"></i>
+                <i class="fas fa-star star"></i>
+                <i class="fas fa-star star"></i>
+                <i class="fas fa-star star"></i>
+                <i class="fas fa-star-half-alt star"></i>
+                <span style="margin-left: 5px;">4.8 (124 отзыва)</span>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <div class="info-item">
+                <span class="info-label">Стаж работы</span>
+                <span class="info-value">7 лет</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Специализация</span>
+                <span class="info-value">Мужские стрижки, Бритьё</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Среднее время</span>
+                <span class="info-value">45 минут</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Работает с</span>
+                <span class="info-value">2016 года</span>
+            </div>
+            
+            <button class="action-btn" onclick="openSchedulePage()">
+                <i class="fas fa-calendar-alt"></i> Выбрать время записи
+            </button>
+        </div>
+    </div>
+    
+    <!-- Страница 2: Расписание (будет показана после клика) -->
+    <div class="container page hidden" id="schedulePage">
+        <div class="header">
+            <button class="back-btn" onclick="goToProfile()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1>Выберите время</h1>
+            <p>Запись к <span id="scheduleMasterName">Александру</span></p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <!-- Сюда вставим круговую диаграмму как на скрине -->
+            <div style="text-align: center; margin: 30px 0;">
+                <div style="position: relative; width: 200px; height: 200px; margin: 0 auto;">
+                    <!-- Круг прогресса -->
+                    <svg width="200" height="200" viewBox="0 0 200 200">
+                        <!-- Фон круга -->
+                        <circle cx="100" cy="100" r="90" fill="none" stroke="#f0f0f0" stroke-width="20"/>
+                        <!-- Прогресс -->
+                        <circle cx="100" cy="100" r="90" fill="none" stroke="#667eea" stroke-width="20"
+                                stroke-dasharray="565.48" stroke-dashoffset="508.93"
+                                stroke-linecap="round" transform="rotate(-90 100 100)"/>
+                        <!-- Текст внутри -->
+                        <text x="100" y="95" text-anchor="middle" font-size="32" font-weight="bold" fill="#333">10%</text>
+                        <text x="100" y="125" text-anchor="middle" font-size="14" fill="#666">заполнено</text>
+                    </svg>
+                    
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                        <div style="font-size: 14px; color: #666;">Доступно</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #333;">18:30</div>
+                        <div style="font-size: 12px; color: #888;">из 20 часов</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h3>Статистика загрузки</h3>
+                    <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: #667eea;">1.5%</div>
+                            <div style="font-size: 14px; color: #666;">Отмен</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: #28a745;">98.5%</div>
+                            <div style="font-size: 14px; color: #666">Выполнено</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ближайшие доступные даты -->
+            <div style="margin-top: 30px;">
+                <h3 style="margin-bottom: 20px;">Ближайшие свободные даты</h3>
+                <div id="availableDates">
+                    <!-- Сюда будут добавляться даты через JavaScript -->
+                    <div style="text-align: center; padding: 30px; color: #666;">
+                        Загрузка расписания...
+                    </div>
+                </div>
+            </div>
+            
+            <button class="action-btn" onclick="confirmBooking()" style="margin-top: 30px;">
+                <i class="fas fa-check-circle"></i> Подтвердить выбор
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Получаем код мастера из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const masterCode = urlParams.get('code') || 'B-ARBER003';
+        
+        document.getElementById('masterCode').textContent = `Код: ${masterCode}`;
+        
+        // Берем первую букву имени для аватарки
+        const masterName = "Александр";
+        document.getElementById('avatarLetter').textContent = masterName.charAt(0);
+        document.getElementById('masterName').textContent = masterName;
+        document.getElementById('scheduleMasterName').textContent = masterName;
+        
+        function goBack() {
+            // Если в Telegram Mini App - закрываем
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.close();
+            } else {
+                window.location.href = '/';
+            }
+        }
+        
+        function openSchedulePage() {
+            const profilePage = document.getElementById('profilePage');
+            const schedulePage = document.getElementById('schedulePage');
+            
+            // Плавный переход
+            profilePage.classList.add('slide-out');
+            
+            setTimeout(() => {
+                profilePage.classList.add('hidden');
+                schedulePage.classList.remove('hidden');
+                schedulePage.classList.add('slide-in');
+                
+                // Загружаем расписание
+                loadSchedule();
+            }, 300);
+        }
+        
+        function goToProfile() {
+            const profilePage = document.getElementById('profilePage');
+            const schedulePage = document.getElementById('schedulePage');
+            
+            schedulePage.classList.remove('slide-in');
+            schedulePage.classList.add('slide-out');
+            
+            setTimeout(() => {
+                schedulePage.classList.add('hidden');
+                profilePage.classList.remove('hidden');
+                profilePage.classList.remove('slide-out');
+            }, 300);
+        }
+        
+        function loadSchedule() {
+            // Здесь будет запрос к API для получения расписания
+            const availableDates = document.getElementById('availableDates');
+            
+            // Пример данных (в реальности будет fetch к API)
+            const dates = [
+                { date: '2024-12-15', day: 'Сегодня', times: ['14:00', '15:30', '17:00', '18:30'] },
+                { date: '2024-12-16', day: 'Завтра', times: ['10:00', '11:30', '13:00', '14:30'] },
+                { date: '2024-12-17', day: 'Вт', times: ['12:00', '13:30', '15:00', '16:30'] }
+            ];
+            
+            let html = '';
+            dates.forEach(dateInfo => {
+                html += `
+                    <div style="background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">${dateInfo.day}</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                `;
+                
+                dateInfo.times.forEach(time => {
+                    html += `
+                        <button style="padding: 8px 15px; background: white; border: 2px solid #667eea; 
+                                border-radius: 8px; color: #667eea; font-weight: bold; cursor: pointer;"
+                                onclick="selectTime('${dateInfo.date}', '${time}')">
+                            ${time}
+                        </button>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            availableDates.innerHTML = html;
+        }
+        
+        let selectedDate = null;
+        let selectedTime = null;
+        
+        function selectTime(date, time) {
+            selectedDate = date;
+            selectedTime = time;
+            
+            // Подсветка выбранного времени
+            document.querySelectorAll('#availableDates button').forEach(btn => {
+                btn.style.background = 'white';
+                btn.style.color = '#667eea';
+            });
+            
+            event.target.style.background = '#667eea';
+            event.target.style.color = 'white';
+            
+            alert(`Выбрано: ${date} в ${time}`);
+        }
+        
+        function confirmBooking() {
+            if (!selectedDate || !selectedTime) {
+                alert('Пожалуйста, выберите время!');
+                return;
+            }
+            
+            alert(`✅ Запись подтверждена!\n\nДата: ${selectedDate}\nВремя: ${selectedTime}\nМастер: ${masterName}`);
+            
+            // В реальном приложении здесь будет отправка на сервер
+            // и переход на страницу подтверждения
+        }
+        
+        // Загружаем расписание при открытии
+        window.addEventListener('load', () => {
+            // Если есть код в URL - сразу показываем профиль
+            if (masterCode) {
+                // В реальности здесь fetch к API для получения данных мастера
+                console.log('Загружаем данные мастера:', masterCode);
+            }
+        });
+    </script>
+</body>
+</html>
