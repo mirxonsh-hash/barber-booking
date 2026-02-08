@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, session
+from flask import Flask, request, jsonify, send_from_directory, session, render_template
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import os
@@ -6,6 +6,7 @@ import psycopg2
 import hashlib
 import logging
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -13,7 +14,13 @@ load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__, static_folder='.', static_url_path='')
+# Определяем корень проекта (на уровень выше src/)
+BASE_DIR = Path(__file__).parent.parent
+
+app = Flask(__name__, 
+           static_folder=str(BASE_DIR),  # Корень проекта для css/, js/
+           static_url_path='',
+           template_folder=str(BASE_DIR / 'templates'))  # Папка с HTML
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key')
 CORS(app)
 
@@ -83,14 +90,35 @@ except Exception as e:
 # ========== ОСНОВНЫЕ МАРШРУТЫ ==========
 @app.route('/')
 def index():
-    return send_from_directory('.', 'templates/index.html')
+    return render_template('index.html')
 
-@app.route('/<path:filename>')
-def serve_file(filename):
-    try:
-        return send_from_directory('.', filename)
-    except:
-        return send_from_directory('templates', filename)
+@app.route('/barber-login')
+def barber_login_page():
+    return render_template('barber-login.html')
+
+@app.route('/client-login')
+def client_login_page():
+    return render_template('client-login.html')
+
+@app.route('/profile')
+def profile_page():
+    return render_template('profile.html')
+
+@app.route('/barber-panel')
+def barber_panel_page():
+    return render_template('barber-panel.html')
+
+@app.route('/master-login')
+def master_login_page():
+    return render_template('master-login.html')
+
+@app.route('/master-panel')
+def master_panel_page():
+    return render_template('master_panel.html')
+
+@app.route('/schedule')
+def schedule_page():
+    return render_template('schedule.html')
 
 # ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/barber/login', methods=['POST'])
@@ -251,9 +279,14 @@ if __name__ == '__main__':
     print("🌐 BARBER BOOKING API ЗАПУЩЕН")
     print(f"📌 Секретный ключ: {app.secret_key[:10]}...")
     print("📌 Доступные маршруты:")
-    print("   • /api/barber/login - Вход барбера")
-    print("   • /api/barber/appointments - Записи барбера")
-    print("   • /api/barbers - Все барберы")
+    print("   • / - Главная страница")
+    print("   • /barber-login - Вход для барберов")
+    print("   • /client-login - Запись для клиентов")
+    print("   • /profile - Профиль мастера")
+    print("   • /barber-panel - Панель барбера")
+    print("   • /api/barber/login - API вход барбера")
+    print("   • /api/barber/appointments - API записи барбера")
+    print("   • /api/barbers - API все барберы")
     print("=" * 80)
     
     port = int(os.environ.get('PORT', 10000))
