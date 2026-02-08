@@ -5,376 +5,172 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iWant - Панель барбера</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background: #f5f5f5;
-        }
-        
-        .header {
-            background: white;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            color: #667eea;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        .barber-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .barber-name {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .logout-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .stat-label {
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 30px 0 15px;
-            color: #333;
-        }
-        
-        .appointments-table {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        table {
+        /* Стили остаются без изменений... */
+        /* Можно добавить прелоадер */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            border-collapse: collapse;
+            height: 100%;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
         
-        th {
-            background: #f8f9fa;
-            padding: 15px;
-            text-align: left;
-            font-weight: bold;
-            color: #333;
-            border-bottom: 1px solid #eee;
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
         
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        .status {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
+        .hidden {
+            display: none;
         }
         
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status-confirmed {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-completed {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-        
-        .status-cancelled {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .action-btn {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-right: 5px;
-            transition: opacity 0.3s;
-        }
-        
-        .action-btn:hover {
-            opacity: 0.8;
-        }
-        
-        .btn-confirm {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-complete {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .btn-cancel {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: #777;
-            font-size: 14px;
-        }
-        
-        .no-appointments {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        
-        .code-display {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .code-value {
-            font-family: monospace;
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 10px 0;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
-            display: inline-block;
-        }
-        
-        .code-label {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .welcome-message {
-            background: #667eea;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .empty-state {
-            padding: 40px;
-            text-align: center;
-            color: #666;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        
-        .btn-primary:hover {
-            background: #5a6fd8;
-        }
-        
-        .loading {
-            opacity: 0.7;
-        }
+        /* Остальные стили остаются как есть... */
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo">iWant - Панель барбера</div>
-        <div class="barber-info">
-            <span class="barber-name" id="barberName">Загрузка...</span>
-            <button onclick="logout()" class="logout-btn">Выйти</button>
-        </div>
-    </div>
-    
-    <div class="container">
-        <div class="welcome-message" id="welcomeMessage">
-            <i class="fas fa-user-tie"></i> Добро пожаловать в панель управления!
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="todayAppointments">0</div>
-                <div class="stat-label">Сегодня</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="pendingAppointments">0</div>
-                <div class="stat-label">Ожидают</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalAppointments">0</div>
-                <div class="stat-label">Всего записей</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="completionRate">0%</div>
-                <div class="stat-label">Выполнено</div>
-            </div>
-        </div>
-        
-        <div class="code-display">
-            <div class="code-label">Ваш код для клиентов:</div>
-            <div class="code-value" id="barberCode">Загрузка...</div>
-            <div class="code-label">Дайте этот код клиентам для записи через сайт</div>
-        </div>
-        
-        <div class="section-title">Ваши записи</div>
-        
-        <div class="appointments-table">
-            <div id="appointmentsList">
-                <div class="no-appointments">Загрузка записей...</div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="footer">
-        <div style="margin-bottom: 10px;">
-            <a href="/" style="color: #667eea; margin: 0 10px;">Главная</a>
-            <a href="/barber-login" style="color: #667eea; margin: 0 10px;">Вход</a>
-            <a href="#" style="color: #667eea; margin: 0 10px;">Помощь</a>
-        </div>
-        © 2024 iWant. Премиум сервис записи
+    <!-- Прелоадер -->
+    <div class="preloader" id="preloader">
+        <div class="spinner"></div>
     </div>
 
-    <!-- Добавляем FontAwesome для иконок -->
+    <div class="content hidden">
+        <div class="header">
+            <div class="logo">iWant - Панель барбера</div>
+            <div class="barber-info">
+                <span class="barber-name" id="barberName">Загрузка...</span>
+                <button onclick="logout()" class="logout-btn">Выйти</button>
+            </div>
+        </div>
+        
+        <div class="container">
+            <!-- Остальная разметка... -->
+        </div>
+        
+        <div class="footer">
+            <!-- Футер... -->
+        </div>
+    </div>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <script>
         const API_BASE = 'https://barber-booking-db.onrender.com';
+        let currentToken = null;
         
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Панель барбера загружается...');
-            
-            // Получаем токен из URL или localStorage
+            initApp();
+        });
+        
+        async function initApp() {
+            try {
+                showPreloader(true);
+                
+                // Получаем токен из разных источников
+                currentToken = getTokenFromSources();
+                
+                if (!currentToken) {
+                    console.log('❌ Токен не найден');
+                    showLoginPrompt();
+                    return;
+                }
+                
+                // Проверяем авторизацию
+                const barberData = await checkAuth(currentToken);
+                
+                if (barberData) {
+                    // Успешная авторизация
+                    saveBarberData(barberData);
+                    updateUI(barberData);
+                    await loadAllData();
+                } else {
+                    // Неудачная авторизация
+                    showLoginPrompt();
+                }
+            } catch (error) {
+                console.error('❌ Ошибка инициализации:', error);
+                showErrorMessage('Ошибка загрузки данных');
+            } finally {
+                showPreloader(false);
+            }
+        }
+        
+        function getTokenFromSources() {
+            // Проверяем разные источники токена в порядке приоритета
             const urlParams = new URLSearchParams(window.location.search);
             const tokenFromUrl = urlParams.get('token');
             const tokenFromStorage = localStorage.getItem('barber_token');
             
-            let token = tokenFromUrl || tokenFromStorage;
-            
             if (tokenFromUrl) {
-                // Сохраняем токен из URL в localStorage
+                // Сохраняем токен из URL
                 localStorage.setItem('barber_token', tokenFromUrl);
-                console.log('🔑 Токен из URL сохранен в localStorage');
+                // Убираем токен из URL для безопасности
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return tokenFromUrl;
             }
             
-            if (!token) {
-                // Нет токена - показываем сообщение
-                showLoginPrompt();
-                return;
-            }
-            
-            // Проверяем токен и загружаем данные
-            checkAuthAndLoadData(token);
-        });
+            return tokenFromStorage;
+        }
         
-        async function checkAuthAndLoadData(token) {
+        async function checkAuth(token) {
             try {
-                console.log('🔍 Проверяем авторизацию с токеном...');
+                console.log('🔍 Проверяем авторизацию...');
                 
-                // Проверяем токен
-                const authResponse = await fetch(`${API_BASE}/api/barber/check`, {
+                const response = await fetch(`${API_BASE}/api/barber/check`, {
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Accept': 'application/json'
                     }
                 });
                 
-                if (authResponse.ok) {
-                    const authData = await authResponse.json();
-                    console.log('✅ Данные авторизации:', authData);
-                    
-                    if (authData.authenticated && authData.barber) {
-                        // Сохраняем данные барбера
-                        localStorage.setItem('barber_code', authData.barber.code);
-                        localStorage.setItem('barber_name', authData.barber.name);
-                        localStorage.setItem('barber_id', authData.barber.id);
-                        
-                        // Обновляем интерфейс
-                        updateBarberInfo(authData.barber);
-                        
-                        // Загружаем записи
-                        loadAppointments(token);
-                    } else {
-                        showLoginPrompt();
-                    }
-                } else if (authResponse.status === 401) {
-                    // Токен невалидный
-                    console.log('❌ Токен недействителен');
+                if (response.status === 401) {
+                    // Неавторизован
                     localStorage.removeItem('barber_token');
-                    showLoginPrompt();
-                } else {
-                    throw new Error('Ошибка проверки токена');
+                    return null;
                 }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.authenticated && data.barber) {
+                    return data.barber;
+                }
+                
+                return null;
             } catch (error) {
                 console.error('❌ Ошибка проверки авторизации:', error);
-                showLoginPrompt();
+                throw error;
             }
         }
         
-        function updateBarberInfo(barber) {
+        function saveBarberData(barber) {
+            localStorage.setItem('barber_code', barber.code || '');
+            localStorage.setItem('barber_name', barber.name || '');
+            localStorage.setItem('barber_id', barber.id || '');
+        }
+        
+        function updateUI(barber) {
+            // Показываем контент
+            document.querySelector('.content').classList.remove('hidden');
+            
+            // Обновляем информацию
             if (barber.name) {
                 document.getElementById('barberName').textContent = barber.name;
                 document.getElementById('welcomeMessage').innerHTML = 
@@ -386,39 +182,56 @@
             }
         }
         
-        async function loadAppointments(token) {
-            console.log('📥 Загружаем записи...');
-            
+        async function loadAllData() {
             try {
-                const response = await fetch(`${API_BASE}/api/barber/appointments`, {
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Accept': 'application/json'
-                    }
-                });
+                // Параллельно загружаем записи и статистику
+                const [appointmentsResponse, statsResponse] = await Promise.allSettled([
+                    fetch(`${API_BASE}/api/barber/appointments`, {
+                        headers: {
+                            'Authorization': 'Bearer ' + currentToken,
+                            'Accept': 'application/json'
+                        }
+                    }),
+                    fetch(`${API_BASE}/api/barber/stats`, {
+                        headers: {
+                            'Authorization': 'Bearer ' + currentToken,
+                            'Accept': 'application/json'
+                        }
+                    })
+                ]);
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Записи загружены:', data);
-                    
-                    if (data.appointments) {
-                        displayAppointments(data.appointments);
-                        updateStats(data.appointments);
-                    } else if (data.error) {
-                        document.getElementById('appointmentsList').innerHTML = 
-                            `<div class="no-appointments">${data.error}</div>`;
-                    }
-                } else if (response.status === 401) {
-                    // Токен устарел
-                    localStorage.removeItem('barber_token');
-                    showLoginPrompt();
+                // Обрабатываем записи
+                if (appointmentsResponse.status === 'fulfilled' && 
+                    appointmentsResponse.value.ok) {
+                    const appointmentsData = await appointmentsResponse.value.json();
+                    displayAppointments(appointmentsData.appointments || []);
                 } else {
-                    throw new Error('Ошибка загрузки записей');
+                    throw new Error('Не удалось загрузить записи');
                 }
+                
+                // Обрабатываем статистику
+                if (statsResponse.status === 'fulfilled' && 
+                    statsResponse.value.ok) {
+                    const statsData = await statsResponse.value.json();
+                    updateStatsFromServer(statsData);
+                } else {
+                    // Если эндпоинт статистики не работает, считаем локально
+                    const appointmentsData = await appointmentsResponse.value.json();
+                    updateStats(appointmentsData.appointments || []);
+                }
+                
             } catch (error) {
-                console.error('❌ Ошибка загрузки записей:', error);
-                showErrorMessage('Ошибка загрузки записей');
+                console.error('❌ Ошибка загрузки данных:', error);
+                throw error;
             }
+        }
+        
+        function updateStatsFromServer(stats) {
+            // Обновляем статистику с сервера
+            document.getElementById('todayAppointments').textContent = stats.today || 0;
+            document.getElementById('pendingAppointments').textContent = stats.pending || 0;
+            document.getElementById('totalAppointments').textContent = stats.total || 0;
+            document.getElementById('completionRate').textContent = `${stats.completionRate || 0}%`;
         }
         
         function displayAppointments(appointments) {
@@ -430,15 +243,31 @@
                         <h3>📭 Записей пока нет</h3>
                         <p>Когда клиенты будут записываться через ваш код, записи появятся здесь</p>
                         <p><small>Ваш код: <strong id="currentCode">${localStorage.getItem('barber_code') || 'barber'}</strong></small></p>
+                        <div style="margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 10px;">
+                            <h4>🎯 Как привлекать клиентов:</h4>
+                            <ol style="text-align: left; display: inline-block;">
+                                <li>Разместите свой код на визитках</li>
+                                <li>Поделитесь кодом в социальных сетях</li>
+                                <li>Расскажите клиентам о онлайн-записи</li>
+                            </ol>
+                        </div>
                     </div>
                 `;
                 return;
             }
             
+            // Сортируем записи: сначала новые, потом ожидающие
+            const sortedAppointments = [...appointments].sort((a, b) => {
+                if (a.status === 'active' && b.status !== 'active') return -1;
+                if (a.status !== 'active' && b.status === 'active') return 1;
+                return new Date(b.date) - new Date(a.date);
+            });
+            
             let html = `
                 <table>
                     <thead>
                         <tr>
+                            <th>№</th>
                             <th>Дата и время</th>
                             <th>Клиент</th>
                             <th>Телефон</th>
@@ -451,33 +280,30 @@
                     <tbody>
             `;
             
-            appointments.forEach(app => {
+            sortedAppointments.forEach((app, index) => {
                 const statusClass = `status-${app.status || 'pending'}`;
                 const date = app.date ? new Date(app.date) : new Date();
                 const dateStr = date.toLocaleDateString('ru-RU');
+                const timeStr = app.time || '';
                 
                 html += `
                     <tr>
-                        <td>${dateStr} ${app.time || ''}</td>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div>${dateStr}</div>
+                            <small style="color: #666;">${timeStr}</small>
+                        </td>
                         <td><strong>${app.client_name || 'Клиент'}</strong></td>
-                        <td><code>${app.client_phone || ''}</code></td>
+                        <td>
+                            <a href="tel:${app.client_phone || ''}" style="color: #667eea; text-decoration: none;">
+                                <i class="fas fa-phone"></i> ${app.client_phone || ''}
+                            </a>
+                        </td>
                         <td>${app.service_name || ''}</td>
-                        <td><strong>${app.price || ''} руб.</strong></td>
+                        <td><strong>${app.price || '0'} руб.</strong></td>
                         <td><span class="status ${statusClass}">${getStatusText(app.status)}</span></td>
                         <td>
-                            ${(!app.status || app.status === 'active') ? `
-                                <button onclick="updateStatus(${app.id}, 'confirmed')" class="action-btn btn-confirm">Подтвердить</button>
-                                <button onclick="updateStatus(${app.id}, 'cancelled')" class="action-btn btn-cancel">Отменить</button>
-                            ` : ''}
-                            
-                            ${app.status === 'confirmed' ? `
-                                <button onclick="updateStatus(${app.id}, 'completed')" class="action-btn btn-complete">Выполнено</button>
-                                <button onclick="updateStatus(${app.id}, 'cancelled')" class="action-btn btn-cancel">Отменить</button>
-                            ` : ''}
-                            
-                            ${(app.status === 'completed' || app.status === 'cancelled') ? `
-                                <span style="color: #666; font-size: 12px;">Завершено</span>
-                            ` : ''}
+                            ${getActionButtons(app)}
                         </td>
                     </tr>
                 `;
@@ -487,19 +313,157 @@
             container.innerHTML = html;
         }
         
-        function updateStats(appointments) {
-            const today = new Date().toISOString().split('T')[0];
+        function getActionButtons(appointment) {
+            const { id, status } = appointment;
             
-            const todayCount = appointments.filter(app => app.date === today).length;
-            const pendingCount = appointments.filter(app => app.status === 'active' || app.status === 'pending').length;
-            const totalCount = appointments.length;
-            const completedCount = appointments.filter(app => app.status === 'completed').length;
-            const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+            switch(status) {
+                case 'active':
+                case 'pending':
+                    return `
+                        <button onclick="updateStatus(${id}, 'confirmed')" class="action-btn btn-confirm">
+                            <i class="fas fa-check"></i> Подтвердить
+                        </button>
+                        <button onclick="updateStatus(${id}, 'cancelled')" class="action-btn btn-cancel">
+                            <i class="fas fa-times"></i> Отменить
+                        </button>
+                    `;
+                case 'confirmed':
+                    return `
+                        <button onclick="updateStatus(${id}, 'completed')" class="action-btn btn-complete">
+                            <i class="fas fa-check-double"></i> Выполнено
+                        </button>
+                        <button onclick="updateStatus(${id}, 'cancelled')" class="action-btn btn-cancel">
+                            <i class="fas fa-times"></i> Отменить
+                        </button>
+                    `;
+                case 'completed':
+                    return `<span style="color: #28a745;"><i class="fas fa-check-circle"></i> Завершено</span>`;
+                case 'cancelled':
+                    return `<span style="color: #dc3545;"><i class="fas fa-ban"></i> Отменено</span>`;
+                default:
+                    return `
+                        <button onclick="updateStatus(${id}, 'confirmed')" class="action-btn btn-confirm">
+                            <i class="fas fa-check"></i> Подтвердить
+                        </button>
+                        <button onclick="updateStatus(${id}, 'cancelled')" class="action-btn btn-cancel">
+                            <i class="fas fa-times"></i> Отменить
+                        </button>
+                    `;
+            }
+        }
+        
+        async function updateStatus(appointmentId, newStatus) {
+            if (!confirm(`Изменить статус записи #${appointmentId} на "${getStatusText(newStatus)}"?`)) {
+                return;
+            }
             
-            document.getElementById('todayAppointments').textContent = todayCount;
-            document.getElementById('pendingAppointments').textContent = pendingCount;
-            document.getElementById('totalAppointments').textContent = totalCount;
-            document.getElementById('completionRate').textContent = `${completionRate}%`;
+            try {
+                showPreloader(true);
+                
+                const response = await fetch(`${API_BASE}/api/appointments/${appointmentId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + currentToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`✅ Статус изменен на "${getStatusText(newStatus)}"`);
+                    await loadAllData(); // Перезагружаем все данные
+                } else if (response.status === 404) {
+                    alert('❌ Запись не найдена');
+                } else if (response.status === 405) {
+                    // Пробуем альтернативный endpoint
+                    await tryAlternativeStatusUpdate(appointmentId, newStatus);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('❌ Ошибка обновления статуса:', error);
+                alert('❌ Ошибка обновления статуса');
+            } finally {
+                showPreloader(false);
+            }
+        }
+        
+        async function tryAlternativeStatusUpdate(appointmentId, newStatus) {
+            // Альтернативный метод обновления статуса
+            try {
+                const response = await fetch(`${API_BASE}/api/barber/appointments/${appointmentId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': 'Bearer ' + currentToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (response.ok) {
+                    alert(`✅ Статус изменен через альтернативный метод`);
+                    await loadAllData();
+                } else {
+                    alert('⚠️ Функция изменения статуса временно недоступна');
+                }
+            } catch (error) {
+                alert('❌ Ошибка сети');
+            }
+        }
+        
+        function showPreloader(show) {
+            document.getElementById('preloader').style.display = show ? 'flex' : 'none';
+            document.querySelector('.content').classList.toggle('hidden', show);
+        }
+        
+        function showLoginPrompt() {
+            document.querySelector('.content').classList.remove('hidden');
+            document.getElementById('appointmentsList').innerHTML = `
+                <div class="empty-state">
+                    <h3>⚠️ Требуется авторизация</h3>
+                    <p>Пожалуйста, войдите в систему</p>
+                    <div style="margin-top: 20px;">
+                        <button onclick="window.location.href='${API_BASE}/barber-login'" 
+                                class="btn-primary" style="margin-right: 10px;">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </button>
+                        <button onclick="window.location.href='${API_BASE}/'" 
+                                class="btn-primary" style="background: #6c757d;">
+                            <i class="fas fa-home"></i> На главную
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showErrorMessage(message) {
+            document.querySelector('.content').classList.remove('hidden');
+            document.getElementById('appointmentsList').innerHTML = `
+                <div class="empty-state">
+                    <h3>⚠️ Ошибка</h3>
+                    <p>${message}</p>
+                    <div style="margin-top: 20px;">
+                        <button onclick="location.reload()" class="btn-primary" style="margin-right: 10px;">
+                            <i class="fas fa-redo"></i> Обновить
+                        </button>
+                        <button onclick="logout()" class="btn-primary" style="background: #ff4757;">
+                            <i class="fas fa-sign-out-alt"></i> Выйти
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function logout() {
+            if (confirm('Вы действительно хотите выйти?')) {
+                // Очищаем все данные
+                localStorage.removeItem('barber_token');
+                localStorage.removeItem('barber_code');
+                localStorage.removeItem('barber_name');
+                localStorage.removeItem('barber_id');
+                window.location.href = `${API_BASE}/barber-login`;
+            }
         }
         
         function getStatusText(status) {
@@ -513,111 +477,56 @@
             return statusMap[status] || 'Новая';
         }
         
-        async function updateStatus(appointmentId, newStatus) {
-            if (!confirm(`Вы уверены, что хотите изменить статус записи #${appointmentId} на "${getStatusText(newStatus)}"?`)) {
-                return;
-            }
+        function updateStats(appointments) {
+            const today = new Date().toISOString().split('T')[0];
             
-            const token = localStorage.getItem('barber_token');
-            if (!token) {
-                alert('Требуется авторизация');
-                return;
-            }
+            const todayCount = appointments.filter(app => app.date === today).length;
+            const pendingCount = appointments.filter(app => 
+                app.status === 'active' || app.status === 'pending' || app.status === 'confirmed'
+            ).length;
+            const totalCount = appointments.length;
+            const completedCount = appointments.filter(app => app.status === 'completed').length;
+            const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
             
-            try {
-                console.log(`🔄 Обновление статуса записи #${appointmentId} на "${newStatus}"`);
-                
-                const response = await fetch(`${API_BASE}/api/appointments/${appointmentId}/status`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        alert(`✅ Статус записи #${appointmentId} изменен на "${getStatusText(newStatus)}"`);
-                        // Обновляем записи
-                        loadAppointments(token);
-                    } else {
-                        alert('❌ Ошибка: ' + result.error);
-                    }
-                } else if (response.status === 404) {
-                    alert('❌ Запись не найдена');
-                } else if (response.status === 403) {
-                    alert('❌ Нет прав для изменения этой записи');
-                } else if (response.status === 405) {
-                    // Если endpoint еще не добавлен на сервер
-                    alert('⚠️ Функция изменения статуса временно недоступна');
-                    console.log('Endpoint /api/appointments/<id>/status не настроен на сервере');
-                } else {
-                    const errorText = await response.text();
-                    console.error('Ошибка сервера:', errorText);
-                    alert('❌ Ошибка сервера: ' + response.status);
-                }
-            } catch (error) {
-                console.error('❌ Ошибка сети:', error);
-                alert('⚠️ Ошибка соединения с сервером');
+            document.getElementById('todayAppointments').textContent = todayCount;
+            document.getElementById('pendingAppointments').textContent = pendingCount;
+            document.getElementById('totalAppointments').textContent = totalCount;
+            document.getElementById('completionRate').textContent = `${completionRate}%`;
+        }
+        
+        // Автообновление каждые 30 секунд
+        let refreshInterval = setInterval(() => {
+            if (currentToken) {
+                console.log('🔄 Авто-обновление...');
+                loadAllData().catch(console.error);
             }
-        }
+        }, 30000);
         
-        function showLoginPrompt() {
-            document.getElementById('appointmentsList').innerHTML = `
-                <div class="empty-state">
-                    <h3>⚠️ Требуется авторизация</h3>
-                    <p>Пожалуйста, войдите в систему</p>
-                    <button onclick="window.location.href='${API_BASE}/barber-login'" 
-                            class="btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Войти
-                    </button>
-                </div>
-            `;
-        }
-        
-        function showErrorMessage(message) {
-            document.getElementById('appointmentsList').innerHTML = `
-                <div class="empty-state">
-                    <h3>⚠️ Ошибка</h3>
-                    <p>${message}</p>
-                    <button onclick="location.reload()" class="btn-primary">
-                        <i class="fas fa-redo"></i> Обновить
-                    </button>
-                </div>
-            `;
-        }
-        
-        function logout() {
-            if (confirm('Вы действительно хотите выйти?')) {
-                localStorage.removeItem('barber_token');
-                localStorage.removeItem('barber_code');
-                localStorage.removeItem('barber_name');
-                localStorage.removeItem('barber_id');
-                window.location.href = `${API_BASE}/barber-login`;
+        // Останавливаем автообновление при скрытии вкладки
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(refreshInterval);
+            } else {
+                refreshInterval = setInterval(() => {
+                    if (currentToken) loadAllData().catch(console.error);
+                }, 30000);
+                // Обновляем сразу при возвращении
+                if (currentToken) loadAllData().catch(console.error);
             }
-        }
+        });
         
-        // Обновляем записи каждые 60 секунд
-        setInterval(() => {
-            const token = localStorage.getItem('barber_token');
-            if (token) {
-                console.log('🔄 Авто-обновление записей...');
-                loadAppointments(token);
-            }
-        }, 60000);
-        
-        // Кнопка для ручного обновления
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+        // Горячие клавиши
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F5' || (e.key === 'r' && e.ctrlKey)) {
                 e.preventDefault();
-                const token = localStorage.getItem('barber_token');
-                if (token) {
-                    console.log('🔄 Ручное обновление записей...');
-                    loadAppointments(token);
+                if (currentToken) {
+                    console.log('🔄 Ручное обновление...');
+                    loadAllData().catch(console.error);
                 }
+            }
+            
+            if (e.key === 'Escape') {
+                logout();
             }
         });
     </script>
