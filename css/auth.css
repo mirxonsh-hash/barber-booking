@@ -1,101 +1,95 @@
-/* static/css/auth.css */
-.main-content {
-    padding: 60px 0;
-    min-height: calc(100vh - 160px);
-    display: flex;
-    align-items: center;
-}
+/* Добавьте в конец вашего css/auth.css */
 
-.auth-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 40px;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.auth-card {
-    padding: 40px;
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.auth-header h1 {
-    font-size: 32px;
-    color: var(--primary-color);
-    margin-bottom: 10px;
-}
-
-.auth-header .subtitle {
-    color: var(--text-light);
-    font-size: 18px;
-}
-
-.auth-form {
-    margin-bottom: 30px;
-}
-
-.form-group {
-    margin-bottom: 25px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-dark);
-    font-weight: 500;
-}
-
-.form-input {
-    width: 100%;
-    padding: 15px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    font-size: 16px;
-    transition: var(--transition);
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.btn-block {
-    width: 100%;
-}
-
-.divider {
-    text-align: center;
-    margin: 30px 0;
-    position: relative;
-}
-
-.divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--border-color);
-}
-
-.divider span {
-    background: white;
-    padding: 0 20px;
-    color: var(--text-lighter);
-    position: relative;
-}
-
-.error-message {
-    background: #ffebee;
-    color: #c62828;
+.success-message {
+    background: #e8f5e9;
+    color: #2e7d32;
     padding: 15px;
     border-radius: var(--radius-sm);
     margin-bottom: 20px;
     display: none;
+    border: 1px solid #c8e6c9;
+}
+
+.test-data {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: var(--radius-sm);
+    margin-top: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.test-data h4 {
+    color: var(--text-dark);
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.test-credentials {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.credential-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.credential-item:last-child {
+    border-bottom: none;
+}
+
+.credential-label {
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.credential-value {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+.test-note {
+    color: var(--text-lighter);
+    font-size: 14px;
+    margin: 0;
+}
+
+.test-note i {
+    color: #ff9800;
+}
+
+/* Анимации */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .auth-card {
+        padding: 25px;
+    }
+    
+    .auth-header h1 {
+        font-size: 26px;
+    }
+    
+    .form-input {
+        padding: 12px;
+    }
 }
