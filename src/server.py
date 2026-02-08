@@ -347,3 +347,42 @@ if __name__ == '__main__':
     
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+# ... остальной код ...
+
+# Проверка барбера
+def verify_barber(code, password):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+    
+    cursor.execute('''
+    SELECT id, name FROM barbers 
+    WHERE code = %s AND password_hash = %s
+    ''', (code, password_hash))
+    
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        return {'id': result[0], 'name': result[1]}
+    return None
+
+# Получение записей барбера
+def get_barber_appointments(barber_code):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+    SELECT * FROM appointments 
+    WHERE barber_code = %s 
+    ORDER BY appointment_date DESC, appointment_time DESC
+    ''', (barber_code,))
+    
+    appointments = cursor.fetchall()
+    conn.close()
+    
+    return appointments
+
+# ... остальные маршруты ...
