@@ -191,3 +191,29 @@
     </script>
 </body>
 </html>
+<script src="js/auth.js"></script>
+<script>
+    // Проверяем, если уже есть токен, пробуем автоматически войти
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem('barber_token');
+        if (token) {
+            // Проверяем токен
+            fetch('https://barber-booking-db.onrender.com/api/barber/check', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.authenticated) {
+                    // Уже авторизован - редирект
+                    window.location.href = 'https://barber-booking-db.onrender.com/barber-panel?token=' + encodeURIComponent(token);
+                }
+            })
+            .catch(() => {
+                // Ошибка проверки - остаемся на странице логина
+                console.log('Требуется авторизация');
+            });
+        }
+    });
+</script>
