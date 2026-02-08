@@ -386,3 +386,9 @@ def get_barber_appointments(barber_code):
     return appointments
 
 # ... остальные маршруты ...
+import threading
+from telegram_bot import main as run_bot
+
+# Запускаем бота в отдельном потоке
+bot_thread = threading.Thread(target=run_bot, daemon=True)
+bot_thread.start()
