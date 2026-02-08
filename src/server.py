@@ -14,18 +14,13 @@ import traceback
 
 load_dotenv()
 
-# Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# JWT секрет
 JWT_SECRET = os.environ.get('JWT_SECRET', 'barber-secret-key-2024')
-
-# Telegram Bot для уведомлений админу
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '7662525969:AAF33YcsBM8OmeURyarjx-bNxF9ghOVGRNc')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '531822805')
 
-# Определяем корень проекта
 BASE_DIR = Path(__file__).parent.parent
 
 app = Flask(__name__, 
@@ -35,17 +30,13 @@ app = Flask(__name__,
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key')
 CORS(app)
 
-# ========== ПОДКЛЮЧЕНИЕ К POSTGRESQL ==========
 def get_db_connection():
-    """Подключение к базе данных PostgreSQL на Render"""
     DATABASE_URL = os.environ.get('DATABASE_URL')
     if not DATABASE_URL:
         DATABASE_URL = 'postgresql://barber_db_33bs_user:BL1BlEQaugJijaXJC6VWOfpacuO6pAid@dpg-d63t4ih4tr6s73a46rtg-a.frankfurt-postgres.render.com/barber_db_33bs'
     return psycopg2.connect(DATABASE_URL)
 
-# ========== ФУНКЦИИ ДЛЯ TELEGRAM ==========
 def send_telegram_notification(appointment_data):
-    """Отправка уведомления админу в Telegram о новой записи"""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         logger.warning("Telegram токен или chat_id не указаны. Уведомление не отправлено.")
         return False
@@ -81,13 +72,10 @@ def send_telegram_notification(appointment_data):
         logger.error(f"❌ Ошибка при отправке в Telegram: {e}")
         return False
 
-# ========== ИНИЦИАЛИЗАЦИЯ БАЗЫ ==========
 def init_db():
-    """Инициализация таблиц в базе данных"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Таблица барберов
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS barbers (
         id SERIAL PRIMARY KEY,
@@ -100,7 +88,6 @@ def init_db():
     )
     ''')
     
-    # Таблица услуг (FIX: убираем active, добавляем позже)
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS services (
         id SERIAL PRIMARY KEY,
@@ -112,7 +99,6 @@ def init_db():
     )
     ''')
     
-    # Добавляем колонку active если ее нет
     try:
         cursor.execute("""
         SELECT column_name 
@@ -125,7 +111,6 @@ def init_db():
     except Exception as e:
         logger.error(f"❌ Ошибка добавления колонки active: {e}")
     
-    # Таблица записей
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS appointments (
         id SERIAL PRIMARY KEY,
@@ -142,7 +127,6 @@ def init_db():
     )
     ''')
     
-    # Таблица клиентов (для Telegram Mini App)
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS clients (
         id SERIAL PRIMARY KEY,
@@ -158,7 +142,6 @@ def init_db():
     )
     ''')
     
-    # Создаем тестового барбера, если его нет
     cursor.execute("SELECT id FROM barbers WHERE code = 'barber'")
     if not cursor.fetchone():
         password_hash = hashlib.sha256('123456'.encode()).hexdigest()
@@ -171,7 +154,6 @@ def init_db():
         barber_id = barber_result[0] if barber_result else None
         logger.info("✅ Тестовый барбер создан")
     
-    # Создаем тестовые услуги для барбера
     cursor.execute("SELECT id FROM services WHERE barber_id = (SELECT id FROM barbers WHERE code = 'barber')")
     if not cursor.fetchone():
         cursor.execute("SELECT id FROM barbers WHERE code = 'barber'")
@@ -193,7 +175,6 @@ def init_db():
                 ''', service)
             logger.info("✅ Тестовые услуги созданы")
     
-    # Создаем тестового клиента для проверки
     cursor.execute("SELECT id FROM clients WHERE telegram_id = %s", (1770537270377,))
     if not cursor.fetchone():
         cursor.execute('''
@@ -211,14 +192,12 @@ def init_db():
     conn.close()
     logger.info("✅ База данных PostgreSQL готова")
 
-# Инициализация БД
 try:
     init_db()
     logger.info("✅ База данных инициализирована")
 except Exception as e:
     logger.error(f"❌ Ошибка инициализации БД: {e}")
 
-# ========== ОСНОВНЫЕ МАРШРУТЫ ==========
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -277,12 +256,10 @@ def client_panel_page():
 
 @app.route('/client-profile')
 def client_profile_page():
-    """Страница со списком барберов (первый скрин)"""
     return render_template('client-profile.html')
 
 @app.route('/profile')
 def profile_page():
-    """Страница профиля клиента (второй скрин)"""
     return render_template('profile.html')
 
 @app.route('/master-login')
@@ -327,7 +304,6 @@ def find_barber():
         return redirect(url_for('client_login_page', 
                              error='Ошибка сервера при поиске барбера'))
 
-# ========== API ДЛЯ КЛИЕНТОВ ==========
 @app.route('/api/client/login', methods=['POST'])
 def client_login():
     try:
@@ -362,24 +338,19 @@ def client_login():
         logger.error(f"Ошибка входа клиента: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
-# ========== API ДЛЯ КЛИЕНТСКОГО ПРОФИЛЯ (ИСПРАВЛЕННАЯ ВЕРСИЯ) ==========
 @app.route('/api/client/profile', methods=['GET'])
 def get_client_profile():
-    """Получение профиля клиента - ИСПРАВЛЕННАЯ ВЕРСИЯ С ПРАВИЛЬНОЙ ОБРАБОТКОЙ TELEGRAM"""
     try:
-        # Получаем данные из параметров запроса
         telegram_id = request.args.get('telegram_id')
         telegram_data = request.args.get('tg_data')
         
         logger.info(f"📱 Запрос профиля клиента. Telegram ID: {telegram_id}, Telegram Data: {'есть' if telegram_data else 'нет'}")
         
-        # Обработка данных из Telegram Web App
         final_telegram_id = None
         user_data_from_telegram = None
         
         if telegram_data:
             try:
-                # Парсим данные из Telegram Web App
                 data_dict = {}
                 for item in telegram_data.split('&'):
                     if '=' in item:
@@ -392,19 +363,15 @@ def get_client_profile():
                     telegram_id_from_data = user_data_from_telegram.get('id')
                     
                     if telegram_id_from_data:
-                        # Используем ID из Telegram (должен быть числом)
                         final_telegram_id = int(telegram_id_from_data)
                         
-                        # Создаем/обновляем профиль с данными Telegram
                         conn = get_db_connection()
                         cursor = conn.cursor()
                         
-                        # Проверяем, есть ли пользователь
                         cursor.execute('SELECT id FROM clients WHERE telegram_id = %s', (final_telegram_id,))
                         existing_user = cursor.fetchone()
                         
                         if existing_user:
-                            # Обновляем существующего
                             cursor.execute('''
                             UPDATE clients SET 
                                 first_name = %s,
@@ -421,7 +388,6 @@ def get_client_profile():
                                 final_telegram_id
                             ))
                         else:
-                            # Создаем нового
                             cursor.execute('''
                             INSERT INTO clients (telegram_id, first_name, last_name, username, photo_url)
                             VALUES (%s, %s, %s, %s, %s)
@@ -440,27 +406,21 @@ def get_client_profile():
             except Exception as e:
                 logger.error(f"❌ Ошибка обработки данных Telegram: {e}")
         
-        # Если Telegram ID передан как параметр (из localStorage)
         if not final_telegram_id and telegram_id:
             try:
-                # Пробуем преобразовать в число (Telegram ID всегда число)
                 if telegram_id.isdigit():
                     final_telegram_id = int(telegram_id)
                 else:
-                    # Если это не число, возможно это тестовый ID
                     logger.warning(f"⚠️ Telegram ID не является числом: {telegram_id}")
-                    # Используем тестовый ID для демонстрации
-                    final_telegram_id = 1770537270377  # ID тестового пользователя из БД
+                    final_telegram_id = 1770537270377
             except ValueError:
                 logger.error(f"❌ Не удалось преобразовать Telegram ID в число: {telegram_id}")
-                final_telegram_id = 1770537270377  # Используем тестовый ID
+                final_telegram_id = 1770537270377
         
-        # Если ID все еще не определен, используем тестовый
         if not final_telegram_id:
             final_telegram_id = 1770537270377
             logger.info(f"🧪 Используем тестовый Telegram ID: {final_telegram_id}")
         
-        # Получаем профиль из базы данных
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -474,7 +434,6 @@ def get_client_profile():
         result = cursor.fetchone()
         
         if result:
-            # Пользователь найден
             profile = {
                 'id': result[0],
                 'telegram_id': result[1],
@@ -487,7 +446,6 @@ def get_client_profile():
                 'created_at': result[8].isoformat() if result[8] else None
             }
             
-            # Если есть данные из Telegram, обновляем профиль в ответе
             if user_data_from_telegram:
                 profile.update({
                     'first_name': user_data_from_telegram.get('first_name', profile['first_name']),
@@ -496,7 +454,6 @@ def get_client_profile():
                     'photo_url': user_data_from_telegram.get('photo_url', profile['photo_url'])
                 })
             
-            # Получаем историю записей (если есть телефон)
             if profile.get('phone'):
                 cursor.execute('''
                 SELECT a.id, a.service_name, a.price, a.appointment_date, 
@@ -522,7 +479,6 @@ def get_client_profile():
                         'barber_code': row[7]
                     })
                 
-                # Получаем статистику
                 cursor.execute('''
                 SELECT COUNT(*) as total, 
                        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
@@ -552,11 +508,9 @@ def get_client_profile():
                 'source': 'telegram' if telegram_data else 'local_storage'
             })
         else:
-            # Если пользователь не найден в БД, создаем временный профиль
             conn.close()
             
             if user_data_from_telegram:
-                # Используем данные из Telegram
                 profile = {
                     'telegram_id': final_telegram_id,
                     'first_name': user_data_from_telegram.get('first_name', 'Пользователь'),
@@ -568,7 +522,6 @@ def get_client_profile():
                     'created_at': datetime.now().isoformat()
                 }
             else:
-                # Создаем пустой профиль
                 profile = {
                     'telegram_id': final_telegram_id,
                     'first_name': 'Пользователь',
@@ -598,16 +551,13 @@ def get_client_profile():
 
 @app.route('/api/client/profile/update', methods=['POST'])
 def update_client_profile():
-    """Обновление или создание профиля клиента"""
     try:
         data = request.json
         
-        # Проверяем обязательные поля
         telegram_id = data.get('telegram_id')
         if not telegram_id:
             return jsonify({'success': False, 'error': 'ID Telegram обязателен'}), 400
         
-        # Преобразуем telegram_id в число
         try:
             telegram_id_int = int(telegram_id)
         except ValueError:
@@ -616,12 +566,10 @@ def update_client_profile():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Проверяем, есть ли пользователь
         cursor.execute('SELECT id FROM clients WHERE telegram_id = %s', (telegram_id_int,))
         existing_user = cursor.fetchone()
         
         if existing_user:
-            # Обновляем существующего пользователя
             update_fields = []
             update_values = []
             
@@ -654,7 +602,6 @@ def update_client_profile():
                 query = f"UPDATE clients SET {', '.join(update_fields)}, updated_at = CURRENT_TIMESTAMP WHERE telegram_id = %s"
                 cursor.execute(query, tuple(update_values))
         else:
-            # Создаем нового пользователя
             cursor.execute('''
             INSERT INTO clients (telegram_id, first_name, last_name, username, 
                                photo_url, phone, last_barber_code)
@@ -683,7 +630,6 @@ def update_client_profile():
         logger.error(f"Ошибка обновления профиля: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== API ДЛЯ БАРБЕРОВ ==========
 @app.route('/api/barber/login', methods=['POST'])
 def barber_login():
     try:
@@ -751,7 +697,6 @@ def check_barber_auth():
 
 @app.route('/api/barber/appointments', methods=['GET'])
 def get_barber_appointments():
-    """Получение записей для барбера"""
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     logger.info(f"📥 ЗАПРОС ЗАПИСЕЙ. Токен: {'представлен' if token else 'отсутствует'}")
     
@@ -812,7 +757,6 @@ def get_barber_appointments():
 
 @app.route('/api/barber/stats', methods=['GET'])
 def get_barber_stats():
-    """Получение статистики для барбера"""
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     
     if not token:
@@ -825,7 +769,6 @@ def get_barber_stats():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Сегодняшние записи
         today = datetime.now().date()
         cursor.execute('''
         SELECT COUNT(*) FROM appointments 
@@ -833,27 +776,23 @@ def get_barber_stats():
         ''', (barber_code, today))
         today_count = cursor.fetchone()[0]
         
-        # Ожидающие записи (active и pending)
         cursor.execute('''
         SELECT COUNT(*) FROM appointments 
         WHERE barber_code = %s AND status IN ('active', 'pending', 'confirmed')
         ''', (barber_code,))
         pending_count = cursor.fetchone()[0]
         
-        # Всего записей
         cursor.execute('''
         SELECT COUNT(*) FROM appointments WHERE barber_code = %s
         ''', (barber_code,))
         total_count = cursor.fetchone()[0]
         
-        # Выполненные записи
         cursor.execute('''
         SELECT COUNT(*) FROM appointments 
         WHERE barber_code = %s AND status = 'completed'
         ''', (barber_code,))
         completed_count = cursor.fetchone()[0]
         
-        # Процент выполнения
         completion_rate = 0
         if total_count > 0:
             completion_rate = round((completed_count / total_count) * 100)
@@ -915,7 +854,6 @@ def get_barber_services(code):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Сначала получаем ID барбера по коду
         cursor.execute('SELECT id FROM barbers WHERE code = %s', (code,))
         barber = cursor.fetchone()
         
@@ -925,7 +863,6 @@ def get_barber_services(code):
         
         barber_id = barber[0]
         
-        # Теперь получаем услуги по barber_id (FIX: без active, т.к. колонки может не быть)
         cursor.execute('''
         SELECT id, name, price, duration 
         FROM services 
@@ -945,7 +882,6 @@ def get_barber_services(code):
         conn.close()
         
         if not services:
-            # Возвращаем базовые услуги, если для барбера нет специфических
             services = [
                 {'id': 1, 'name': 'Мужская стрижка', 'price': 1500, 'duration': 45},
                 {'id': 2, 'name': 'Стрижка + Бритьё', 'price': 2000, 'duration': 60},
@@ -967,7 +903,6 @@ def get_barber_services(code):
 
 @app.route('/api/barber/<code>/available-slots', methods=['GET'])
 def get_available_slots(code):
-    """Получение доступных временных слотов для записи"""
     try:
         date_str = request.args.get('date')
         if not date_str:
@@ -978,13 +913,10 @@ def get_available_slots(code):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Получаем рабочие часы барбера (можно добавить в таблицу barbers)
-        # Пока используем стандартные часы: 10:00 - 20:00
         start_hour = 10
         end_hour = 20
-        slot_duration = 30  # минут
+        slot_duration = 30
         
-        # Получаем занятые слоты на эту дату
         cursor.execute('''
         SELECT appointment_time FROM appointments 
         WHERE barber_code = %s AND appointment_date = %s AND status != 'cancelled'
@@ -993,14 +925,12 @@ def get_available_slots(code):
         booked_times = [row[0] for row in cursor.fetchall()]
         conn.close()
         
-        # Генерируем все возможные слоты
         all_slots = []
         current_time = datetime.combine(date, datetime.min.time().replace(hour=start_hour))
         end_time = datetime.combine(date, datetime.min.time().replace(hour=end_hour))
         
         while current_time < end_time:
             time_str = current_time.strftime('%H:%M')
-            # Проверяем, не занят ли слот
             is_booked = False
             for booked in booked_times:
                 if str(booked) == time_str:
@@ -1027,7 +957,6 @@ def get_available_slots(code):
 
 @app.route('/api/barber/<code>/booked-times', methods=['GET'])
 def get_barber_booked_times(code):
-    """Получение занятых времен для конкретного барбера и даты"""
     try:
         date = request.args.get('date')
         
@@ -1049,10 +978,9 @@ def get_barber_booked_times(code):
         booked_times = []
         for row in cursor.fetchall():
             if row[0]:
-                # Преобразуем время в строку HH:MM
                 time_str = str(row[0])
                 if ':' in time_str:
-                    booked_times.append(time_str[:5])  # Берем только HH:MM
+                    booked_times.append(time_str[:5])
         
         conn.close()
         
@@ -1068,10 +996,8 @@ def get_barber_booked_times(code):
         logger.error(f"Ошибка получения занятых времен: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== API ДЛЯ СОЗДАНИЯ ЗАПИСИ (с проверкой конфликта и Telegram) ==========
 @app.route('/api/appointments/create', methods=['POST'])
 def create_client_appointment():
-    """Создание записи - РАБОЧАЯ ВЕРСИЯ С ПРОВЕРКОЙ КОНФЛИКТА"""
     try:
         data = request.json
         logger.info(f"📥 Получен запрос на создание записи: {data}")
@@ -1096,7 +1022,6 @@ def create_client_appointment():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # 1. Проверяем существование барбера
         cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (barber_code,))
         barber = cursor.fetchone()
         
@@ -1107,7 +1032,6 @@ def create_client_appointment():
         
         barber_name = barber[1] if barber[1] else f"Барбер {barber_code}"
         
-        # 2. ПРОВЕРЯЕМ КОНФЛИКТ ВРЕМЕНИ
         cursor.execute('''
         SELECT id, client_name, client_phone, service_name, appointment_time
         FROM appointments 
@@ -1132,9 +1056,8 @@ def create_client_appointment():
                     'service': conflicting_appointment[3],
                     'time': str(conflicting_appointment[4])
                 }
-            }), 409  # HTTP 409 Conflict
+            }), 409
         
-        # 3. Если время свободно - создаем запись
         try:
             cursor.execute('''
             INSERT INTO appointments 
@@ -1155,15 +1078,12 @@ def create_client_appointment():
             result = cursor.fetchone()
             appointment_id = result[0]
             
-            # 4. СОХРАНЯЕМ/ОБНОВЛЯЕМ ПРОФИЛЬ КЛИЕНТА (если есть telegram_id)
             telegram_id = data.get('telegram_id')
             if telegram_id:
-                # Проверяем, есть ли клиент
                 cursor.execute('SELECT id FROM clients WHERE telegram_id = %s', (telegram_id,))
                 existing_client = cursor.fetchone()
                 
                 if existing_client:
-                    # Обновляем существующего клиента
                     cursor.execute('''
                     UPDATE clients SET 
                         last_barber_code = %s,
@@ -1172,7 +1092,6 @@ def create_client_appointment():
                     WHERE telegram_id = %s
                     ''', (barber_code, data['client_phone'], telegram_id))
                 else:
-                    # Создаем нового клиента
                     cursor.execute('''
                     INSERT INTO clients (telegram_id, first_name, last_name, phone, last_barber_code)
                     VALUES (%s, %s, %s, %s, %s)
@@ -1234,10 +1153,8 @@ def create_client_appointment():
         logger.error(f"❌ Общая ошибка создания записи: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
-# ========== API ДЛЯ ОБНОВЛЕНИЯ СТАТУСА ЗАПИСИ ==========
 @app.route('/api/appointments/<int:appointment_id>/status', methods=['PUT'])
 def update_appointment_status(appointment_id):
-    """Обновление статуса записи"""
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     
     if not token:
@@ -1292,10 +1209,8 @@ def update_appointment_status(appointment_id):
         logger.error(f"❌ Ошибка обновления статуса: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
-# ========== API ДЛЯ РЕГИСТРАЦИИ БАРБЕРОВ ==========
 @app.route('/api/barber/register', methods=['POST'])
 def register_barber():
-    """Регистрация нового барбера"""
     try:
         data = request.json
         
@@ -1304,7 +1219,6 @@ def register_barber():
             if not data.get(field):
                 return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
         
-        # Проверяем уникальность кода
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -1313,10 +1227,8 @@ def register_barber():
             conn.close()
             return jsonify({'success': False, 'error': 'Код уже используется другим барбером'}), 400
         
-        # Хешируем пароль
         password_hash = hashlib.sha256(data['password'].encode()).hexdigest()
         
-        # Создаем барбера
         cursor.execute('''
         INSERT INTO barbers (name, phone, code, password_hash)
         VALUES (%s, %s, %s, %s)
@@ -1325,7 +1237,6 @@ def register_barber():
         
         barber_id = cursor.fetchone()[0]
         
-        # Создаем базовые услуги для нового барбера (используем barber_id)
         basic_services = [
             (barber_id, 'Мужская стрижка', 1500, 45),
             (barber_id, 'Стрижка + Бритьё', 2000, 60),
@@ -1346,7 +1257,6 @@ def register_barber():
         
         logger.info(f"✅ Новый барбер зарегистрирован: {data['name']} (код: {data['code']})")
         
-        # Автоматически логиним барбера
         token = jwt.encode({
             'barber_id': barber_id,
             'barber_code': data['code'],
@@ -1371,18 +1281,14 @@ def register_barber():
         logger.error(f"Ошибка регистрации барбера: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== API ДЛЯ TELEGRAM ВЕБ-АПП ==========
 @app.route('/api/telegram/auth', methods=['GET'])
 def telegram_auth():
-    """Аутентификация через Telegram Web App - УПРОЩЕННАЯ ВЕРСИЯ"""
     try:
         telegram_data = request.args.get('tg_data')
         
-        # Если есть данные Telegram, обрабатываем их
         if telegram_data:
             logger.info(f"📱 Получены данные Telegram: {telegram_data[:100]}...")
             
-            # Простое парсинг данных Telegram
             data_dict = {}
             for item in telegram_data.split('&'):
                 if '=' in item:
@@ -1401,7 +1307,6 @@ def telegram_auth():
                     
                     logger.info(f"📱 Данные пользователя Telegram: {first_name} {last_name} (@{username}), ID: {telegram_id}")
                     
-                    # Сохраняем/обновляем профиль в базе
                     conn = get_db_connection()
                     cursor = conn.cursor()
                     
@@ -1409,7 +1314,6 @@ def telegram_auth():
                     existing_user = cursor.fetchone()
                     
                     if existing_user:
-                        # Обновляем существующего пользователя
                         cursor.execute('''
                         UPDATE clients SET 
                             first_name = %s,
@@ -1421,7 +1325,6 @@ def telegram_auth():
                         RETURNING id
                         ''', (first_name, last_name, username, photo_url, telegram_id))
                     else:
-                        # Создаем нового пользователя
                         cursor.execute('''
                         INSERT INTO clients (telegram_id, first_name, last_name, username, photo_url)
                         VALUES (%s, %s, %s, %s, %s)
@@ -1443,7 +1346,6 @@ def telegram_auth():
                 except Exception as e:
                     logger.error(f"Ошибка парсинга данных Telegram: {e}")
         
-        # Если нет данных или ошибка, просто возвращаем успех
         return jsonify({
             'success': True,
             'message': 'Telegram API работает'
@@ -1453,10 +1355,8 @@ def telegram_auth():
         logger.error(f"Ошибка аутентификации через Telegram: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== ДИАГНОСТИЧЕСКИЕ МАРШРУТЫ ==========
 @app.route('/api/debug/all-appointments')
 def debug_all_appointments():
-    """Получение ВСЕХ записей для проверки"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1503,7 +1403,6 @@ def debug_all_appointments():
 
 @app.route('/api/test/create-appointment')
 def test_create_appointment():
-    """Тестовое создание записи напрямую в БД"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1546,7 +1445,6 @@ def test_create_appointment():
 
 @app.route('/api/test/db-structure')
 def test_db_structure():
-    """Проверка структуры БД"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1603,7 +1501,6 @@ def test_db_structure():
 
 @app.route('/api/health')
 def health_check():
-    """Проверка здоровья сервера"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1624,13 +1521,10 @@ def health_check():
             'error': str(e)
         }), 500
 
-# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
 @app.route('/<path:path>')
 def serve_static(path):
-    """Обслуживание статических файлов"""
     return send_from_directory(app.static_folder, path)
 
-# ========== ЗАПУСК СЕРВЕРА ==========
 if __name__ == '__main__':
     print("=" * 80)
     print("🌐 BARBER BOOKING API ЗАПУЩЕН")
