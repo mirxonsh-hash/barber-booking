@@ -152,10 +152,43 @@ def client_login_page():
 
 @app.route('/client-panel')
 def client_panel_page():
-    # Получаем код барбера из параметра URL
-    code = request.args.get('code', '')
-    # Передаем код в шаблон для использования в JavaScript
-    return render_template('client_panel.html', barber_code=code)
+    """Страница записи клиента - с проверкой существования барбера"""
+    try:
+        # Получаем код барбера из параметра URL
+        code = request.args.get('code', '').strip()
+        
+        if not code:
+            logger.warning("Код барбера не указан в URL при открытии client-panel")
+            return redirect('/client-login')
+        
+        logger.info(f"Открытие client-panel для кода: {code}")
+        
+        # Проверяем существование барбера перед показом страницы
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (code,))
+        barber = cursor.fetchone()
+        conn.close()
+        
+        if not barber:
+            logger.warning(f"Барбер не найден при открытии client-panel: {code}")
+            return redirect(url_for('client_login_page', 
+                                 error='Барбер с таким кодом не найден', 
+                                 code=code))
+        
+        barber_name = barber[1] if barber[1] else f"Барбер {code}"
+        logger.info(f"Барбер найден: {barber_name} (код: {code})")
+        
+        # Передаем код в шаблон для использования в JavaScript
+        return render_template('client_panel.html', 
+                             barber_code=code, 
+                             barber_name=barber_name)
+        
+    except Exception as e:
+        logger.error(f"Ошибка в функции client_panel_page: {e}")
+        # В случае любой ошибки возвращаем на страницу входа
+        return redirect(url_for('client_login_page', 
+                             error='Ошибка сервера при загрузке страницы'))
 
 @app.route('/profile')
 def profile_page():
@@ -174,32 +207,44 @@ def master_panel_page():
 @app.route('/client/find', methods=['GET', 'POST'])
 def find_barber():
     """Обработка поиска барбера - редирект на client-panel"""
-    if request.method == 'POST':
-        # Если POST запрос (из формы)
-        code = request.form.get('code', '').strip()
-    else:
-        # Если GET запрос (из URL или кнопки)
-        code = request.args.get('code', '').strip()
+    try:
+        if request.method == 'POST':
+            # Если POST запрос (из формы)
+            code = request.form.get('code', '').strip()
+        else:
+            # Если GET запрос (из URL или кнопки)
+            code = request.args.get('code', '').strip()
+        
+        logger.info(f"Поиск барбера по коду: {code}")
+        
+        if not code:
+            # Если код не указан, возвращаем на страницу входа
+            logger.warning("Код барбера не указан")
+            return redirect('/client-login')
+        
+        # Проверяем существование барбера
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (code,))
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            # Барбер найден - редирект на client-panel
+            logger.info(f"Барбер найден: {result[1]} (код: {code})")
+            return redirect(f'/client-panel?code={code}')
+        else:
+            # Барбер не найден - возвращаем с сообщением об ошибке
+            logger.warning(f"Барбер не найден: {code}")
+            return redirect(url_for('client_login_page', 
+                                 error='Барбер с таким кодом не найден', 
+                                 code=code))
     
-    if not code:
-        # Если код не указан, возвращаем на страницу входа
-        return redirect('/client-login')
-    
-    # Проверяем существование барбера
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (code,))
-    result = cursor.fetchone()
-    conn.close()
-    
-    if result:
-        # Барбер найден - редирект на client-panel
-        logger.info(f"Клиент нашел барбера: {result[1]} (код: {code})")
-        return redirect(f'/client-panel?code={code}')
-    else:
-        # Барбер не найден - возвращаем с сообщением об ошибке
-        logger.warning(f"Клиент искал несуществующего барбера: {code}")
-        return redirect(url_for('client_login_page', error='Барбер с таким кодом не найден', code=code))
+    except Exception as e:
+        logger.error(f"Ошибка в функции find_barber: {e}")
+        # Возвращаем на страницу входа с сообщением об ошибке
+        return redirect(url_for('client_login_page', 
+                             error='Ошибка сервера при поиске барбера'))
 
 # ========== РЕДИРЕКТЫ ДЛЯ .HTML ==========
 @app.route('/barber-login.html')
@@ -262,7 +307,8 @@ def client_login():
             # Барбер найден - возвращаем URL для редиректа
             return jsonify({
                 'success': True,
-                'redirect_url': f'/client-panel?code={code}'
+                'redirect_url': f'/client-panel?code={code}',
+                'barber_name': result[1]
             })
         
         return jsonify({'success': False, 'error': 'Барбер с таким кодом не найден'}), 404
@@ -527,10 +573,6 @@ def create_client_appointment():
             
             conn.commit()
             appointment_id = cursor.lastrowid
-            
-            # Получаем созданную запись для логирования
-            cursor.execute('SELECT * FROM appointments WHERE id = %s', (appointment_id,))
-            created_appointment = cursor.fetchone()
             
             logger.info(f"✅ Запись успешно создана! ID: {appointment_id}")
             logger.info(f"   Клиент: {data['client_name']}, тел: {data['client_phone']}")
