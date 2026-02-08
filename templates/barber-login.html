@@ -36,7 +36,7 @@
                     <form id="barberLoginForm" class="auth-form">
                         <div class="form-group">
                             <label for="username" class="form-label">
-                                <i class="fas fa-user"></i> Логин (код)
+                                <i class="fas fa-user"></i> Код барбера
                             </label>
                             <input 
                                 type="text" 
@@ -47,7 +47,7 @@
                                 required
                             >
                             <div class="form-hint">
-                                <i class="fas fa-info-circle"></i> Используйте код барбера
+                                <i class="fas fa-info-circle"></i> Код, который вы даете клиентам
                             </div>
                         </div>
                         
@@ -65,28 +65,38 @@
                             >
                         </div>
                         
-                        <div id="errorMessage" class="error-message"></div>
+                        <div id="errorMessage" class="error-message" style="display: none;"></div>
                         
-                        <button type="submit" class="btn btn-block">
+                        <button type="submit" class="btn btn-block" id="loginBtn">
                             <i class="fas fa-sign-in-alt"></i> Войти
                         </button>
                         
                         <div class="form-footer">
-                            <a href="#" class="forgot-password">
-                                <i class="fas fa-key"></i> Забыли пароль?
-                            </a>
-                            <a href="#" class="register-link">
-                                <i class="fas fa-user-plus"></i> Регистрация барбера
-                            </a>
+                            <p class="help-text">
+                                Нет аккаунта? <a href="#" class="register-link">Запросить у администратора</a>
+                            </p>
                         </div>
                     </form>
                     
                     <div class="test-data">
-                        <h4><i class="fas fa-vial"></i> Тестовые данные:</h4>
-                        <p>Код барбера: <strong>barber</strong></p>
-                        <p>Пароль: <strong>123456</strong></p>
-                        <p>Код для клиентов: <strong>B-ARBER003</strong></p>
-                        <p><small>После входа откроется панель управления</small></p>
+                        <h4><i class="fas fa-vial"></i> Тестовый доступ:</h4>
+                        <div class="test-credentials">
+                            <div class="credential-item">
+                                <span class="credential-label">Код барбера:</span>
+                                <span class="credential-value">barber</span>
+                            </div>
+                            <div class="credential-item">
+                                <span class="credential-label">Пароль:</span>
+                                <span class="credential-value">123456</span>
+                            </div>
+                            <div class="credential-item">
+                                <span class="credential-label">Код для клиентов:</span>
+                                <span class="credential-value">barber</span>
+                            </div>
+                        </div>
+                        <p class="test-note">
+                            <small><i class="fas fa-exclamation-circle"></i> После входа вы попадете в панель управления</small>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -104,6 +114,80 @@
     </footer>
 
     <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('barberLoginForm');
+            const errorMessage = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                
+                // Валидация
+                if (!username || !password) {
+                    showError('Заполните все поля');
+                    return;
+                }
+                
+                // Показываем состояние загрузки
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Вход...';
+                loginBtn.disabled = true;
+                
+                try {
+                    // Используем API из api.js
+                    const result = await BarberSystem.loginBarber(username, password);
+                    
+                    if (result.success) {
+                        // Успешный вход
+                        console.log('Успешный вход:', result.barber);
+                        
+                        // Редирект на панель барбера
+                        window.location.href = '/barber-panel';
+                    } else {
+                        showError(result.error || 'Ошибка входа');
+                    }
+                } catch (error) {
+                    console.error('Ошибка входа:', error);
+                    showError('Ошибка соединения с сервером');
+                } finally {
+                    // Возвращаем кнопку в исходное состояние
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войти';
+                    loginBtn.disabled = false;
+                }
+            });
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                
+                // Автоматически скрыть через 5 секунд
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Проверяем, если уже есть токен, то сразу редиректим
+            checkExistingAuth();
+            
+            async function checkExistingAuth() {
+                const token = localStorage.getItem('barberToken');
+                if (token) {
+                    try {
+                        const auth = await BarberSystem.checkAuth();
+                        if (auth.authenticated) {
+                            // Уже авторизован - редирект на панель
+                            window.location.href = '/barber-panel';
+                        }
+                    } catch (error) {
+                        // Ошибка проверки - оставляем на странице логина
+                        console.log('Нужна авторизация');
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
