@@ -222,9 +222,24 @@
             color: #155724;
         }
         
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-confirmed {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
         .status-completed {
             background: #d1ecf1;
             color: #0c5460;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
         }
         
         .no-history {
@@ -338,7 +353,7 @@
         <div id="profileContent" style="display: none;">
             <div class="profile-card">
                 <div class="avatar-section">
-                    <img id="userAvatar" class="avatar" alt="Аватар">
+                    <img id="userAvatar" class="avatar" alt="Аватар" style="display: none;">
                     <div id="avatarPlaceholder" class="avatar-placeholder">
                         <i class="fas fa-user"></i>
                     </div>
@@ -446,7 +461,7 @@
             }
         });
         
-        function loadTelegramUserData() {
+        async function loadTelegramUserData() {
             try {
                 const initData = tg.initData || '';
                 const user = tg.initDataUnsafe?.user;
@@ -468,8 +483,11 @@
                     // Сохраняем в localStorage для будущих сессий
                     localStorage.setItem('telegram_user', JSON.stringify(userData));
                     
+                    // Обновляем профиль на сервере
+                    await updateServerProfile();
+                    
                     // Загружаем профиль с сервера
-                    loadUserProfile();
+                    await loadUserProfile();
                 } else {
                     console.log('❌ Нет данных пользователя в Telegram');
                     showError('Не удалось получить данные из Telegram');
@@ -477,6 +495,33 @@
             } catch (error) {
                 console.error('❌ Ошибка загрузки данных Telegram:', error);
                 showError('Ошибка загрузки данных');
+            }
+        }
+        
+        async function updateServerProfile() {
+            try {
+                if (!userData) return;
+                
+                const response = await fetch(`${API_BASE}/api/client/profile/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        telegram_id: userData.id,
+                        first_name: userData.firstName,
+                        last_name: userData.lastName,
+                        username: userData.username,
+                        photo_url: userData.photoUrl
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    console.log('✅ Профиль обновлен на сервере');
+                }
+            } catch (error) {
+                console.warn('⚠️ Не удалось обновить профиль на сервере:', error);
             }
         }
         
@@ -520,6 +565,9 @@
                 // Загружаем данные барбера
                 if (lastBarberCode) {
                     await loadBarberInfo(lastBarberCode);
+                } else {
+                    // Пытаемся загрузить барбера из истории
+                    await loadBarberFromHistory();
                 }
                 
                 // Показываем контент
@@ -574,41 +622,59 @@
         
         async function loadUserHistory() {
             try {
-                // Здесь будет запрос к API для получения истории записей пользователя
-                // Пока используем тестовые данные
-                
                 // Проверяем, есть ли у нас ID пользователя
                 if (userData && userData.id) {
-                    // Можно сделать запрос к API: /api/client/history?user_id=...
-                    // const response = await fetch(`${API_BASE}/api/client/history?user_id=${userData.id}`);
-                    // userHistory = await response.json();
+                    // Запрашиваем историю записей с сервера
+                    const response = await fetch(`${API_BASE}/api/client/profile?telegram_id=${userData.id}`);
                     
-                    // Тестовые данные
-                    userHistory = [
-                        {
-                            id: 1,
-                            date: '2024-12-15',
-                            service: 'Мужская стрижка',
-                            barber: 'Иван Иванов',
-                            price: 1500,
-                            status: 'completed'
-                        },
-                        {
-                            id: 2,
-                            date: '2024-12-10',
-                            service: 'Оформление бороды',
-                            barber: 'Иван Иванов',
-                            price: 600,
-                            status: 'completed'
+                    if (response.ok) {
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            userHistory = result.appointments || [];
+                            updateHistoryList();
+                            
+                            // Обновляем статистику
+                            if (result.stats) {
+                                document.getElementById('totalAppointments').textContent = result.stats.total || 0;
+                            }
+                            
+                            // Сохраняем последнего барбера из профиля
+                            if (result.profile && result.profile.last_barber_code) {
+                                lastBarberCode = result.profile.last_barber_code;
+                                localStorage.setItem('last_barber_code', lastBarberCode);
+                            }
+                            return;
                         }
-                    ];
+                    }
                 }
                 
-                updateHistoryList();
+                // Если нет данных с сервера, пробуем загрузить из localStorage
+                const savedHistory = localStorage.getItem('user_appointments');
+                if (savedHistory) {
+                    userHistory = JSON.parse(savedHistory);
+                    updateHistoryList();
+                } else {
+                    userHistory = [];
+                    updateHistoryList();
+                }
                 
             } catch (error) {
                 console.error('❌ Ошибка загрузки истории:', error);
                 userHistory = [];
+                updateHistoryList();
+            }
+        }
+        
+        async function loadBarberFromHistory() {
+            if (userHistory.length > 0) {
+                // Берем барбера из последней записи
+                const lastAppointment = userHistory[0];
+                if (lastAppointment && lastAppointment.barber_code) {
+                    lastBarberCode = lastAppointment.barber_code;
+                    localStorage.setItem('last_barber_code', lastBarberCode);
+                    await loadBarberInfo(lastBarberCode);
+                }
             }
         }
         
@@ -622,24 +688,31 @@
             
             if (userHistory.length === 0) {
                 noHistory.style.display = 'block';
+                document.getElementById('totalAppointments').textContent = '0';
+                document.getElementById('favoriteService').textContent = 'Не определено';
                 return;
             }
             
             noHistory.style.display = 'none';
             
-            userHistory.forEach(record => {
+            // Сортируем записи по дате (новые сначала)
+            const sortedHistory = [...userHistory].sort((a, b) => {
+                return new Date(b.date) - new Date(a.date);
+            });
+            
+            sortedHistory.forEach(record => {
                 const date = new Date(record.date);
                 const dateStr = date.toLocaleDateString('ru-RU');
-                const statusClass = `status-${record.status}`;
+                const statusClass = `status-${record.status || 'active'}`;
                 const statusText = getStatusText(record.status);
                 
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 item.innerHTML = `
                     <div class="history-details">
-                        <div class="history-date">${dateStr}</div>
-                        <div class="history-service">${record.service}</div>
-                        <div class="history-barber">${record.barber}</div>
+                        <div class="history-date">${dateStr} ${record.time || ''}</div>
+                        <div class="history-service">${record.service || record.service_name || 'Услуга'}</div>
+                        <div class="history-barber">${record.barber || record.barber_name || 'Барбер'}</div>
                     </div>
                     <div class="history-status ${statusClass}">${statusText}</div>
                 `;
@@ -654,10 +727,13 @@
             if (userHistory.length > 0) {
                 const serviceCount = {};
                 userHistory.forEach(record => {
-                    serviceCount[record.service] = (serviceCount[record.service] || 0) + 1;
+                    const service = record.service || record.service_name;
+                    if (service) {
+                        serviceCount[service] = (serviceCount[service] || 0) + 1;
+                    }
                 });
                 
-                let favoriteService = Object.keys(serviceCount)[0];
+                let favoriteService = 'Не определено';
                 let maxCount = 0;
                 
                 for (const [service, count] of Object.entries(serviceCount)) {
@@ -679,9 +755,12 @@
                 if (data.success && data.barber) {
                     document.getElementById('myBarber').textContent = data.barber.name;
                     document.getElementById('myBarber').dataset.code = barberCode;
+                } else {
+                    document.getElementById('myBarber').textContent = `Барбер ${barberCode}`;
                 }
             } catch (error) {
                 console.error('❌ Ошибка загрузки барбера:', error);
+                document.getElementById('myBarber').textContent = `Барбер ${barberCode}`;
             }
         }
         
@@ -693,7 +772,7 @@
                 'completed': 'Выполнена',
                 'cancelled': 'Отменена'
             };
-            return statusMap[status] || status;
+            return statusMap[status] || 'Активна';
         }
         
         function bookAppointment() {
@@ -752,165 +831,6 @@
                 // Уже на странице профиля
             });
         }
-        // В функции createAppointment в client-panel.html
-async function createAppointment() {
-    try {
-        // ... существующий код валидации ...
-
-        // Показываем лоадер
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание записи...';
-
-        const response = await fetch(`${API_BASE}/api/appointments/create`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(appointmentData)
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            // ПОКАЗЫВАЕМ УСПЕХ И РЕДИРЕКТИМ НА ПРОФИЛЬ
-            showSuccessMessage(result);
-            
-            // Сохраняем барбера для будущих записей
-            localStorage.setItem('last_barber_code', barberCode);
-            
-            // Обновляем данные пользователя в localStorage (если есть данные из Telegram)
-            const savedUser = localStorage.getItem('telegram_user');
-            if (savedUser) {
-                const userData = JSON.parse(savedUser);
-                userData.last_barber_code = barberCode;
-                localStorage.setItem('telegram_user', JSON.stringify(userData));
-            }
-            
-            // Через 3 секунды переходим в профиль
-            setTimeout(() => {
-                window.location.href = `${API_BASE}/client-profile`;
-            }, 3000);
-            
-        } else {
-            // Ошибка создания записи
-            showErrorMessage(result.error || 'Ошибка создания записи');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Записаться';
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка создания записи:', error);
-        showErrorMessage('Ошибка соединения с сервером');
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Записаться';
-    }
-}
-
-// Добавляем функцию показа успешного сообщения
-function showSuccessMessage(result) {
-    // Скрываем форму
-    document.querySelector('.appointment-form').style.display = 'none';
-    
-    // Создаем блок с успешным сообщением
-    const successDiv = document.createElement('div');
-    successDiv.className = 'success-message';
-    successDiv.innerHTML = `
-        <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <h2>✅ Запись успешно создана!</h2>
-        <div class="success-details">
-            <p><strong>Барбер:</strong> ${barberName}</p>
-            <p><strong>Дата:</strong> ${selectedDate}</p>
-            <p><strong>Время:</strong> ${selectedTime}</p>
-            <p><strong>Услуга:</strong> ${selectedService}</p>
-            <p><strong>Цена:</strong> ${selectedPrice} руб.</p>
-            <p><strong>ID записи:</strong> ${result.appointment_id}</p>
-        </div>
-        <div class="success-actions">
-            <p>Через 3 секунды вы будете перенаправлены в ваш профиль...</p>
-            <button onclick="window.location.href='${API_BASE}/client-profile'" 
-                    class="btn-primary">
-                <i class="fas fa-user"></i> Перейти в профиль сейчас
-            </button>
-            <button onclick="createAnotherAppointment()" 
-                    class="btn-secondary">
-                <i class="fas fa-plus"></i> Создать еще одну запись
-            </button>
-        </div>
-    `;
-    
-    // Добавляем стили
-    const style = document.createElement('style');
-    style.textContent = `
-        .success-message {
-            text-align: center;
-            padding: 40px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin: 20px auto;
-            max-width: 600px;
-        }
-        .success-icon {
-            font-size: 80px;
-            color: #28a745;
-            margin-bottom: 20px;
-        }
-        .success-details {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: left;
-            margin: 20px 0;
-        }
-        .success-details p {
-            margin: 10px 0;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .success-details p:last-child {
-            border-bottom: none;
-        }
-        .success-actions {
-            margin-top: 30px;
-        }
-        .btn-primary, .btn-secondary {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px;
-            transition: all 0.3s;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-        .btn-primary:hover, .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-    `;
-    
-    document.head.appendChild(style);
-    document.querySelector('.container').appendChild(successDiv);
-}
-
-function createAnotherAppointment() {
-    // Перезагружаем страницу для новой записи
-    window.location.reload();
-}
-
-function showErrorMessage(message) {
-    alert(`❌ Ошибка: ${message}`);
-}
     </script>
 </body>
 </html>
