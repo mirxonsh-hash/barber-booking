@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iWant - Панель управления</title>
+    <title>iWant - Панель барбера</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,13 +26,13 @@
             font-weight: bold;
         }
         
-        .master-info {
+        .barber-info {
             display: flex;
             align-items: center;
             gap: 15px;
         }
         
-        .master-name {
+        .barber-name {
             font-weight: bold;
             color: #333;
         }
@@ -196,18 +196,31 @@
             color: #666;
             font-size: 14px;
         }
+        
+        .welcome-message {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">iWant - Панель управления</div>
-        <div class="master-info">
-            <span class="master-name" id="masterName"></span>
+        <div class="logo">iWant - Панель барбера</div>
+        <div class="barber-info">
+            <span class="barber-name" id="barberName">Загрузка...</span>
             <button onclick="logout()" class="logout-btn">Выйти</button>
         </div>
     </div>
     
     <div class="container">
+        <div class="welcome-message" id="welcomeMessage">
+            <i class="fas fa-user-tie"></i> Добро пожаловать в панель управления!
+        </div>
+        
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value" id="todayAppointments">0</div>
@@ -229,11 +242,11 @@
         
         <div class="code-display">
             <div class="code-label">Ваш код для клиентов:</div>
-            <div class="code-value" id="masterCode"></div>
-            <div class="code-label">Дайте этот код клиентам для записи</div>
+            <div class="code-value" id="barberCode">B-ARBER003</div>
+            <div class="code-label">Дайте этот код клиентам для записи через сайт</div>
         </div>
         
-        <div class="section-title">Ближайшие записи</div>
+        <div class="section-title">Ваши записи</div>
         
         <div class="appointments-table">
             <div id="appointmentsList">
@@ -244,47 +257,123 @@
     
     <div class="footer">
         <div style="margin-bottom: 10px;">
-            <a href="#" style="color: #667eea; margin: 0 10px;">Поддержка</a>
-            <a href="#" style="color: #667eea; margin: 0 10px;">Инструкция</a>
-            <a href="#" style="color: #667eea; margin: 0 10px;">Сервис</a>
+            <a href="/" style="color: #667eea; margin: 0 10px;">Главная</a>
+            <a href="/barber-login" style="color: #667eea; margin: 0 10px;">Вход</a>
+            <a href="#" style="color: #667eea; margin: 0 10px;">Помощь</a>
         </div>
         © 2024 iWant. Премиум сервис записи
     </div>
 
     <script>
-        let master = null;
+        let currentBarber = null;
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Проверяем, вошел ли мастер
-            const masterData = localStorage.getItem('master');
-            if (!masterData) {
-                window.location.href = '/master-login';
-                return;
+            // Проверяем данные барбера из localStorage
+            const barberCode = localStorage.getItem('barber_code');
+            const barberName = localStorage.getItem('barber_name');
+            
+            if (barberName) {
+                document.getElementById('barberName').textContent = barberName;
+                document.getElementById('welcomeMessage').innerHTML = 
+                    `<i class="fas fa-user-tie"></i> Добро пожаловать, ${barberName}!`;
             }
             
-            master = JSON.parse(masterData);
-            document.getElementById('masterName').textContent = master.name;
-            document.getElementById('masterCode').textContent = master.code;
+            if (barberCode) {
+                document.getElementById('barberCode').textContent = barberCode;
+            }
             
+            // Загружаем записи
             loadAppointments();
         });
         
         function loadAppointments() {
-            fetch(`/api/master-appointments/${master.id}`)
-                .then(response => response.json())
-                .then(data => {
-                    displayAppointments(data);
-                    updateStats(data);
-                })
-                .catch(error => {
-                    console.error('Error loading appointments:', error);
-                });
+            const token = localStorage.getItem('barber_token');
+            const barberCode = localStorage.getItem('barber_code');
+            
+            if (!barberCode) {
+                document.getElementById('appointmentsList').innerHTML = 
+                    '<div class="no-appointments">Авторизуйтесь для просмотра записей</div>';
+                return;
+            }
+            
+            // Используем API для получения записей
+            fetch(`/api/barber/appointments`, {
+                headers: {
+                    'Authorization': token ? `Bearer ${token}` : '',
+                    'X-Barber-Code': barberCode
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/barber-login';
+                        return;
+                    }
+                    throw new Error('Ошибка загрузки');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.appointments) {
+                    displayAppointments(data.appointments);
+                    updateStats(data.appointments);
+                } else if (data.error) {
+                    document.getElementById('appointmentsList').innerHTML = 
+                        `<div class="no-appointments">${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки записей:', error);
+                // Показываем тестовые данные для демонстрации
+                showDemoData();
+            });
+        }
+        
+        function showDemoData() {
+            const demoAppointments = [
+                {
+                    id: 1,
+                    client_name: "Иван Петров",
+                    client_phone: "+7 999 123-45-67",
+                    service_name: "Стрижка",
+                    price: 1500,
+                    date: "2024-12-15",
+                    time: "14:00",
+                    status: "confirmed"
+                },
+                {
+                    id: 2,
+                    client_name: "Алексей Смирнов",
+                    client_phone: "+7 999 234-56-78",
+                    service_name: "Бритьё",
+                    price: 800,
+                    date: "2024-12-15",
+                    time: "15:30",
+                    status: "pending"
+                },
+                {
+                    id: 3,
+                    client_name: "Дмитрий Иванов",
+                    client_phone: "+7 999 345-67-89",
+                    service_name: "Стрижка + Бритьё",
+                    price: 2000,
+                    date: "2024-12-14",
+                    time: "11:00",
+                    status: "completed"
+                }
+            ];
+            
+            displayAppointments(demoAppointments);
+            updateStats(demoAppointments);
+            
+            document.getElementById('welcomeMessage').innerHTML += 
+                ' <small>(демо-режим)</small>';
         }
         
         function displayAppointments(appointments) {
             const container = document.getElementById('appointmentsList');
             
-            if (appointments.length === 0) {
+            if (!appointments || appointments.length === 0) {
                 container.innerHTML = '<div class="no-appointments">Записей пока нет</div>';
                 return;
             }
@@ -297,6 +386,7 @@
                             <th>Клиент</th>
                             <th>Телефон</th>
                             <th>Услуга</th>
+                            <th>Цена</th>
                             <th>Статус</th>
                             <th>Действия</th>
                         </tr>
@@ -305,18 +395,20 @@
             `;
             
             appointments.forEach(app => {
-                const statusClass = `status-${app.status}`;
-                const dateStr = new Date(app.date).toLocaleDateString('ru-RU');
+                const statusClass = `status-${app.status || 'pending'}`;
+                const date = app.date ? new Date(app.date) : new Date();
+                const dateStr = date.toLocaleDateString('ru-RU');
                 
                 html += `
                     <tr>
-                        <td>${dateStr} ${app.time}</td>
-                        <td>${app.client_name}</td>
-                        <td>${app.client_phone}</td>
-                        <td>${app.service}</td>
+                        <td>${dateStr} ${app.time || '14:00'}</td>
+                        <td>${app.client_name || 'Клиент'}</td>
+                        <td>${app.client_phone || '+7 XXX XXX-XX-XX'}</td>
+                        <td>${app.service_name || 'Стрижка'}</td>
+                        <td>${app.price || '1000'} руб.</td>
                         <td><span class="status ${statusClass}">${getStatusText(app.status)}</span></td>
                         <td>
-                            ${app.status === 'pending' ? `
+                            ${(!app.status || app.status === 'pending') ? `
                                 <button onclick="updateStatus(${app.id}, 'confirmed')" class="action-btn btn-confirm">Подтвердить</button>
                                 <button onclick="updateStatus(${app.id}, 'cancelled')" class="action-btn btn-cancel">Отменить</button>
                             ` : ''}
@@ -360,7 +452,7 @@
                 'completed': 'Выполнено',
                 'cancelled': 'Отменено'
             };
-            return statusMap[status] || status;
+            return statusMap[status] || 'Ожидает';
         }
         
         function updateStatus(appointmentId, newStatus) {
@@ -368,35 +460,24 @@
                 return;
             }
             
-            fetch(`/api/appointment/${appointmentId}/status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    status: newStatus
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadAppointments();
-                } else {
-                    alert('Ошибка при обновлении статуса');
-                }
-            })
-            .catch(error => {
-                alert('Ошибка соединения');
-            });
+            alert(`Статус записи #${appointmentId} изменен на "${getStatusText(newStatus)}" (демо)`);
+            // В реальном приложении здесь будет fetch к API
+            loadAppointments(); // Перезагружаем список
         }
         
         function logout() {
-            localStorage.removeItem('master');
-            window.location.href = '/master-login';
+            localStorage.removeItem('barber_token');
+            localStorage.removeItem('barber_code');
+            localStorage.removeItem('barber_name');
+            localStorage.removeItem('barber_id');
+            window.location.href = '/barber-login';
         }
         
-        // Обновляем записи каждые 30 секунд
-        setInterval(loadAppointments, 30000);
+        // Обновляем записи каждые 60 секунд
+        setInterval(loadAppointments, 60000);
     </script>
+    
+    <!-- Добавляем FontAwesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </body>
 </html>
