@@ -1031,6 +1031,154 @@
         function goHome() {
             window.location.href = '/';
         }
+
+        // Генерация временных слотов с учетом занятых
+async function generateTimeSlots() {
+    const container = document.getElementById('timeSlots');
+    
+    if (!container) {
+        console.error('Контейнер времени не найден');
+        return;
+    }
+    
+    // Проверяем, выбрана ли дата
+    if (!bookingData.date) {
+        container.innerHTML = '<div class="loading">Выберите дату для отображения времени</div>';
+        return;
+    }
+    
+    // Показываем загрузку
+    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка доступного времени...</div>';
+    
+    try {
+        // Загружаем занятые времена с сервера
+        const response = await fetch(`${API_BASE}/api/barber/${bookingData.barber.code}/booked-times?date=${bookingData.date}`);
+        let bookedTimes = [];
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                bookedTimes = result.booked_times || [];
+                console.log(`📅 Занятые времена на ${bookingData.date}:`, bookedTimes);
+            }
+        }
+        
+        // Генерируем слоты времени (каждые 30 минут с 9:00 до 21:00)
+        let html = '';
+        const startHour = 9;
+        const endHour = 21;
+        const today = new Date().toISOString().split('T')[0];
+        const isToday = bookingData.date === today;
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        
+        for (let hour = startHour; hour < endHour; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+                const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                const isBooked = bookedTimes.includes(time);
+                
+                // Проверяем, не прошло ли время (только для сегодня)
+                let isPast = false;
+                if (isToday) {
+                    if (hour < currentHour || (hour === currentHour && minute < currentMinute)) {
+                        isPast = true;
+                    }
+                }
+                
+                // Пропускаем прошедшее время
+                if (isPast) continue;
+                
+                html += `
+                    <div class="time-slot ${isBooked ? 'disabled' : ''} ${bookingData.time === time ? 'selected' : ''}" 
+                         data-time="${time}" 
+                         ${!isBooked ? `onclick="selectTime('${time}')"` : 'style="cursor: not-allowed;"'}>
+                        ${time}
+                        ${isBooked ? '<br><small style="color:#dc3545;font-size:12px;">Занято</small>' : ''}
+                    </div>
+                `;
+            }
+        }
+        
+        // Если все времена заняты
+        if (html === '') {
+            html = '<div class="error-message" style="grid-column: 1 / -1; text-align:center; margin:20px 0; padding:15px; background:#ffebee; color:#c62828; border-radius:8px;">На эту дату все время занято. Выберите другую дату.</div>';
+        }
+        
+        container.innerHTML = html;
+        
+        // Если у нас было выбрано время, но оно стало занятым - снимаем выбор
+        if (bookingData.time && bookedTimes.includes(bookingData.time)) {
+            bookingData.time = null;
+            updateSummary();
+        }
+        
+    } catch (error) {
+        console.error('Ошибка загрузки времени:', error);
+        // В случае ошибки показываем все слоты как доступные
+        showFallbackTimeSlots();
+    }
+}
+
+// Запасной вариант если API не работает
+function showFallbackTimeSlots() {
+    const container = document.getElementById('timeSlots');
+    let html = '';
+    
+    const timeSlots = [
+        '10:00', '11:00', '12:00', '13:00', '14:00', 
+        '15:00', '16:00', '17:00', '18:00', '19:00'
+    ];
+    
+    timeSlots.forEach(time => {
+        html += `
+            <div class="time-slot" data-time="${time}" onclick="selectTime('${time}')">
+                ${time}
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Выбор времени
+function selectTime(time) {
+    // Снять выделение
+    document.querySelectorAll('.time-slot').forEach(slot => {
+        slot.classList.remove('selected');
+    });
+    
+    // Выделить выбранное
+    const selectedSlot = document.querySelector(`.time-slot[data-time="${time}"]`);
+    if (selectedSlot && !selectedSlot.classList.contains('disabled')) {
+        selectedSlot.classList.add('selected');
+        bookingData.time = time;
+        document.getElementById('nextBtn3').disabled = false;
+        updateSummary();
+    }
+}
+
+// Обновите функцию selectDate, чтобы она загружала доступное время
+function selectDate(date, displayDate) {
+    // Снять выделение
+    document.querySelectorAll('.date-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    
+    // Выделить выбранную
+    const selectedOption = document.querySelector(`.date-option[data-date="${date}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+    }
+    
+    bookingData.date = date;
+    bookingData.displayDate = displayDate;
+    document.getElementById('nextBtn2').disabled = false;
+    updateSummary();
+    
+    // Загружаем доступное время для выбранной даты
+    generateTimeSlots();
+}
     </script>
 </body>
 </html>
