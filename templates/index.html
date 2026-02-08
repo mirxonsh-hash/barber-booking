@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>iWant - Премиум запись к барберу</title>
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -18,48 +18,55 @@
             color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
         }
         
         .header {
             background: #1a1a1a;
-            padding: 20px 0;
+            padding: max(2vh, 15px) 0;
             border-bottom: 1px solid #333;
+            width: 100%;
         }
         
         .container {
-            max-width: 1200px;
+            width: 100%;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 max(2vw, 15px);
         }
         
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .logo {
-            font-size: 24px;
+            font-size: clamp(20px, 4vw, 28px);
             font-weight: bold;
             color: #fff;
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: clamp(8px, 1.5vw, 12px);
         }
         
         .nav-links {
             display: flex;
             list-style: none;
-            gap: 30px;
+            gap: clamp(10px, 2vw, 30px);
         }
         
         .nav-link {
             color: #aaa;
             text-decoration: none;
-            padding: 10px 15px;
+            padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2vw, 20px);
             border-radius: 6px;
             transition: all 0.3s;
+            font-size: clamp(14px, 2vw, 16px);
+            white-space: nowrap;
         }
         
         .nav-link:hover, .nav-link.active {
@@ -68,49 +75,52 @@
         }
         
         .hero {
-            min-height: 80vh;
+            min-height: calc(100vh - 80px);
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-            padding: 60px 20px;
+            padding: max(4vh, 40px) max(3vw, 20px);
             border-bottom: 1px solid #333;
         }
         
         .hero h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
+            font-size: clamp(32px, 6vw, 56px);
+            margin-bottom: max(2vh, 20px);
             line-height: 1.2;
             color: #fff;
+            word-wrap: break-word;
         }
         
         .hero p {
-            font-size: 20px;
-            max-width: 600px;
-            margin: 0 auto 40px;
+            font-size: clamp(16px, 3vw, 22px);
+            max-width: min(800px, 90vw);
+            margin: 0 auto max(4vh, 40px);
             color: #aaa;
+            line-height: 1.5;
         }
         
         .hero-buttons {
             display: flex;
-            gap: 20px;
+            gap: clamp(15px, 3vw, 30px);
             justify-content: center;
             flex-wrap: wrap;
         }
         
         .btn {
-            padding: 18px 35px;
-            font-size: 18px;
+            padding: clamp(14px, 2.5vw, 20px) clamp(25px, 4vw, 40px);
+            font-size: clamp(16px, 2.5vw, 20px);
             border-radius: 12px;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: clamp(8px, 1.5vw, 12px);
             text-decoration: none;
             transition: all 0.3s;
             border: none;
             cursor: pointer;
             font-weight: 600;
+            min-width: max-content;
         }
         
         .btn-primary {
@@ -139,12 +149,52 @@
         .footer {
             background: #1a1a1a;
             color: #aaa;
-            padding: 30px 0;
+            padding: clamp(20px, 3vh, 30px) 0;
             text-align: center;
             border-top: 1px solid #333;
+            width: 100%;
         }
         
-        @media (max-width: 768px) {
+        .copyright {
+            font-size: clamp(12px, 2vw, 14px);
+        }
+        
+        /* Адаптивные стили для мобильных устройств */
+        @media (max-width: 480px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+        }
+        
+        /* Адаптивные стили для планшетов */
+        @media (min-width: 481px) and (max-width: 768px) {
             .hero h1 {
                 font-size: 36px;
             }
@@ -152,20 +202,56 @@
             .hero p {
                 font-size: 18px;
             }
-            
-            .nav-links {
-                gap: 10px;
+        }
+        
+        /* Адаптивные стили для больших экранов */
+        @media (min-width: 1400px) {
+            .container {
+                padding: 0 40px;
             }
             
-            .nav-link {
-                padding: 8px 12px;
-                font-size: 14px;
+            .hero h1 {
+                font-size: 64px;
+            }
+        }
+        
+        /* Поддержка ориентации устройства */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .hero {
+                min-height: calc(100vh - 70px);
+                padding: 20px;
+            }
+            
+            .hero h1 {
+                font-size: 32px;
+                margin-bottom: 15px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
+        }
+        
+        /* Поддержка высоких экранов */
+        @media (min-height: 1000px) {
+            .hero {
+                min-height: 85vh;
+            }
+            
+            .hero h1 {
+                font-size: 64px;
+                margin-bottom: 40px;
+            }
+            
+            .hero p {
+                font-size: 28px;
+                margin-bottom: 60px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- ОСТАЛЬНОЙ HTML КОД БЕЗ ИЗМЕНЕНИЙ -->
     <header class="header">
         <div class="container">
             <nav class="navbar">
