@@ -12,13 +12,13 @@
     <header class="header">
         <div class="container">
             <nav class="navbar">
-                <a href="index.html" class="logo">
+                <a href="/" class="logo">
                     <i class="fas fa-cut"></i> iWant
                 </a>
                 <ul class="nav-links">
-                    <li><a href="index.html" class="nav-link">Главная</a></li>
-                    <li><a href="client-login.html" class="nav-link active">Записаться</a></li>
-                    <li><a href="barber-login.html" class="nav-link">Для барберов</a></li>
+                    <li><a href="/" class="nav-link">Главная</a></li>
+                    <li><a href="/client-login" class="nav-link active">Записаться</a></li>
+                    <li><a href="/barber-login" class="nav-link">Для барберов</a></li>
                 </ul>
             </nav>
         </div>
@@ -30,24 +30,24 @@
                 <div class="auth-card card fade-in">
                     <div class="auth-header">
                         <h1><i class="fas fa-user"></i> Запись к барберу</h1>
-                        <p class="subtitle">Введите код мастера для записи</p>
+                        <p class="subtitle">Введите код барбера для записи</p>
                     </div>
                     
                     <form id="clientLoginForm" class="auth-form">
                         <div class="form-group">
                             <label for="masterCode" class="form-label">
-                                <i class="fas fa-key"></i> Код мастера
+                                <i class="fas fa-key"></i> Код барбера
                             </label>
                             <input 
                                 type="text" 
                                 id="masterCode" 
                                 class="form-input"
-                                placeholder="Пример: B-ARBER003"
-                                value="B-ARBER003"
+                                placeholder="Пример: B-ARBER003 или barber"
+                                value="barber"
                                 required
                             >
                             <div class="form-hint">
-                                Получите код у вашего барбера
+                                <i class="fas fa-info-circle"></i> Получите код у вашего барбера
                             </div>
                         </div>
                         
@@ -55,7 +55,7 @@
                         <div id="successMessage" class="success-message"></div>
                         
                         <button type="submit" class="btn btn-block">
-                            <i class="fas fa-arrow-right"></i> Продолжить
+                            <i class="fas fa-arrow-right"></i> Найти барбера
                         </button>
                     </form>
                     
@@ -63,15 +63,15 @@
                         <span>или</span>
                     </div>
                     
-                    <a href="barber-login.html" class="btn btn-secondary btn-block">
+                    <a href="/barber-login" class="btn btn-secondary btn-block">
                         <i class="fas fa-user-tie"></i> Я барбер
                     </a>
                     
                     <div class="test-data">
                         <h4><i class="fas fa-vial"></i> Тестовые данные:</h4>
-                        <p>Код мастера: <strong>B-ARBER003</strong></p>
-                        <p>Логин барбера: <strong>barber</strong></p>
-                        <p>Пароль барбера: <strong>123456</strong></p>
+                        <p>Код барбера: <strong>barber</strong> или <strong>B-ARBER003</strong></p>
+                        <p>Для входа барбера: код <strong>barber</strong>, пароль <strong>123456</strong></p>
+                        <p><small>После поиска откроется страница профиля барбера</small></p>
                     </div>
                 </div>
             </div>
