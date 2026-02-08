@@ -303,16 +303,23 @@ def check_barber_auth():
 
 @app.route('/api/barber/appointments', methods=['GET'])
 def get_barber_appointments():
+    """Получение записей для барбера с улучшенным логированием"""
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    logger.info(f"Запрос на получение записей. Токен: {'представлен' if token else 'отсутствует'}")
+    
     if not token:
         return jsonify({'error': 'Не авторизован'}), 401
     
     try:
         decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
         barber_code = decoded['barber_code']
+        logger.info(f"Барбер авторизован: {barber_code} (ID: {decoded['barber_id']}, имя: {decoded['barber_name']})")
         
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Логируем запрос к базе
+        logger.info(f"Выполняем запрос к БД для барбера: {barber_code}")
         
         cursor.execute('''
         SELECT id, client_name, client_phone, service_name, price,
@@ -338,9 +345,23 @@ def get_barber_appointments():
             })
         
         conn.close()
+        
+        logger.info(f"Найдено записей для барбера {barber_code}: {len(appointments)}")
+        if len(appointments) > 0:
+            for app in appointments[:3]:  # Показываем первые 3 записи в логах
+                logger.info(f"  Запись: {app['client_name']} на {app['date']} {app['time']} ({app['service_name']})")
+        
         return jsonify({'appointments': appointments})
-    except:
-        return jsonify({'error': 'Не авторизован'}), 401
+        
+    except jwt.ExpiredSignatureError:
+        logger.error("Токен истек")
+        return jsonify({'error': 'Токен истек', 'authenticated': False}), 401
+    except jwt.InvalidTokenError:
+        logger.error("Неверный токен")
+        return jsonify({'error': 'Неверный токен', 'authenticated': False}), 401
+    except Exception as e:
+        logger.error(f"Ошибка при получении записей: {e}")
+        return jsonify({'error': 'Внутренняя ошибка сервера'}), 500
 
 # ========== API ДЛЯ КЛИЕНТОВ ==========
 @app.route('/api/barbers', methods=['GET'])
@@ -419,47 +440,144 @@ def get_barber_services(code):
 # ========== API ДЛЯ СОЗДАНИЯ ЗАПИСИ ==========
 @app.route('/api/appointments/create', methods=['POST'])
 def create_client_appointment():
+    """Создание записи с улучшенным логированием"""
     try:
         data = request.json
+        logger.info(f"Получен запрос на создание записи: {data}")
         
         # Проверяем обязательные поля
         required_fields = ['barber_code', 'client_name', 'client_phone', 'service_name', 'price', 'date', 'time']
+        missing_fields = []
         for field in required_fields:
             if not data.get(field):
-                return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
+                missing_fields.append(field)
         
+        if missing_fields:
+            error_msg = f'Отсутствуют обязательные поля: {", ".join(missing_fields)}'
+            logger.error(error_msg)
+            return jsonify({'success': False, 'error': error_msg}), 400
+        
+        barber_code = data['barber_code']
+        logger.info(f"Создание записи для барбера: {barber_code}")
+        
+        # Проверяем существование барбера
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Создаем запись
-        cursor.execute('''
-        INSERT INTO appointments 
-        (barber_code, client_name, client_phone, service_name, price, 
-         appointment_date, appointment_time, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
-        ''', (
-            data['barber_code'],
-            data['client_name'],
-            data['client_phone'],
-            data['service_name'],
-            data['price'],
-            data['date'],
-            data['time']
-        ))
+        cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (barber_code,))
+        barber = cursor.fetchone()
         
-        conn.commit()
-        appointment_id = cursor.lastrowid
+        if not barber:
+            logger.error(f"Барбер с кодом {barber_code} не найден в базе")
+            conn.close()
+            return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
+        
+        logger.info(f"Барбер найден: {barber[1]} (ID: {barber[0]})")
+        
+        # Создаем запись
+        try:
+            cursor.execute('''
+            INSERT INTO appointments 
+            (barber_code, client_name, client_phone, service_name, price, 
+             appointment_date, appointment_time, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
+            ''', (
+                barber_code,
+                data['client_name'],
+                data['client_phone'],
+                data['service_name'],
+                data['price'],
+                data['date'],
+                data['time']
+            ))
+            
+            conn.commit()
+            appointment_id = cursor.lastrowid
+            
+            # Получаем созданную запись для логирования
+            cursor.execute('SELECT * FROM appointments WHERE id = %s', (appointment_id,))
+            created_appointment = cursor.fetchone()
+            
+            logger.info(f"✅ Запись успешно создана! ID: {appointment_id}")
+            logger.info(f"   Клиент: {data['client_name']}, тел: {data['client_phone']}")
+            logger.info(f"   Услуга: {data['service_name']}, цена: {data['price']}")
+            logger.info(f"   Дата: {data['date']}, время: {data['time']}")
+            
+            conn.close()
+            
+            return jsonify({
+                'success': True, 
+                'message': 'Запись успешно создана',
+                'appointment_id': appointment_id
+            })
+            
+        except Exception as db_error:
+            logger.error(f"Ошибка при вставке в БД: {db_error}")
+            conn.rollback()
+            conn.close()
+            return jsonify({'success': False, 'error': f'Ошибка базы данных: {db_error}'}), 500
+        
+    except Exception as e:
+        logger.error(f"Общая ошибка создания записи: {e}")
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
+
+# ========== ДОПОЛНИТЕЛЬНЫЙ API ДЛЯ ДИАГНОСТИКИ ==========
+@app.route('/api/debug/appointments', methods=['GET'])
+def debug_appointments():
+    """API для отладки - показывает все записи в базе"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT a.id, a.barber_code, b.name as barber_name, 
+               a.client_name, a.client_phone, a.service_name, a.price,
+               a.appointment_date, a.appointment_time, a.status, a.created_at
+        FROM appointments a
+        LEFT JOIN barbers b ON a.barber_code = b.code
+        ORDER BY a.created_at DESC
+        LIMIT 100
+        ''')
+        
+        all_appointments = []
+        for row in cursor.fetchall():
+            all_appointments.append({
+                'id': row[0],
+                'barber_code': row[1],
+                'barber_name': row[2],
+                'client_name': row[3],
+                'client_phone': row[4],
+                'service_name': row[5],
+                'price': row[6],
+                'date': row[7].isoformat() if row[7] else None,
+                'time': str(row[8]) if row[8] else None,
+                'status': row[9],
+                'created_at': row[10].isoformat() if row[10] else None
+            })
+        
         conn.close()
         
+        logger.info(f"Всего записей в базе: {len(all_appointments)}")
+        
+        # Группируем по барберам для статистики
+        barber_stats = {}
+        for app in all_appointments:
+            barber_code = app['barber_code']
+            if barber_code not in barber_stats:
+                barber_stats[barber_code] = 0
+            barber_stats[barber_code] += 1
+        
+        logger.info(f"Статистика по барберам: {barber_stats}")
+        
         return jsonify({
-            'success': True, 
-            'message': 'Запись успешно создана',
-            'appointment_id': appointment_id
+            'total_appointments': len(all_appointments),
+            'barber_stats': barber_stats,
+            'appointments': all_appointments
         })
         
     except Exception as e:
-        logger.error(f"Ошибка создания записи: {e}")
-        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
+        logger.error(f"Ошибка при отладке: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ========== ЗАПУСК СЕРВЕРА ==========
 if __name__ == '__main__':
@@ -476,6 +594,7 @@ if __name__ == '__main__':
     print("   • /api/client/login - API вход клиента")
     print("   • /api/barber/<code>/services - Услуги барбера")
     print("   • /api/appointments/create - Создание записи")
+    print("   • /api/debug/appointments - Отладка записей")
     print("=" * 80)
     
     port = int(os.environ.get('PORT', 10000))
