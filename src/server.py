@@ -6,7 +6,7 @@ import psycopg2
 import hashlib
 import logging
 import jwt
-import requests  # ДЛЯ TELEGRAM API
+import requests
 from dotenv import load_dotenv
 from pathlib import Path
 import traceback
@@ -39,7 +39,6 @@ def get_db_connection():
     """Подключение к базе данных PostgreSQL на Render"""
     DATABASE_URL = os.environ.get('DATABASE_URL')
     if not DATABASE_URL:
-        # Используем твою внешнюю базу данных
         DATABASE_URL = 'postgresql://barber_db_33bs_user:BL1BlEQaugJijaXJC6VWOfpacuO6pAid@dpg-d63t4ih4tr6s73a46rtg-a.frankfurt-postgres.render.com/barber_db_33bs'
     return psycopg2.connect(DATABASE_URL)
 
@@ -51,7 +50,6 @@ def send_telegram_notification(appointment_data):
         return False
     
     try:
-        # Формируем красивое сообщение
         message = f"📋 *НОВАЯ ЗАПИСЬ К БАРБЕРУ!*\n\n"
         message += f"👤 *Клиент:* {appointment_data['client_name']}\n"
         message += f"📞 *Телефон:* {appointment_data['client_phone']}\n"
@@ -179,33 +177,25 @@ def barber_login_page():
 
 @app.route('/barber-panel')
 def barber_panel_page():
-    # Проверяем токен из localStorage через параметр
     token = request.args.get('token', '')
     if not token:
-        # Если нет токена, редирект на логин
         return redirect('/barber-login')
     
     try:
-        # Проверяем токен
         decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-        # Если токен валидный, показываем панель
         return render_template('barber-panel.html')
     except:
-        # Токен невалидный - на логин
         return redirect('/barber-login')
 
 @app.route('/client-login')
 def client_login_page():
-    """Страница входа клиента с поиском барбера"""
     error = request.args.get('error', '')
     code = request.args.get('code', '')
     return render_template('client-login.html', error=error, code=code)
 
 @app.route('/client-panel')
 def client_panel_page():
-    """Страница записи клиента - с проверкой существования барбера"""
     try:
-        # Получаем код барбера из параметра URL
         code = request.args.get('code', '').strip()
         
         if not code:
@@ -214,7 +204,6 @@ def client_panel_page():
         
         logger.info(f"Открытие client-panel для кода: {code}")
         
-        # Проверяем существование барбера перед показом страницы
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (code,))
@@ -230,7 +219,6 @@ def client_panel_page():
         barber_name = barber[1] if barber[1] else f"Барбер {code}"
         logger.info(f"Барбер найден: {barber_name} (код: {code})")
         
-        # ВАЖНОЕ ИСПРАВЛЕНИЕ: Исправляем имя файла шаблона
         return render_template('client-panel.html', 
                              barber_code=code, 
                              barber_name=barber_name)
@@ -251,19 +239,14 @@ def master_login_page():
 
 @app.route('/master-panel')
 def master_panel_page():
-    # Редирект на barber-panel (убираем master-panel)
     return redirect('/barber-panel')
 
-# ========== ПОИСК БАРБЕРА ==========
 @app.route('/client/find', methods=['GET', 'POST'])
 def find_barber():
-    """Обработка поиска барбера - редирект на client-panel"""
     try:
         if request.method == 'POST':
-            # Если POST запрос (из формы)
             code = request.form.get('code', '').strip()
         else:
-            # Если GET запрос (из URL или кнопки)
             code = request.args.get('code', '').strip()
         
         logger.info(f"Поиск барбера по коду: {code}")
@@ -272,7 +255,6 @@ def find_barber():
             logger.warning("Код барбера не указан")
             return redirect('/client-login')
         
-        # Проверяем существование барбера
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT id, name FROM barbers WHERE code = %s', (code,))
@@ -293,10 +275,8 @@ def find_barber():
         return redirect(url_for('client_login_page', 
                              error='Ошибка сервера при поиске барбера'))
 
-# ========== API ДЛЯ КЛИЕНТСКОГО ВХОДА ==========
 @app.route('/api/client/login', methods=['POST'])
 def client_login():
-    """API авторизации клиента по коду барбера"""
     try:
         data = request.json
         code = data.get('code', '').strip()
@@ -304,7 +284,6 @@ def client_login():
         if not code:
             return jsonify({'success': False, 'error': 'Введите код барбера'}), 400
         
-        # Проверяем существование барбера с таким кодом
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -313,7 +292,6 @@ def client_login():
         conn.close()
         
         if result:
-            # Барбер найден - возвращаем URL для редиректа
             return jsonify({
                 'success': True,
                 'redirect_url': f'/client-panel?code={code}',
@@ -347,7 +325,6 @@ def barber_login():
         conn.close()
         
         if result:
-            # Создаем JWT токен
             token = jwt.encode({
                 'barber_id': result[0],
                 'barber_code': result[2],
@@ -392,12 +369,9 @@ def check_barber_auth():
 
 @app.route('/api/barber/appointments', methods=['GET'])
 def get_barber_appointments():
-    """Получение записей для барбера - С ДИАГНОСТИКОЙ"""
+    """Получение записей для барбера - ИСПРАВЛЕННЫЙ"""
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
     logger.info(f"📥 ЗАПРОС ЗАПИСЕЙ. Токен: {'представлен' if token else 'отсутствует'}")
-    
-    # ДИАГНОСТИКА: логируем заголовки
-    logger.info(f"📋 Заголовки запроса: {dict(request.headers)}")
     
     if not token:
         logger.error("❌ ТОКЕН ОТСУТСТВУЕТ! Барбер не авторизован.")
@@ -411,7 +385,6 @@ def get_barber_appointments():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Логируем запрос к БД
         logger.info(f"🔍 Ищем записи для барбера: {barber_code}")
         
         cursor.execute('''
@@ -424,7 +397,10 @@ def get_barber_appointments():
         ''', (barber_code,))
         
         appointments = []
-        for row in cursor.fetchall():
+        rows = cursor.fetchall()
+        logger.info(f"📊 Найдено строк в БД: {len(rows)}")
+        
+        for row in rows:
             appointments.append({
                 'id': row[0],
                 'client_name': row[1],
@@ -439,35 +415,19 @@ def get_barber_appointments():
         
         conn.close()
         
-        # ВАЖНАЯ ДИАГНОСТИКА
-        logger.info(f"📊 Найдено записей для барбера {barber_code}: {len(appointments)}")
+        logger.info(f"📦 Отправляем {len(appointments)} записей барберу")
         
-        if len(appointments) == 0:
-            logger.warning(f"⚠️ ЗАПИСЕЙ НЕТ! Проверяем БД...")
-            # Проверяем, есть ли вообще записи в базе
-            conn2 = get_db_connection()
-            cursor2 = conn2.cursor()
-            cursor2.execute("SELECT COUNT(*) FROM appointments WHERE barber_code = %s", (barber_code,))
-            count_in_db = cursor2.fetchone()[0]
-            conn2.close()
-            logger.info(f"📈 Всего записей в БД для {barber_code}: {count_in_db}")
-            
-            # Проверяем все записи в БД
-            conn3 = get_db_connection()
-            cursor3 = conn3.cursor()
-            cursor3.execute("SELECT barber_code, client_name, appointment_date FROM appointments LIMIT 10")
-            all_records = cursor3.fetchall()
-            conn3.close()
-            logger.info(f"📝 Первые 10 записей в БД: {all_records}")
-        
-        return jsonify({'appointments': appointments})
+        return jsonify({
+            'success': True,
+            'appointments': appointments,
+            'count': len(appointments)
+        })
         
     except Exception as e:
         logger.error(f"❌ ОШИБКА ПРИ ПОЛУЧЕНИИ ЗАПИСЕЙ: {e}")
         logger.error(f"Traceback: {traceback.format_exc()}")
-        return jsonify({'error': 'Внутренняя ошибка сервера'}), 500
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
-# ========== API ДЛЯ КЛИЕНТОВ ==========
 @app.route('/api/barbers', methods=['GET'])
 def get_all_barbers():
     conn = get_db_connection()
@@ -497,7 +457,6 @@ def get_barber_by_code(code):
     
     return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
 
-# ========== API ДЛЯ УСЛУГ ==========
 @app.route('/api/barber/<code>/services', methods=['GET'])
 def get_barber_services(code):
     try:
@@ -522,7 +481,6 @@ def get_barber_services(code):
         
         conn.close()
         
-        # Если услуг нет, возвращаем демо-услуги
         if not services:
             services = [
                 {'id': 1, 'name': 'Мужская стрижка', 'price': 1500, 'duration': 45},
@@ -534,22 +492,20 @@ def get_barber_services(code):
         
     except Exception as e:
         logger.error(f"Ошибка загрузки услуг: {e}")
-        # Возвращаем демо-услуги при ошибке
         return jsonify([
             {'id': 1, 'name': 'Мужская стрижка', 'price': 1500, 'duration': 45},
             {'id': 2, 'name': 'Стрижка + Бритьё', 'price': 2000, 'duration': 60},
             {'id': 3, 'name': 'Королевское бритьё', 'price': 800, 'duration': 30}
         ])
 
-# ========== API ДЛЯ СОЗДАНИЯ ЗАПИСИ (С УВЕДОМЛЕНИЕМ В TELEGRAM) ==========
+# ========== ИСПРАВЛЕННЫЙ API ДЛЯ СОЗДАНИЯ ЗАПИСИ ==========
 @app.route('/api/appointments/create', methods=['POST'])
 def create_client_appointment():
-    """Создание записи с улучшенным логированием и уведомлением в Telegram"""
+    """Создание записи - РАБОЧАЯ ВЕРСИЯ"""
     try:
         data = request.json
         logger.info(f"📥 Получен запрос на создание записи: {data}")
         
-        # Проверяем обязательные поля
         required_fields = ['barber_code', 'client_name', 'client_phone', 'service_name', 'price', 'date', 'time']
         missing_fields = []
         for field in required_fields:
@@ -564,7 +520,6 @@ def create_client_appointment():
         barber_code = data['barber_code']
         logger.info(f"✂️ Создание записи для барбера: {barber_code}")
         
-        # Проверяем существование барбера
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -579,13 +534,14 @@ def create_client_appointment():
         barber_name = barber[1] if barber[1] else f"Барбер {barber_code}"
         logger.info(f"✅ Барбер найден: {barber_name} (ID: {barber[0]})")
         
-        # Создаем запись
         try:
+            # ИСПРАВЛЕНИЕ: используем RETURNING для PostgreSQL
             cursor.execute('''
             INSERT INTO appointments 
             (barber_code, client_name, client_phone, service_name, price, 
              appointment_date, appointment_time, status)
             VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
+            RETURNING id
             ''', (
                 barber_code,
                 data['client_name'],
@@ -596,15 +552,16 @@ def create_client_appointment():
                 data['time']
             ))
             
+            result = cursor.fetchone()
+            appointment_id = result[0]
+            
             conn.commit()
-            appointment_id = cursor.lastrowid
             
             logger.info(f"✅ Запись успешно создана! ID: {appointment_id}")
             logger.info(f"   👤 Клиент: {data['client_name']}, тел: {data['client_phone']}")
             logger.info(f"   ✂️ Услуга: {data['service_name']}, цена: {data['price']}")
             logger.info(f"   📅 Дата: {data['date']}, время: {data['time']}")
             
-            # Подготавливаем данные для уведомления
             appointment_data = {
                 'appointment_id': appointment_id,
                 'barber_code': barber_code,
@@ -617,7 +574,6 @@ def create_client_appointment():
                 'time': data['time']
             }
             
-            # Отправляем уведомление в Telegram (в фоновом режиме)
             try:
                 send_telegram_notification(appointment_data)
             except Exception as tg_error:
@@ -628,7 +584,17 @@ def create_client_appointment():
             return jsonify({
                 'success': True, 
                 'message': 'Запись успешно создана',
-                'appointment_id': appointment_id
+                'appointment_id': appointment_id,
+                'appointment': {
+                    'id': appointment_id,
+                    'client_name': data['client_name'],
+                    'client_phone': data['client_phone'],
+                    'service_name': data['service_name'],
+                    'price': data['price'],
+                    'date': data['date'],
+                    'time': data['time'],
+                    'barber_code': barber_code
+                }
             })
             
         except Exception as db_error:
@@ -641,94 +607,153 @@ def create_client_appointment():
         logger.error(f"❌ Общая ошибка создания записи: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
-# ========== ТЕСТОВЫЙ МАРШРУТ ДЛЯ ПРОВЕРКИ ==========
-@app.route('/api/test/db-check')
-def test_db_check():
-    """Тестовый маршрут для проверки записей в БД"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # Проверяем барберов
-    cursor.execute("SELECT code, name FROM barbers")
-    barbers = cursor.fetchall()
-    
-    # Проверяем все записи
-    cursor.execute('''
-    SELECT a.id, a.barber_code, b.name as barber_name, a.client_name, 
-           a.appointment_date, a.appointment_time, a.created_at
-    FROM appointments a
-    LEFT JOIN barbers b ON a.barber_code = b.code
-    ORDER BY a.created_at DESC
-    LIMIT 20
-    ''')
-    appointments = cursor.fetchall()
-    
-    conn.close()
-    
-    return jsonify({
-        'barbers': barbers,
-        'appointments': appointments,
-        'total_barbers': len(barbers),
-        'total_appointments': len(appointments)
-    })
+# ========== ДИАГНОСТИЧЕСКИЕ МАРШРУТЫ ==========
+@app.route('/api/debug/all-appointments')
+def debug_all_appointments():
+    """Получение ВСЕХ записей для проверки"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT COUNT(*) as total FROM appointments')
+        total_count = cursor.fetchone()[0]
+        
+        cursor.execute('''
+        SELECT id, barber_code, client_name, client_phone, service_name, 
+               price, appointment_date, appointment_time, status, created_at
+        FROM appointments 
+        ORDER BY created_at DESC
+        LIMIT 50
+        ''')
+        
+        appointments = []
+        for row in cursor.fetchall():
+            appointments.append({
+                'id': row[0],
+                'barber_code': row[1],
+                'client_name': row[2],
+                'client_phone': row[3],
+                'service_name': row[4],
+                'price': row[5],
+                'date': row[6].isoformat() if row[6] else None,
+                'time': str(row[7]) if row[7] else None,
+                'status': row[8],
+                'created_at': row[9].isoformat() if row[9] else None
+            })
+        
+        conn.close()
+        
+        logger.info(f"📊 API /api/debug/all-appointments: всего записей в БД: {total_count}")
+        
+        return jsonify({
+            'success': True,
+            'appointments': appointments,
+            'total': total_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка в debug_all_appointments: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== ДОПОЛНИТЕЛЬНЫЙ API ДЛЯ ДИАГНОСТИКИ ==========
-@app.route('/api/debug/appointments', methods=['GET'])
-def debug_appointments():
-    """API для отладки - показывает все записи в базе"""
+@app.route('/api/test/create-appointment')
+def test_create_appointment():
+    """Тестовое создание записи напрямую в БД"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute('''
-        SELECT a.id, a.barber_code, b.name as barber_name, 
-               a.client_name, a.client_phone, a.service_name, a.price,
-               a.appointment_date, a.appointment_time, a.status, a.created_at
-        FROM appointments a
-        LEFT JOIN barbers b ON a.barber_code = b.code
-        ORDER BY a.created_at DESC
-        LIMIT 100
-        ''')
+        INSERT INTO appointments 
+        (barber_code, client_name, client_phone, service_name, price, 
+         appointment_date, appointment_time, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, 'active')
+        RETURNING id
+        ''', (
+            'barber',
+            'Тестовый Клиент',
+            '+79991234567',
+            'Мужская стрижка',
+            1500,
+            '2024-12-31',
+            '15:00'
+        ))
         
-        all_appointments = []
-        for row in cursor.fetchall():
-            all_appointments.append({
-                'id': row[0],
-                'barber_code': row[1],
-                'barber_name': row[2],
-                'client_name': row[3],
-                'client_phone': row[4],
-                'service_name': row[5],
-                'price': row[6],
-                'date': row[7].isoformat() if row[7] else None,
-                'time': str(row[8]) if row[8] else None,
-                'status': row[9],
-                'created_at': row[10].isoformat() if row[10] else None
+        appointment_id = cursor.fetchone()[0]
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"✅ Тестовая запись создана успешно! ID: {appointment_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Тестовая запись создана! ID: {appointment_id}',
+            'id': appointment_id
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка при создании тестовой записи: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/test/db-structure')
+def test_db_structure():
+    """Проверка структуры БД"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        ORDER BY table_name
+        """)
+        tables = cursor.fetchall()
+        
+        result = {'tables': []}
+        
+        for table_info in tables:
+            table_name = table_info[0]
+            
+            try:
+                cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+                count = cursor.fetchone()[0]
+            except:
+                count = -1
+            
+            cursor.execute("""
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = %s 
+            ORDER BY ordinal_position
+            """, (table_name,))
+            
+            columns = []
+            for col in cursor.fetchall():
+                columns.append({
+                    'name': col[0],
+                    'type': col[1]
+                })
+            
+            result['tables'].append({
+                'name': table_name,
+                'row_count': count,
+                'columns': columns
             })
         
         conn.close()
         
-        logger.info(f"Всего записей в базе: {len(all_appointments)}")
-        
-        # Группируем по барберам для статистики
-        barber_stats = {}
-        for app in all_appointments:
-            barber_code = app['barber_code']
-            if barber_code not in barber_stats:
-                barber_stats[barber_code] = 0
-            barber_stats[barber_code] += 1
-        
-        logger.info(f"Статистика по барберам: {barber_stats}")
-        
         return jsonify({
-            'total_appointments': len(all_appointments),
-            'barber_stats': barber_stats,
-            'appointments': all_appointments
+            'success': True,
+            'database_structure': result
         })
         
     except Exception as e:
-        logger.error(f"Ошибка при отладке: {e}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Ошибка проверки структуры БД: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== ЗАПУСК СЕРВЕРА ==========
 if __name__ == '__main__':
@@ -739,13 +764,13 @@ if __name__ == '__main__':
     print("📌 Доступные маршруты:")
     print("   • / - Главная страница")
     print("   • /barber-login - Вход барбера")
-    print("   • /barber-panel - Панель барбера (ДИАГНОСТИКА ВКЛЮЧЕНА)")
+    print("   • /barber-panel - Панель барбера")
     print("   • /client-login - Вход клиента")
-    print("   • /client-panel - Панель записи клиента (ИСПРАВЛЕНО)")
+    print("   • /client-panel - Панель записи клиента")
     print("   • /api/barber/login - API вход барбера")
-    print("   • /api/barber/appointments - Записи барбера (С ЛОГАМИ)")
-    print("   • /api/appointments/create - Создание записи (+Telegram)")
-    print("   • /api/test/db-check - Проверка БД")
+    print("   • /api/barber/appointments - Записи барбера (ИСПРАВЛЕНО)")
+    print("   • /api/appointments/create - Создание записи (ИСПРАВЛЕНО)")
+    print("   • /api/debug/all-appointments - Диагностика БД")
     print("=" * 80)
     
     port = int(os.environ.get('PORT', 10000))
