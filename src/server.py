@@ -6,9 +6,10 @@ import psycopg2
 import hashlib
 import logging
 import jwt
+import requests  # ДЛЯ TELEGRAM API
 from dotenv import load_dotenv
 from pathlib import Path
-import traceback  # ДОБАВЛЕН ЭТОТ ИМПОРТ
+import traceback
 
 load_dotenv()
 
@@ -18,6 +19,10 @@ logger = logging.getLogger(__name__)
 
 # JWT секрет
 JWT_SECRET = os.environ.get('JWT_SECRET', 'barber-secret-key-2024')
+
+# Telegram Bot для уведомлений админу
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '7662525969:AAF33YcsBM8OmeURyarjx-bNxF9ghOVGRNc')
+TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '531822805')
 
 # Определяем корень проекта
 BASE_DIR = Path(__file__).parent.parent
@@ -31,16 +36,59 @@ CORS(app)
 
 # ========== ПОДКЛЮЧЕНИЕ К POSTGRESQL ==========
 def get_db_connection():
+    """Подключение к базе данных PostgreSQL на Render"""
     DATABASE_URL = os.environ.get('DATABASE_URL')
     if not DATABASE_URL:
-        raise ValueError("DATABASE_URL не найден в переменных окружения")
+        # Используем твою внешнюю базу данных
+        DATABASE_URL = 'postgresql://barber_db_33bs_user:BL1BlEQaugJijaXJC6VWOfpacuO6pAid@dpg-d63t4ih4tr6s73a46rtg-a.frankfurt-postgres.render.com/barber_db_33bs'
     return psycopg2.connect(DATABASE_URL)
+
+# ========== ФУНКЦИЯ ОТПРАВКИ В TELEGRAM ==========
+def send_telegram_notification(appointment_data):
+    """Отправка уведомления админу в Telegram о новой записи"""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        logger.warning("Telegram токен или chat_id не указаны. Уведомление не отправлено.")
+        return False
+    
+    try:
+        # Формируем красивое сообщение
+        message = f"📋 *НОВАЯ ЗАПИСЬ К БАРБЕРУ!*\n\n"
+        message += f"👤 *Клиент:* {appointment_data['client_name']}\n"
+        message += f"📞 *Телефон:* {appointment_data['client_phone']}\n"
+        message += f"✂️ *Услуга:* {appointment_data['service_name']}\n"
+        message += f"💰 *Цена:* {appointment_data['price']} руб.\n"
+        message += f"📅 *Дата:* {appointment_data['date']}\n"
+        message += f"⏰ *Время:* {appointment_data['time']}\n"
+        message += f"👨‍💼 *Барбер:* {appointment_data.get('barber_name', appointment_data['barber_code'])}\n"
+        message += f"🆔 *ID записи:* {appointment_data.get('appointment_id', 'новый')}\n"
+        message += f"\n⏱ *Время записи:* {datetime.now().strftime('%d.%m.%Y %H:%M')}"
+        
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            'chat_id': TELEGRAM_CHAT_ID,
+            'text': message,
+            'parse_mode': 'Markdown'
+        }
+        
+        response = requests.post(url, json=payload, timeout=10)
+        if response.status_code == 200:
+            logger.info(f"✅ Уведомление отправлено в Telegram")
+            return True
+        else:
+            logger.error(f"❌ Ошибка отправки в Telegram: {response.text}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"❌ Ошибка при отправке в Telegram: {e}")
+        return False
 
 # ========== ИНИЦИАЛИЗАЦИЯ БАЗЫ ==========
 def init_db():
+    """Инициализация таблиц в базе данных"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
+    # Таблица барберов
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS barbers (
         id SERIAL PRIMARY KEY,
@@ -53,7 +101,7 @@ def init_db():
     )
     ''')
     
-    # Таблица услуг (добавляем barber_code вместо barber_id)
+    # Таблица услуг
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS services (
         id SERIAL PRIMARY KEY,
@@ -65,6 +113,7 @@ def init_db():
     )
     ''')
     
+    # Таблица записей
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS appointments (
         id SERIAL PRIMARY KEY,
@@ -80,7 +129,7 @@ def init_db():
     )
     ''')
     
-    # Создаем тестового барбера
+    # Создаем тестового барбера, если его нет
     cursor.execute("SELECT id FROM barbers WHERE code = 'barber'")
     if not cursor.fetchone():
         password_hash = hashlib.sha256('123456'.encode()).hexdigest()
@@ -88,7 +137,7 @@ def init_db():
         INSERT INTO barbers (name, code, password_hash) 
         VALUES (%s, %s, %s)
         ''', ('Тестовый Барбер', 'barber', password_hash))
-        print("✅ Тестовый барбер создан")
+        logger.info("✅ Тестовый барбер создан")
     
     # Создаем тестовые услуги для барбера
     cursor.execute("SELECT id FROM services WHERE barber_code = 'barber'")
@@ -106,17 +155,18 @@ def init_db():
             INSERT INTO services (barber_code, name, price, duration)
             VALUES (%s, %s, %s, %s)
             ''', service)
-        print("✅ Тестовые услуги созданы")
+        logger.info("✅ Тестовые услуги созданы")
     
     conn.commit()
     conn.close()
-    print("✅ База данных PostgreSQL готова")
+    logger.info("✅ База данных PostgreSQL готова")
 
+# Инициализация БД
 try:
     init_db()
-    print("✅ База данных инициализирована")
+    logger.info("✅ База данных инициализирована")
 except Exception as e:
-    print(f"❌ Ошибка инициализации БД: {e}")
+    logger.error(f"❌ Ошибка инициализации БД: {e}")
 
 # ========== ОСНОВНЫЕ МАРШРУТЫ ==========
 @app.route('/')
@@ -180,15 +230,14 @@ def client_panel_page():
         barber_name = barber[1] if barber[1] else f"Барбер {code}"
         logger.info(f"Барбер найден: {barber_name} (код: {code})")
         
-        # ИСПРАВЛЕНО: изменено имя файла шаблона
-        return render_template('client-panel.html',  # Было: client_panel.html
+        # ВАЖНОЕ ИСПРАВЛЕНИЕ: Исправляем имя файла шаблона
+        return render_template('client-panel.html', 
                              barber_code=code, 
                              barber_name=barber_name)
         
     except Exception as e:
         logger.error(f"Ошибка в функции client_panel_page: {e}")
-        logger.error(f"Traceback: {traceback.format_exc()}")  # ДОБАВЛЕНО детальное логирование
-        # В случае любой ошибки возвращаем на страницу входа
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return redirect(url_for('client_login_page', 
                              error='Ошибка сервера при загрузке страницы'))
 
@@ -205,7 +254,7 @@ def master_panel_page():
     # Редирект на barber-panel (убираем master-panel)
     return redirect('/barber-panel')
 
-# ========== ПОИСК БАРБЕРА (КЛИЕНТСКИЙ ВХОД) ==========
+# ========== ПОИСК БАРБЕРА ==========
 @app.route('/client/find', methods=['GET', 'POST'])
 def find_barber():
     """Обработка поиска барбера - редирект на client-panel"""
@@ -220,7 +269,6 @@ def find_barber():
         logger.info(f"Поиск барбера по коду: {code}")
         
         if not code:
-            # Если код не указан, возвращаем на страницу входа
             logger.warning("Код барбера не указан")
             return redirect('/client-login')
         
@@ -232,11 +280,9 @@ def find_barber():
         conn.close()
         
         if result:
-            # Барбер найден - редирект на client-panel
             logger.info(f"Барбер найден: {result[1]} (код: {code})")
             return redirect(f'/client-panel?code={code}')
         else:
-            # Барбер не найден - возвращаем с сообщением об ошибке
             logger.warning(f"Барбер не найден: {code}")
             return redirect(url_for('client_login_page', 
                                  error='Барбер с таким кодом не найден', 
@@ -244,47 +290,8 @@ def find_barber():
     
     except Exception as e:
         logger.error(f"Ошибка в функции find_barber: {e}")
-        # Возвращаем на страницу входа с сообщением об ошибке
         return redirect(url_for('client_login_page', 
                              error='Ошибка сервера при поиске барбера'))
-
-# ========== РЕДИРЕКТЫ ДЛЯ .HTML ==========
-@app.route('/barber-login.html')
-def redirect_barber_login():
-    return redirect('/barber-login')
-
-@app.route('/barber-panel.html')
-def redirect_barber_panel():
-    return redirect('/barber-panel')
-
-@app.route('/client-login.html')
-def redirect_client_login():
-    return redirect('/client-login')
-
-@app.route('/client-panel.html')
-def redirect_client_panel():
-    return redirect('/client-panel')
-
-@app.route('/profile.html')
-def redirect_profile():
-    return redirect('/profile')
-
-@app.route('/master-login.html')
-def redirect_master_login():
-    return redirect('/master-login')
-
-@app.route('/master-panel.html')
-def redirect_master_panel():
-    return redirect('/barber-panel')
-
-@app.route('/index.html')
-def redirect_index():
-    return redirect('/')
-
-@app.route('/client-profile.html')
-def redirect_client_profile():
-    code = request.args.get('code', '')
-    return redirect(f'/client-panel?code={code}')
 
 # ========== API ДЛЯ КЛИЕНТСКОГО ВХОДА ==========
 @app.route('/api/client/login', methods=['POST'])
@@ -340,7 +347,7 @@ def barber_login():
         conn.close()
         
         if result:
-            # Создаем JWT токен (работает на Render)
+            # Создаем JWT токен
             token = jwt.encode({
                 'barber_id': result[0],
                 'barber_code': result[2],
@@ -385,23 +392,27 @@ def check_barber_auth():
 
 @app.route('/api/barber/appointments', methods=['GET'])
 def get_barber_appointments():
-    """Получение записей для барбера"""
+    """Получение записей для барбера - С ДИАГНОСТИКОЙ"""
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
-    logger.info(f"Запрос на получение записей. Токен: {'представлен' if token else 'отсутствует'}")
+    logger.info(f"📥 ЗАПРОС ЗАПИСЕЙ. Токен: {'представлен' if token else 'отсутствует'}")
+    
+    # ДИАГНОСТИКА: логируем заголовки
+    logger.info(f"📋 Заголовки запроса: {dict(request.headers)}")
     
     if not token:
+        logger.error("❌ ТОКЕН ОТСУТСТВУЕТ! Барбер не авторизован.")
         return jsonify({'error': 'Не авторизован'}), 401
     
     try:
         decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
         barber_code = decoded['barber_code']
-        logger.info(f"Барбер авторизован: {barber_code} (ID: {decoded['barber_id']}, имя: {decoded['barber_name']})")
+        logger.info(f"✅ Барбер авторизован: {barber_code} (имя: {decoded['barber_name']})")
         
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Логируем запрос к базе
-        logger.info(f"Выполняем запрос к БД для барбера: {barber_code}")
+        # Логируем запрос к БД
+        logger.info(f"🔍 Ищем записи для барбера: {barber_code}")
         
         cursor.execute('''
         SELECT id, client_name, client_phone, service_name, price,
@@ -428,21 +439,32 @@ def get_barber_appointments():
         
         conn.close()
         
-        logger.info(f"Найдено записей для барбера {barber_code}: {len(appointments)}")
-        if len(appointments) > 0:
-            for app in appointments[:3]:  # Показываем первые 3 записи в логах
-                logger.info(f"  Запись: {app['client_name']} на {app['date']} {app['time']} ({app['service_name']})")
+        # ВАЖНАЯ ДИАГНОСТИКА
+        logger.info(f"📊 Найдено записей для барбера {barber_code}: {len(appointments)}")
+        
+        if len(appointments) == 0:
+            logger.warning(f"⚠️ ЗАПИСЕЙ НЕТ! Проверяем БД...")
+            # Проверяем, есть ли вообще записи в базе
+            conn2 = get_db_connection()
+            cursor2 = conn2.cursor()
+            cursor2.execute("SELECT COUNT(*) FROM appointments WHERE barber_code = %s", (barber_code,))
+            count_in_db = cursor2.fetchone()[0]
+            conn2.close()
+            logger.info(f"📈 Всего записей в БД для {barber_code}: {count_in_db}")
+            
+            # Проверяем все записи в БД
+            conn3 = get_db_connection()
+            cursor3 = conn3.cursor()
+            cursor3.execute("SELECT barber_code, client_name, appointment_date FROM appointments LIMIT 10")
+            all_records = cursor3.fetchall()
+            conn3.close()
+            logger.info(f"📝 Первые 10 записей в БД: {all_records}")
         
         return jsonify({'appointments': appointments})
         
-    except jwt.ExpiredSignatureError:
-        logger.error("Токен истек")
-        return jsonify({'error': 'Токен истек', 'authenticated': False}), 401
-    except jwt.InvalidTokenError:
-        logger.error("Неверный токен")
-        return jsonify({'error': 'Неверный токен', 'authenticated': False}), 401
     except Exception as e:
-        logger.error(f"Ошибка при получении записей: {e}")
+        logger.error(f"❌ ОШИБКА ПРИ ПОЛУЧЕНИИ ЗАПИСЕЙ: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': 'Внутренняя ошибка сервера'}), 500
 
 # ========== API ДЛЯ КЛИЕНТОВ ==========
@@ -519,13 +541,13 @@ def get_barber_services(code):
             {'id': 3, 'name': 'Королевское бритьё', 'price': 800, 'duration': 30}
         ])
 
-# ========== API ДЛЯ СОЗДАНИЯ ЗАПИСИ ==========
+# ========== API ДЛЯ СОЗДАНИЯ ЗАПИСИ (С УВЕДОМЛЕНИЕМ В TELEGRAM) ==========
 @app.route('/api/appointments/create', methods=['POST'])
 def create_client_appointment():
-    """Создание записи с улучшенным логированием"""
+    """Создание записи с улучшенным логированием и уведомлением в Telegram"""
     try:
         data = request.json
-        logger.info(f"Получен запрос на создание записи: {data}")
+        logger.info(f"📥 Получен запрос на создание записи: {data}")
         
         # Проверяем обязательные поля
         required_fields = ['barber_code', 'client_name', 'client_phone', 'service_name', 'price', 'date', 'time']
@@ -540,7 +562,7 @@ def create_client_appointment():
             return jsonify({'success': False, 'error': error_msg}), 400
         
         barber_code = data['barber_code']
-        logger.info(f"Создание записи для барбера: {barber_code}")
+        logger.info(f"✂️ Создание записи для барбера: {barber_code}")
         
         # Проверяем существование барбера
         conn = get_db_connection()
@@ -550,11 +572,12 @@ def create_client_appointment():
         barber = cursor.fetchone()
         
         if not barber:
-            logger.error(f"Барбер с кодом {barber_code} не найден в базе")
+            logger.error(f"❌ Барбер с кодом {barber_code} не найден в базе")
             conn.close()
             return jsonify({'success': False, 'error': 'Барбер не найден'}), 404
         
-        logger.info(f"Барбер найден: {barber[1]} (ID: {barber[0]})")
+        barber_name = barber[1] if barber[1] else f"Барбер {barber_code}"
+        logger.info(f"✅ Барбер найден: {barber_name} (ID: {barber[0]})")
         
         # Создаем запись
         try:
@@ -577,9 +600,28 @@ def create_client_appointment():
             appointment_id = cursor.lastrowid
             
             logger.info(f"✅ Запись успешно создана! ID: {appointment_id}")
-            logger.info(f"   Клиент: {data['client_name']}, тел: {data['client_phone']}")
-            logger.info(f"   Услуга: {data['service_name']}, цена: {data['price']}")
-            logger.info(f"   Дата: {data['date']}, время: {data['time']}")
+            logger.info(f"   👤 Клиент: {data['client_name']}, тел: {data['client_phone']}")
+            logger.info(f"   ✂️ Услуга: {data['service_name']}, цена: {data['price']}")
+            logger.info(f"   📅 Дата: {data['date']}, время: {data['time']}")
+            
+            # Подготавливаем данные для уведомления
+            appointment_data = {
+                'appointment_id': appointment_id,
+                'barber_code': barber_code,
+                'barber_name': barber_name,
+                'client_name': data['client_name'],
+                'client_phone': data['client_phone'],
+                'service_name': data['service_name'],
+                'price': data['price'],
+                'date': data['date'],
+                'time': data['time']
+            }
+            
+            # Отправляем уведомление в Telegram (в фоновом режиме)
+            try:
+                send_telegram_notification(appointment_data)
+            except Exception as tg_error:
+                logger.warning(f"⚠️ Ошибка отправки в Telegram: {tg_error}")
             
             conn.close()
             
@@ -590,14 +632,45 @@ def create_client_appointment():
             })
             
         except Exception as db_error:
-            logger.error(f"Ошибка при вставке в БД: {db_error}")
+            logger.error(f"❌ Ошибка при вставке в БД: {db_error}")
             conn.rollback()
             conn.close()
             return jsonify({'success': False, 'error': f'Ошибка базы данных: {db_error}'}), 500
         
     except Exception as e:
-        logger.error(f"Общая ошибка создания записи: {e}")
+        logger.error(f"❌ Общая ошибка создания записи: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
+
+# ========== ТЕСТОВЫЙ МАРШРУТ ДЛЯ ПРОВЕРКИ ==========
+@app.route('/api/test/db-check')
+def test_db_check():
+    """Тестовый маршрут для проверки записей в БД"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Проверяем барберов
+    cursor.execute("SELECT code, name FROM barbers")
+    barbers = cursor.fetchall()
+    
+    # Проверяем все записи
+    cursor.execute('''
+    SELECT a.id, a.barber_code, b.name as barber_name, a.client_name, 
+           a.appointment_date, a.appointment_time, a.created_at
+    FROM appointments a
+    LEFT JOIN barbers b ON a.barber_code = b.code
+    ORDER BY a.created_at DESC
+    LIMIT 20
+    ''')
+    appointments = cursor.fetchall()
+    
+    conn.close()
+    
+    return jsonify({
+        'barbers': barbers,
+        'appointments': appointments,
+        'total_barbers': len(barbers),
+        'total_appointments': len(appointments)
+    })
 
 # ========== ДОПОЛНИТЕЛЬНЫЙ API ДЛЯ ДИАГНОСТИКИ ==========
 @app.route('/api/debug/appointments', methods=['GET'])
@@ -661,19 +734,18 @@ def debug_appointments():
 if __name__ == '__main__':
     print("=" * 80)
     print("🌐 BARBER BOOKING API ЗАПУЩЕН")
-    print(f"📌 JWT секрет: {JWT_SECRET[:10]}...")
+    print(f"🔑 JWT секрет: {JWT_SECRET[:10]}...")
+    print(f"🤖 Telegram бот: {TELEGRAM_BOT_TOKEN[:10]}...")
     print("📌 Доступные маршруты:")
     print("   • / - Главная страница")
     print("   • /barber-login - Вход барбера")
-    print("   • /barber-panel - Панель барбера")
+    print("   • /barber-panel - Панель барбера (ДИАГНОСТИКА ВКЛЮЧЕНА)")
     print("   • /client-login - Вход клиента")
-    print("   • /client-panel - Панель записи клиента")
-    print("   • /client/find - Поиск барбера")
+    print("   • /client-panel - Панель записи клиента (ИСПРАВЛЕНО)")
     print("   • /api/barber/login - API вход барбера")
-    print("   • /api/client/login - API вход клиента")
-    print("   • /api/barber/<code>/services - Услуги барбера")
-    print("   • /api/appointments/create - Создание записи")
-    print("   • /api/debug/appointments - Отладка записей")
+    print("   • /api/barber/appointments - Записи барбера (С ЛОГАМИ)")
+    print("   • /api/appointments/create - Создание записи (+Telegram)")
+    print("   • /api/test/db-check - Проверка БД")
     print("=" * 80)
     
     port = int(os.environ.get('PORT', 10000))
