@@ -1,3 +1,83 @@
+
+# ========== TELEGRAM INIT DATA VERIFY ==========
+def verify_telegram_init_data(init_data: str):
+    try:
+        parsed = dict(urllib.parse.parse_qsl(init_data, strict_parsing=True))
+        hash_received = parsed.pop('hash', None)
+        if not hash_received:
+            return None
+
+        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
+        secret_key = hashlib.sha256(TELEGRAM_BOT_TOKEN.encode()).digest()
+        hash_calculated = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+
+        if hash_calculated != hash_received:
+            return None
+
+        if 'user' in parsed:
+            parsed['user'] = json.loads(parsed['user'])
+
+        return parsed
+    except Exception as e:
+        logger.error(f"Ошибка проверки initData: {e}")
+        return None
+
+
+# ========== TELEGRAM AUTH API ==========
+@app.route('/api/telegram/auth', methods=['POST'])
+def telegram_auth():
+    data = request.json or {}
+    init_data = data.get('initData')
+
+    if not init_data:
+        return jsonify({'success': False, 'error': 'initData не передан'}), 400
+
+    verified = verify_telegram_init_data(init_data)
+    if not verified:
+        return jsonify({'success': False, 'error': 'Неверная подпись Telegram'}), 403
+
+    user = verified.get('user')
+    if not user:
+        return jsonify({'success': False, 'error': 'Нет user в initData'}), 400
+
+    telegram_id = user['id']
+    first_name = user.get('first_name', '')
+    last_name = user.get('last_name', '')
+    username = user.get('username', '')
+    photo_url = user.get('photo_url', '')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT id FROM clients WHERE telegram_id = %s', (telegram_id,))
+    exists = cursor.fetchone()
+
+    if exists:
+        cursor.execute('''
+            UPDATE clients
+            SET first_name=%s, last_name=%s, username=%s, photo_url=%s, updated_at=CURRENT_TIMESTAMP
+            WHERE telegram_id=%s
+        ''', (first_name, last_name, username, photo_url, telegram_id))
+    else:
+        cursor.execute('''
+            INSERT INTO clients (telegram_id, first_name, last_name, username, photo_url)
+            VALUES (%s,%s,%s,%s,%s)
+        ''', (telegram_id, first_name, last_name, username, photo_url))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "telegram_id": telegram_id,
+        "user": {
+            "first_name": first_name,
+            "last_name": last_name,
+            "username": username,
+            "photo_url": photo_url
+        }
+    })
+
 from flask import Flask, request, jsonify, send_from_directory, session, render_template, redirect, url_for
 from flask_cors import CORS
 from datetime import datetime, timedelta
@@ -10,6 +90,9 @@ import requests
 from dotenv import load_dotenv
 from pathlib import Path
 import traceback
+import hmac
+import urllib.parse
+import json
 
 load_dotenv()
 
