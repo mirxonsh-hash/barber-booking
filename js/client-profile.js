@@ -15,19 +15,18 @@ function initTelegramApp() {
         
         // Получить данные пользователя
         const user = Telegram.WebApp.initDataUnsafe.user;
-        if (user) {
+        const initData = Telegram.WebApp.initData;
+        
+        if (user && initData) {
             console.log('👤 Данные пользователя Telegram:', user);
             
             // Сохранить данные в localStorage
             localStorage.setItem('telegram_user', JSON.stringify(user));
             localStorage.setItem('telegram_user_id', user.id);
-            localStorage.setItem('telegram_init_data', Telegram.WebApp.initData);
+            localStorage.setItem('telegram_init_data', initData);
             
-            // Отправить данные на сервер
-            sendTelegramDataToServer(user, Telegram.WebApp.initData);
-            
-            // Показать приветствие
-            showWelcomeMessage(user);
+            // Получить профиль через Telegram данные
+            getProfileViaTelegram(user.id, initData);
         } else {
             console.warn('⚠️ Данные пользователя не получены из Telegram');
             loadFromLocalStorage();
@@ -38,34 +37,60 @@ function initTelegramApp() {
     }
 }
 
-// Отправка данных Telegram на сервер
-function sendTelegramDataToServer(user, initData) {
-    console.log('📤 Отправка данных Telegram на сервер...');
+// Получение профиля через Telegram данные
+function getProfileViaTelegram(telegramId, initData) {
+    console.log('📤 Запрос профиля через Telegram данные...');
     
-    fetch(`/api/telegram/auth?tg_data=${encodeURIComponent(initData)}`)
+    // Отправляем оба параметра: tg_data и telegram_id
+    fetch(`/api/client/profile?tg_data=${encodeURIComponent(initData)}&telegram_id=${telegramId}`)
         .then(response => response.json())
         .then(data => {
             console.log('✅ Ответ от сервера:', data);
+            
             if (data.success && data.profile) {
+                // Сохраняем профиль в localStorage
                 localStorage.setItem('user_profile', JSON.stringify(data.profile));
+                
+                // Обновляем UI
                 updateProfileUI(data.profile);
-                loadAppointmentsHistory(data.profile.telegram_id || user.id);
+                
+                // Обновляем статистику
+                if (data.stats) {
+                    updateStats(data.stats);
+                }
+                
+                // Показываем историю записей
+                if (data.appointments && data.appointments.length > 0) {
+                    showAppointmentsHistory(data.appointments);
+                } else {
+                    showNoAppointments();
+                }
+                
+                // Обновляем информацию о последнем барбере
+                if (data.profile && data.profile.last_barber_code) {
+                    updateLastBarberInfo(data.profile.last_barber_code);
+                }
+                
+                // Показываем приветствие
+                showWelcomeMessage(data.profile.first_name);
             } else {
-                console.error('❌ Ошибка аутентификации:', data.error);
-                createTempProfile(user);
+                console.error('❌ Ошибка получения профиля:', data.error);
+                createTempProfileFromTelegram(telegramId);
             }
         })
         .catch(error => {
             console.error('❌ Ошибка сети:', error);
-            createTempProfile(user);
+            createTempProfileFromTelegram(telegramId);
         });
 }
 
 // Создание временного профиля из данных Telegram
-function createTempProfile(user) {
+function createTempProfileFromTelegram(telegramId) {
+    const user = JSON.parse(localStorage.getItem('telegram_user') || '{}');
+    
     const tempProfile = {
-        telegram_id: user.id,
-        first_name: user.first_name || '',
+        telegram_id: telegramId,
+        first_name: user.first_name || 'Пользователь',
         last_name: user.last_name || '',
         username: user.username || '',
         photo_url: user.photo_url || '',
@@ -81,15 +106,86 @@ function createTempProfile(user) {
 // Загрузка данных из localStorage
 function loadFromLocalStorage() {
     const profileStr = localStorage.getItem('user_profile');
+    const telegramId = localStorage.getItem('telegram_user_id');
+    
     if (profileStr) {
         const profile = JSON.parse(profileStr);
         console.log('📂 Загружен профиль из localStorage:', profile);
         updateProfileUI(profile);
-        loadAppointmentsHistory(profile.telegram_id);
+        
+        // Загружаем историю через API
+        if (telegramId) {
+            loadAppointmentsHistory(telegramId);
+        }
+    } else if (telegramId) {
+        // Есть telegram_id, но нет профиля - запрашиваем у сервера
+        loadProfileFromServer(telegramId);
     } else {
         console.log('ℹ️ Профиль не найден в localStorage');
         showDefaultUI();
     }
+}
+
+// Загрузка профиля с сервера по telegram_id
+function loadProfileFromServer(telegramId) {
+    fetch(`/api/client/profile?telegram_id=${telegramId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.profile) {
+                localStorage.setItem('user_profile', JSON.stringify(data.profile));
+                updateProfileUI(data.profile);
+                
+                if (data.stats) updateStats(data.stats);
+                if (data.appointments && data.appointments.length > 0) {
+                    showAppointmentsHistory(data.appointments);
+                } else {
+                    showNoAppointments();
+                }
+            } else {
+                showDefaultUI();
+            }
+        })
+        .catch(error => {
+            console.error('❌ Ошибка загрузки профиля:', error);
+            showDefaultUI();
+        });
+}
+
+// Загрузка истории записей
+function loadAppointmentsHistory(telegramId) {
+    if (!telegramId) {
+        console.warn('⚠️ ID пользователя не указан для загрузки записей');
+        showNoAppointments();
+        return;
+    }
+    
+    console.log('📋 Загрузка истории записей для ID:', telegramId);
+    
+    fetch(`/api/client/profile?telegram_id=${telegramId}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('📊 Данные профиля:', data);
+            
+            if (data.success) {
+                // Обновить статистику
+                if (data.stats) {
+                    updateStats(data.stats);
+                }
+                
+                // Показать историю записей
+                if (data.appointments && data.appointments.length > 0) {
+                    showAppointmentsHistory(data.appointments);
+                } else {
+                    showNoAppointments();
+                }
+            } else {
+                showNoAppointments();
+            }
+        })
+        .catch(error => {
+            console.error('❌ Ошибка загрузки истории:', error);
+            showNoAppointments();
+        });
 }
 
 // Обновление интерфейса профиля
@@ -156,48 +252,6 @@ function showAvatarFallback(element, profile) {
                    (profile.last_name ? profile.last_name[0] : '');
     element.textContent = initials || 'U';
     element.style.display = 'flex';
-}
-
-// Загрузка истории записей
-function loadAppointmentsHistory(telegramId) {
-    if (!telegramId) {
-        console.warn('⚠️ ID пользователя не указан для загрузки записей');
-        showNoAppointments();
-        return;
-    }
-    
-    console.log('📋 Загрузка истории записей для ID:', telegramId);
-    
-    fetch(`/api/client/profile?telegram_id=${telegramId}`)
-        .then(response => response.json())
-        .then(data => {
-            console.log('📊 Данные профиля:', data);
-            
-            if (data.success) {
-                // Обновить статистику
-                if (data.stats) {
-                    updateStats(data.stats);
-                }
-                
-                // Показать историю записей
-                if (data.appointments && data.appointments.length > 0) {
-                    showAppointmentsHistory(data.appointments);
-                } else {
-                    showNoAppointments();
-                }
-                
-                // Обновить информацию о последнем барбере
-                if (data.profile && data.profile.last_barber_code) {
-                    updateLastBarberInfo(data.profile.last_barber_code);
-                }
-            } else {
-                showNoAppointments();
-            }
-        })
-        .catch(error => {
-            console.error('❌ Ошибка загрузки истории:', error);
-            showNoAppointments();
-        });
 }
 
 // Обновление статистики
@@ -300,9 +354,9 @@ function updateLastBarberInfo(barberCode) {
 }
 
 // Показать приветственное сообщение
-function showWelcomeMessage(user) {
+function showWelcomeMessage(firstName) {
     if (window.Telegram && Telegram.WebApp) {
-        const name = user.first_name || 'Пользователь';
+        const name = firstName || 'Пользователь';
         setTimeout(() => {
             Telegram.WebApp.showAlert(`Привет, ${name}! Добро пожаловать в Barber Booking!`);
         }, 500);
