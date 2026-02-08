@@ -527,7 +527,6 @@ def create_client_appointment():
         logger.info(f"✅ Барбер найден: {barber_name} (ID: {barber[0]})")
         
         try:
-            # ИСПРАВЛЕНИЕ: используем RETURNING для PostgreSQL
             cursor.execute('''
             INSERT INTO appointments 
             (barber_code, client_name, client_phone, service_name, price, 
@@ -550,9 +549,6 @@ def create_client_appointment():
             conn.commit()
             
             logger.info(f"✅ Запись успешно создана! ID: {appointment_id}")
-            logger.info(f"   👤 Клиент: {data['client_name']}, тел: {data['client_phone']}")
-            logger.info(f"   ✂️ Услуга: {data['service_name']}, цена: {data['price']}")
-            logger.info(f"   📅 Дата: {data['date']}, время: {data['time']}")
             
             appointment_data = {
                 'appointment_id': appointment_id,
@@ -597,6 +593,61 @@ def create_client_appointment():
         
     except Exception as e:
         logger.error(f"❌ Общая ошибка создания записи: {e}")
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
+
+# ========== API ДЛЯ ОБНОВЛЕНИЯ СТАТУСА ЗАПИСИ ==========
+@app.route('/api/appointments/<int:appointment_id>/status', methods=['PUT'])
+def update_appointment_status(appointment_id):
+    """Обновление статуса записи"""
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    
+    if not token:
+        return jsonify({'success': False, 'error': 'Не авторизован'}), 401
+    
+    try:
+        decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+        barber_code = decoded['barber_code']
+        
+        data = request.json
+        new_status = data.get('status')
+        
+        if not new_status:
+            return jsonify({'success': False, 'error': 'Не указан статус'}), 400
+        
+        valid_statuses = ['active', 'confirmed', 'completed', 'cancelled']
+        if new_status not in valid_statuses:
+            return jsonify({'success': False, 'error': f'Недопустимый статус. Допустимые: {", ".join(valid_statuses)}'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT barber_code FROM appointments WHERE id = %s', (appointment_id,))
+        appointment = cursor.fetchone()
+        
+        if not appointment:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Запись не найдена'}), 404
+        
+        if appointment[0] != barber_code:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Нет прав для изменения этой записи'}), 403
+        
+        cursor.execute('UPDATE appointments SET status = %s WHERE id = %s', (new_status, appointment_id))
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"✅ Статус записи {appointment_id} обновлен на '{new_status}' для барбера {barber_code}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Статус обновлен на {new_status}',
+            'appointment_id': appointment_id,
+            'status': new_status
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка обновления статуса: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
 
 # ========== ДИАГНОСТИЧЕСКИЕ МАРШРУТЫ ==========
@@ -762,6 +813,7 @@ if __name__ == '__main__':
     print("   • /api/barber/login - API вход барбера")
     print("   • /api/barber/appointments - Записи барбера (ИСПРАВЛЕНО)")
     print("   • /api/appointments/create - Создание записи (ИСПРАВЛЕНО)")
+    print("   • /api/appointments/<id>/status - Обновление статуса записи (НОВЫЙ)")
     print("   • /api/debug/all-appointments - Диагностика БД")
     print("=" * 80)
     
