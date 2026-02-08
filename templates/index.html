@@ -48,6 +48,7 @@
             align-items: center;
             gap: 10px;
             text-decoration: none;
+            transition: all 0.3s;
         }
         
         .btn-secondary {
@@ -61,6 +62,7 @@
             align-items: center;
             gap: 10px;
             text-decoration: none;
+            transition: all 0.3s;
         }
         
         .btn-primary:hover, .btn-secondary:hover {
@@ -74,19 +76,42 @@
             padding: 30px 0;
             text-align: center;
         }
+        
+        /* Стили для ссылок в header */
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
     <header class="header">
         <div class="container">
             <nav class="navbar">
-                <a href="index.html" class="logo">
+                <a href="/" class="logo">
                     <i class="fas fa-cut"></i> iWant
                 </a>
                 <ul class="nav-links">
-                    <li><a href="index.html" class="nav-link active">Главная</a></li>
-                    <li><a href="client-login.html" class="nav-link">Записаться</a></li>
-                    <li><a href="barber-login.html" class="nav-link">Для барберов</a></li>
+                    <li><a href="/" class="nav-link active">Главная</a></li>
+                    <li><a href="/client-login" class="nav-link">Записаться</a></li>
+                    <li><a href="/barber-login" class="nav-link">Для барберов</a></li>
                 </ul>
             </nav>
         </div>
@@ -98,10 +123,10 @@
                 <h1>Запись к барберу<br>за 30 секунд</h1>
                 <p>Выбирайте лучших мастеров, бронируйте удобное время, приходите без очередей</p>
                 <div class="hero-buttons">
-                    <a href="client-login.html" class="btn btn-primary">
+                    <a href="/client-login" class="btn btn-primary">
                         <i class="fas fa-user"></i> Я клиент
                     </a>
-                    <a href="barber-login.html" class="btn btn-secondary">
+                    <a href="/barber-login" class="btn btn-secondary">
                         <i class="fas fa-user-tie"></i> Я барбер
                     </a>
                 </div>
