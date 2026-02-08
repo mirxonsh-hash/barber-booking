@@ -752,6 +752,165 @@
                 // Уже на странице профиля
             });
         }
+        // В функции createAppointment в client-panel.html
+async function createAppointment() {
+    try {
+        // ... существующий код валидации ...
+
+        // Показываем лоадер
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание записи...';
+
+        const response = await fetch(`${API_BASE}/api/appointments/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(appointmentData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            // ПОКАЗЫВАЕМ УСПЕХ И РЕДИРЕКТИМ НА ПРОФИЛЬ
+            showSuccessMessage(result);
+            
+            // Сохраняем барбера для будущих записей
+            localStorage.setItem('last_barber_code', barberCode);
+            
+            // Обновляем данные пользователя в localStorage (если есть данные из Telegram)
+            const savedUser = localStorage.getItem('telegram_user');
+            if (savedUser) {
+                const userData = JSON.parse(savedUser);
+                userData.last_barber_code = barberCode;
+                localStorage.setItem('telegram_user', JSON.stringify(userData));
+            }
+            
+            // Через 3 секунды переходим в профиль
+            setTimeout(() => {
+                window.location.href = `${API_BASE}/client-profile`;
+            }, 3000);
+            
+        } else {
+            // Ошибка создания записи
+            showErrorMessage(result.error || 'Ошибка создания записи');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Записаться';
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка создания записи:', error);
+        showErrorMessage('Ошибка соединения с сервером');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Записаться';
+    }
+}
+
+// Добавляем функцию показа успешного сообщения
+function showSuccessMessage(result) {
+    // Скрываем форму
+    document.querySelector('.appointment-form').style.display = 'none';
+    
+    // Создаем блок с успешным сообщением
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.innerHTML = `
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2>✅ Запись успешно создана!</h2>
+        <div class="success-details">
+            <p><strong>Барбер:</strong> ${barberName}</p>
+            <p><strong>Дата:</strong> ${selectedDate}</p>
+            <p><strong>Время:</strong> ${selectedTime}</p>
+            <p><strong>Услуга:</strong> ${selectedService}</p>
+            <p><strong>Цена:</strong> ${selectedPrice} руб.</p>
+            <p><strong>ID записи:</strong> ${result.appointment_id}</p>
+        </div>
+        <div class="success-actions">
+            <p>Через 3 секунды вы будете перенаправлены в ваш профиль...</p>
+            <button onclick="window.location.href='${API_BASE}/client-profile'" 
+                    class="btn-primary">
+                <i class="fas fa-user"></i> Перейти в профиль сейчас
+            </button>
+            <button onclick="createAnotherAppointment()" 
+                    class="btn-secondary">
+                <i class="fas fa-plus"></i> Создать еще одну запись
+            </button>
+        </div>
+    `;
+    
+    // Добавляем стили
+    const style = document.createElement('style');
+    style.textContent = `
+        .success-message {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .success-icon {
+            font-size: 80px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .success-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            margin: 20px 0;
+        }
+        .success-details p {
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .success-details p:last-child {
+            border-bottom: none;
+        }
+        .success-actions {
+            margin-top: 30px;
+        }
+        .btn-primary, .btn-secondary {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.querySelector('.container').appendChild(successDiv);
+}
+
+function createAnotherAppointment() {
+    // Перезагружаем страницу для новой записи
+    window.location.reload();
+}
+
+function showErrorMessage(message) {
+    alert(`❌ Ошибка: ${message}`);
+}
     </script>
 </body>
 </html>
