@@ -7,8 +7,281 @@
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: #1a1a1a;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .nav-link {
+            color: #aaa;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: #333;
+            color: #fff;
+        }
+        
+        .main-content {
+            min-height: calc(100vh - 140px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .auth-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 40px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header h1 {
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            color: #fff;
+            margin-bottom: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #4a6fa5;
+        }
+        
+        .form-hint {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn:hover {
+            background: #5a7fb5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 111, 165, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #333;
+            border: 1px solid #444;
+        }
+        
+        .btn-secondary:hover {
+            background: #444;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .error-message {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        
+        .success-message {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #666;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #333;
+        }
+        
+        .divider span {
+            padding: 0 15px;
+            font-size: 14px;
+        }
+        
+        .test-data {
+            margin-top: 30px;
+            padding: 20px;
+            background: #222;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .test-data h4 {
+            color: #4a6fa5;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .test-data p {
+            color: #aaa;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .test-data strong {
+            color: #fff;
+        }
+        
+        .footer {
+            background: #1a1a1a;
+            color: #aaa;
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid #333;
+        }
+        
+        @media (max-width: 768px) {
+            .auth-card {
+                padding: 30px 20px;
+            }
+            
+            .auth-header h1 {
+                font-size: 24px;
+            }
+            
+            .nav-links {
+                gap: 10px;
+            }
+            
+            .nav-link {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- ОСТАЛЬНОЙ HTML КОД БЕЗ ИЗМЕНЕНИЙ -->
     <header class="header">
         <div class="container">
             <nav class="navbar">
@@ -90,13 +363,12 @@
     </footer>
 
     <script>
-        // JavaScript для обработки ошибок
+        // JavaScript код без изменений
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('clientLoginForm');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
             
-            // Проверяем URL на наличие параметра ошибки
             const urlParams = new URLSearchParams(window.location.search);
             const errorFromServer = urlParams.get('error');
             const codeFromServer = urlParams.get('code');
@@ -105,21 +377,18 @@
                 errorMessage.textContent = decodeURIComponent(errorFromServer);
                 errorMessage.style.display = 'block';
                 
-                // Заполняем поле кодом если он есть
                 if (codeFromServer) {
                     document.getElementById('masterCode').value = decodeURIComponent(codeFromServer);
                 }
             }
             
-            // Очистка сообщений при вводе
             document.getElementById('masterCode').addEventListener('input', function() {
                 errorMessage.style.display = 'none';
                 successMessage.style.display = 'none';
             });
             
-            // AJAX отправка формы (опционально)
             form.addEventListener('submit', function(e) {
-                e.preventDefault(); // Отключаем стандартную отправку для AJAX
+                e.preventDefault();
                 
                 const code = document.getElementById('masterCode').value.trim();
                 
@@ -129,13 +398,11 @@
                     return;
                 }
                 
-                // Показываем загрузку
                 const submitBtn = form.querySelector('button[type="submit"]');
                 const originalText = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Поиск...';
                 submitBtn.disabled = true;
                 
-                // Используем API для проверки
                 fetch('/api/client/login', {
                     method: 'POST',
                     headers: {
@@ -146,31 +413,23 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Перенаправляем на client-panel
                         window.location.href = data.redirect_url;
                     } else {
-                        // Показываем ошибку
                         errorMessage.textContent = data.error;
                         errorMessage.style.display = 'block';
-                        
-                        // Восстанавливаем кнопку
                         submitBtn.innerHTML = originalText;
                         submitBtn.disabled = false;
                     }
                 })
                 .catch(error => {
                     console.error('Ошибка:', error);
-                    
-                    // Если AJAX не сработал, используем стандартную отправку формы
                     errorMessage.textContent = 'Ошибка подключения. Пробуем другой способ...';
                     errorMessage.style.display = 'block';
                     
-                    // Восстанавливаем кнопку и отправляем форму стандартным способом
                     setTimeout(() => {
                         submitBtn.innerHTML = originalText;
                         submitBtn.disabled = false;
                         
-                        // Переключаем на стандартную отправку
                         const tempForm = document.createElement('form');
                         tempForm.method = 'POST';
                         tempForm.action = '/client/find';
@@ -187,9 +446,6 @@
                     }, 2000);
                 });
             });
-            
-            // Также обрабатываем стандартную отправку формы если JS отключен
-            // Форма сама отправится на /client/find с методом POST
         });
     </script>
 </body>
