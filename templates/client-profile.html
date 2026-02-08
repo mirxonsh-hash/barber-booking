@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iWant - Мой профиль</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/client-profile.css">
     <style>
         * {
             margin: 0;
@@ -434,6 +435,7 @@
         </div>
     </div>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         // Telegram Web App API
         const tg = window.Telegram?.WebApp;
@@ -447,110 +449,101 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Профиль клиента загружается...');
             
+            // Инициализация Telegram Web App
+            initTelegramApp();
+            
+            // Загружаем данные пользователя
+            loadUserData();
+        });
+        
+        function initTelegramApp() {
             if (tg) {
+                console.log('📱 Telegram Web App обнаружен');
+                
                 // Инициализируем Telegram Web App
                 tg.ready();
                 tg.expand();
                 
                 // Получаем данные пользователя из Telegram
-                loadTelegramUserData();
-            } else {
-                // Если не в Telegram, используем тестовые данные или данные из localStorage
-                console.log('⚠️ Не в Telegram Web App');
-                loadLocalUserData();
-            }
-        });
-        
-        async function loadTelegramUserData() {
-            try {
-                const initData = tg.initData || '';
                 const user = tg.initDataUnsafe?.user;
-                
                 if (user) {
-                    // Данные из Telegram
-                    userData = {
-                        id: user.id,
-                        firstName: user.first_name,
-                        lastName: user.last_name,
-                        username: user.username,
-                        photoUrl: user.photo_url,
-                        languageCode: user.language_code,
-                        isPremium: user.is_premium || false
-                    };
-                    
-                    console.log('✅ Данные из Telegram:', userData);
-                    
-                    // Сохраняем в localStorage для будущих сессий
-                    localStorage.setItem('telegram_user', JSON.stringify(userData));
-                    
-                    // Обновляем профиль на сервере
-                    await updateServerProfile();
-                    
-                    // Загружаем профиль с сервера
-                    await loadUserProfile();
-                } else {
-                    console.log('❌ Нет данных пользователя в Telegram');
-                    showError('Не удалось получить данные из Telegram');
+                    // Отправляем данные на сервер для аутентификации
+                    const initData = tg.initData;
+                    if (initData) {
+                        sendTelegramDataToServer(user, initData);
+                    }
                 }
-            } catch (error) {
-                console.error('❌ Ошибка загрузки данных Telegram:', error);
-                showError('Ошибка загрузки данных');
-            }
-        }
-        
-        async function updateServerProfile() {
-            try {
-                if (!userData) return;
                 
-                const response = await fetch(`${API_BASE}/api/client/profile/update`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        telegram_id: userData.id,
-                        first_name: userData.firstName,
-                        last_name: userData.lastName,
-                        username: userData.username,
-                        photo_url: userData.photoUrl
-                    })
+                // Настраиваем кнопку "Назад"
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    goBack();
                 });
-                
-                const result = await response.json();
-                if (result.success) {
-                    console.log('✅ Профиль обновлен на сервере');
-                }
-            } catch (error) {
-                console.warn('⚠️ Не удалось обновить профиль на сервере:', error);
+            } else {
+                console.log('🌐 Не в Telegram Web App');
             }
         }
         
-        function loadLocalUserData() {
-            // Пытаемся загрузить из localStorage
-            const savedUser = localStorage.getItem('telegram_user');
-            const savedBarber = localStorage.getItem('last_barber_code');
+        async function sendTelegramDataToServer(user, initData) {
+            try {
+                console.log('📤 Отправка данных Telegram на сервер...');
+                
+                const response = await fetch(`${API_BASE}/api/telegram/auth?tg_data=${encodeURIComponent(initData)}`);
+                const data = await response.json();
+                
+                console.log('✅ Ответ от сервера:', data);
+                if (data.success && data.profile) {
+                    // Сохраняем профиль в localStorage
+                    localStorage.setItem('user_profile', JSON.stringify(data.profile));
+                    console.log('💾 Профиль сохранен в localStorage');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка отправки данных:', error);
+            }
+        }
+        
+        function loadUserData() {
+            // Пытаемся загрузить данные из разных источников
+            const telegramUser = tg?.initDataUnsafe?.user;
+            const savedProfile = localStorage.getItem('user_profile');
             
-            if (savedUser) {
-                userData = JSON.parse(savedUser);
+            if (telegramUser) {
+                // Используем данные из Telegram
+                userData = {
+                    id: telegramUser.id,
+                    firstName: telegramUser.first_name,
+                    lastName: telegramUser.last_name,
+                    username: telegramUser.username,
+                    photoUrl: telegramUser.photo_url,
+                    languageCode: telegramUser.language_code,
+                    isPremium: telegramUser.is_premium || false
+                };
+                console.log('✅ Данные из Telegram:', userData);
+            } else if (savedProfile) {
+                // Используем сохраненный профиль
+                const profile = JSON.parse(savedProfile);
+                userData = {
+                    id: profile.telegram_id,
+                    firstName: profile.first_name,
+                    lastName: profile.last_name,
+                    username: profile.username,
+                    photoUrl: profile.photo_url,
+                    phone: profile.phone
+                };
                 console.log('📱 Данные из localStorage:', userData);
             } else {
-                // Создаем тестового пользователя
+                // Используем тестовые данные
                 userData = {
                     id: Date.now(),
                     firstName: 'Тестовый',
                     lastName: 'Клиент',
                     username: 'test_user',
-                    photoUrl: null,
-                    languageCode: 'ru',
-                    isPremium: false
+                    photoUrl: null
                 };
                 console.log('🧪 Тестовые данные пользователя');
             }
             
-            if (savedBarber) {
-                lastBarberCode = savedBarber;
-            }
-            
+            // Загружаем профиль с сервера
             loadUserProfile();
         }
         
@@ -559,15 +552,71 @@
                 // Показываем данные пользователя
                 updateUserInfo();
                 
-                // Загружаем историю записей
-                await loadUserHistory();
-                
-                // Загружаем данные барбера
-                if (lastBarberCode) {
-                    await loadBarberInfo(lastBarberCode);
+                // Загружаем профиль с сервера
+                if (userData.id) {
+                    await fetchUserProfile(userData.id);
                 } else {
-                    // Пытаемся загрузить барбера из истории
-                    await loadBarberFromHistory();
+                    // Если нет ID, показываем только базовую информацию
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('profileContent').style.display = 'block';
+                    document.getElementById('noHistory').style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка загрузки профиля:', error);
+                showError('Ошибка загрузки профиля');
+            }
+        }
+        
+        async function fetchUserProfile(telegramId) {
+            try {
+                // Запрашиваем профиль с сервера
+                const response = await fetch(`${API_BASE}/api/client/profile?telegram_id=${telegramId}`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Обновляем данные пользователя
+                        if (result.profile) {
+                            userData.firstName = result.profile.first_name || userData.firstName;
+                            userData.lastName = result.profile.last_name || userData.lastName;
+                            userData.username = result.profile.username || userData.username;
+                            userData.photoUrl = result.profile.photo_url || userData.photoUrl;
+                            userData.phone = result.profile.phone || userData.phone;
+                            
+                            // Сохраняем обновленный профиль
+                            localStorage.setItem('user_profile', JSON.stringify(result.profile));
+                        }
+                        
+                        // Обновляем историю записей
+                        userHistory = result.appointments || [];
+                        updateHistoryList();
+                        
+                        // Обновляем статистику
+                        if (result.stats) {
+                            document.getElementById('totalAppointments').textContent = result.stats.total || 0;
+                        }
+                        
+                        // Сохраняем последнего барбера
+                        if (result.profile && result.profile.last_barber_code) {
+                            lastBarberCode = result.profile.last_barber_code;
+                            localStorage.setItem('last_barber_code', lastBarberCode);
+                            await loadBarberInfo(lastBarberCode);
+                        }
+                        
+                        // Определяем любимую услугу
+                        updateFavoriteService();
+                        
+                    } else {
+                        console.warn('⚠️ Профиль не найден на сервере');
+                        userHistory = [];
+                        updateHistoryList();
+                    }
+                } else {
+                    console.warn('⚠️ Ошибка при запросе профиля');
+                    userHistory = [];
+                    updateHistoryList();
                 }
                 
                 // Показываем контент
@@ -576,7 +625,9 @@
                 
             } catch (error) {
                 console.error('❌ Ошибка загрузки профиля:', error);
-                showError('Ошибка загрузки профиля');
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('profileContent').style.display = 'block';
+                document.getElementById('noHistory').style.display = 'block';
             }
         }
         
@@ -584,7 +635,7 @@
             if (!userData) return;
             
             const name = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Пользователь';
-            const phone = userData.username ? `@${userData.username}` : 'Телефон не указан';
+            const phone = userData.phone || (userData.username ? `@${userData.username}` : 'Телефон не указан');
             
             document.getElementById('userName').textContent = name;
             document.getElementById('userPhone').textContent = phone;
@@ -595,87 +646,42 @@
             
             if (userData.photoUrl) {
                 avatarImg.src = userData.photoUrl;
-                avatarImg.style.display = 'block';
-                avatarPlaceholder.style.display = 'none';
+                avatarImg.onload = function() {
+                    avatarImg.style.display = 'block';
+                    avatarPlaceholder.style.display = 'none';
+                };
+                avatarImg.onerror = function() {
+                    showAvatarFallback(name);
+                };
             } else {
-                // Генерируем градиентный аватар на основе ID
-                const colors = [
-                    ['#667eea', '#764ba2'],
-                    ['#f093fb', '#f5576c'],
-                    ['#4facfe', '#00f2fe'],
-                    ['#43e97b', '#38f9d7'],
-                    ['#fa709a', '#fee140']
-                ];
-                
-                const colorIndex = Math.abs(userData.id) % colors.length;
-                const gradient = `linear-gradient(135deg, ${colors[colorIndex][0]} 0%, ${colors[colorIndex][1]} 100%)`;
-                
-                avatarPlaceholder.style.background = gradient;
-                avatarPlaceholder.style.display = 'flex';
-                avatarImg.style.display = 'none';
-                
-                // Показываем первую букву имени
-                const firstLetter = name.charAt(0).toUpperCase();
-                avatarPlaceholder.innerHTML = `<span style="font-size: 48px; font-weight: bold;">${firstLetter}</span>`;
+                showAvatarFallback(name);
             }
         }
         
-        async function loadUserHistory() {
-            try {
-                // Проверяем, есть ли у нас ID пользователя
-                if (userData && userData.id) {
-                    // Запрашиваем историю записей с сервера
-                    const response = await fetch(`${API_BASE}/api/client/profile?telegram_id=${userData.id}`);
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            userHistory = result.appointments || [];
-                            updateHistoryList();
-                            
-                            // Обновляем статистику
-                            if (result.stats) {
-                                document.getElementById('totalAppointments').textContent = result.stats.total || 0;
-                            }
-                            
-                            // Сохраняем последнего барбера из профиля
-                            if (result.profile && result.profile.last_barber_code) {
-                                lastBarberCode = result.profile.last_barber_code;
-                                localStorage.setItem('last_barber_code', lastBarberCode);
-                            }
-                            return;
-                        }
-                    }
-                }
-                
-                // Если нет данных с сервера, пробуем загрузить из localStorage
-                const savedHistory = localStorage.getItem('user_appointments');
-                if (savedHistory) {
-                    userHistory = JSON.parse(savedHistory);
-                    updateHistoryList();
-                } else {
-                    userHistory = [];
-                    updateHistoryList();
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка загрузки истории:', error);
-                userHistory = [];
-                updateHistoryList();
-            }
-        }
-        
-        async function loadBarberFromHistory() {
-            if (userHistory.length > 0) {
-                // Берем барбера из последней записи
-                const lastAppointment = userHistory[0];
-                if (lastAppointment && lastAppointment.barber_code) {
-                    lastBarberCode = lastAppointment.barber_code;
-                    localStorage.setItem('last_barber_code', lastBarberCode);
-                    await loadBarberInfo(lastBarberCode);
-                }
-            }
+        function showAvatarFallback(name) {
+            const avatarImg = document.getElementById('userAvatar');
+            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+            
+            // Генерируем градиентный аватар на основе ID или имени
+            const colors = [
+                ['#667eea', '#764ba2'],
+                ['#f093fb', '#f5576c'],
+                ['#4facfe', '#00f2fe'],
+                ['#43e97b', '#38f9d7'],
+                ['#fa709a', '#fee140']
+            ];
+            
+            const id = userData?.id || 0;
+            const colorIndex = Math.abs(id) % colors.length;
+            const gradient = `linear-gradient(135deg, ${colors[colorIndex][0]} 0%, ${colors[colorIndex][1]} 100%)`;
+            
+            avatarPlaceholder.style.background = gradient;
+            avatarPlaceholder.style.display = 'flex';
+            avatarImg.style.display = 'none';
+            
+            // Показываем первую букву имени
+            const firstLetter = name.charAt(0).toUpperCase();
+            avatarPlaceholder.innerHTML = `<span style="font-size: 48px; font-weight: bold;">${firstLetter}</span>`;
         }
         
         function updateHistoryList() {
@@ -689,7 +695,6 @@
             if (userHistory.length === 0) {
                 noHistory.style.display = 'block';
                 document.getElementById('totalAppointments').textContent = '0';
-                document.getElementById('favoriteService').textContent = 'Не определено';
                 return;
             }
             
@@ -722,29 +727,34 @@
             
             // Обновляем статистику
             document.getElementById('totalAppointments').textContent = userHistory.length;
+        }
+        
+        function updateFavoriteService() {
+            if (userHistory.length === 0) {
+                document.getElementById('favoriteService').textContent = 'Не определено';
+                return;
+            }
             
             // Определяем любимую услугу
-            if (userHistory.length > 0) {
-                const serviceCount = {};
-                userHistory.forEach(record => {
-                    const service = record.service || record.service_name;
-                    if (service) {
-                        serviceCount[service] = (serviceCount[service] || 0) + 1;
-                    }
-                });
-                
-                let favoriteService = 'Не определено';
-                let maxCount = 0;
-                
-                for (const [service, count] of Object.entries(serviceCount)) {
-                    if (count > maxCount) {
-                        maxCount = count;
-                        favoriteService = service;
-                    }
+            const serviceCount = {};
+            userHistory.forEach(record => {
+                const service = record.service || record.service_name;
+                if (service) {
+                    serviceCount[service] = (serviceCount[service] || 0) + 1;
                 }
-                
-                document.getElementById('favoriteService').textContent = favoriteService;
+            });
+            
+            let favoriteService = 'Не определено';
+            let maxCount = 0;
+            
+            for (const [service, count] of Object.entries(serviceCount)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    favoriteService = service;
+                }
             }
+            
+            document.getElementById('favoriteService').textContent = favoriteService;
         }
         
         async function loadBarberInfo(barberCode) {
@@ -754,7 +764,6 @@
                 
                 if (data.success && data.barber) {
                     document.getElementById('myBarber').textContent = data.barber.name;
-                    document.getElementById('myBarber').dataset.code = barberCode;
                 } else {
                     document.getElementById('myBarber').textContent = `Барбер ${barberCode}`;
                 }
@@ -791,9 +800,8 @@
         
         function clearData() {
             if (confirm('Вы уверены, что хотите очистить все ваши данные? Это удалит историю записей и информацию о барбере.')) {
-                localStorage.removeItem('telegram_user');
+                localStorage.removeItem('user_profile');
                 localStorage.removeItem('last_barber_code');
-                localStorage.removeItem('user_appointments');
                 
                 // Обновляем страницу
                 window.location.reload();
@@ -823,7 +831,7 @@
             document.getElementById('loading').style.display = 'none';
         }
         
-        // Сохраняем ссылку на профиль в localStorage для быстрого доступа
+        // Инициализируем кнопки Telegram
         if (tg) {
             tg.MainButton.setText('Мой профиль');
             tg.MainButton.show();
@@ -831,34 +839,6 @@
                 // Уже на странице профиля
             });
         }
-        <div class="profile-header">
-    <div class="avatar-container">
-        <img id="user-avatar" class="user-avatar" src="" alt="Аватар">
-        <div class="avatar-fallback" id="avatar-fallback"></div>
-    </div>
-    <div class="user-info">
-        <h2 id="user-name">Тестовый Клиент</h2>
-        <p id="user-username" class="username">@test_user</p>
-    </div>
-</div>
-
-<div class="stats-container">
-    <div class="stat-item">
-        <span class="stat-value" id="total-appointments">0</span>
-        <span class="stat-label">Всего записей</span>
-    </div>
-    <div class="stat-item">
-        <span class="stat-value" id="completed-appointments">0</span>
-        <span class="stat-label">Выполнено</span>
-    </div>
-</div>
-
-<div class="appointments-history">
-    <h3>История записей</h3>
-    <div id="appointments-history">
-        <!-- Записи будут загружены здесь -->
-    </div>
-</div>
     </script>
 </body>
 </html>
