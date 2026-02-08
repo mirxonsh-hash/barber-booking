@@ -7,28 +7,89 @@
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: #1a1a1a;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .nav-link {
+            color: #aaa;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: #333;
+            color: #fff;
+        }
+        
         .hero {
             min-height: 80vh;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
             padding: 60px 20px;
+            border-bottom: 1px solid #333;
         }
         
         .hero h1 {
             font-size: 48px;
             margin-bottom: 20px;
             line-height: 1.2;
+            color: #fff;
         }
         
         .hero p {
             font-size: 20px;
             max-width: 600px;
             margin: 0 auto 40px;
-            opacity: 0.9;
+            color: #aaa;
         }
         
         .hero-buttons {
@@ -38,9 +99,7 @@
             flex-wrap: wrap;
         }
         
-        .btn-primary {
-            background: white;
-            color: #667eea;
+        .btn {
             padding: 18px 35px;
             font-size: 18px;
             border-radius: 12px;
@@ -49,59 +108,64 @@
             gap: 10px;
             text-decoration: none;
             transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #4a6fa5;
+            color: white;
         }
         
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
+            background: #333;
             color: white;
-            border: 2px solid white;
-            padding: 18px 35px;
-            font-size: 18px;
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            transition: all 0.3s;
+            border: 1px solid #444;
         }
         
-        .btn-primary:hover, .btn-secondary:hover {
+        .btn-primary:hover {
+            background: #5a7fb5;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(74, 111, 165, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: #444;
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
         
         .footer {
-            background: #1a1a2e;
-            color: white;
+            background: #1a1a1a;
+            color: #aaa;
             padding: 30px 0;
             text-align: center;
+            border-top: 1px solid #333;
         }
         
-        /* Стили для ссылок в header */
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-        
-        .nav-link:hover, .nav-link.active {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .logo {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero p {
+                font-size: 18px;
+            }
+            
+            .nav-links {
+                gap: 10px;
+            }
+            
+            .nav-link {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- ОСТАЛЬНОЙ HTML КОД БЕЗ ИЗМЕНЕНИЙ -->
     <header class="header">
         <div class="container">
             <nav class="navbar">
