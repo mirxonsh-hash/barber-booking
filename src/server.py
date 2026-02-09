@@ -2099,6 +2099,320 @@ def get_client_dashboard():
     except Exception as e:
         logger.error(f"❌ Ошибка получения дашборда: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+
+# ========== НОВЫЕ ФУНКЦИИ ДЛЯ СЕССИЙ И ПРОВЕРКИ ==========
+
+@app.route('/api/client/check-phone', methods=['POST'])
+def check_phone_exists():
+    """Проверка существования номера телефона"""
+    try:
+        data = request.json
+        phone = data.get('phone')
+        
+        if not phone:
+            return jsonify({'exists': False, 'error': 'Телефон не указан'}), 400
+        
+        # Очищаем номер
+        phone = clean_phone_number(phone)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Проверяем существование клиента
+        cursor.execute('SELECT id, phone FROM clients WHERE phone = %s', (phone,))
+        existing_client = cursor.fetchone()
+        
+        conn.close()
+        
+        if existing_client:
+            logger.info(f"📱 Клиент с телефоном {phone} уже существует")
+            return jsonify({
+                'exists': True,
+                'message': 'Клиент уже зарегистрирован',
+                'client_id': existing_client[0],
+                'phone': existing_client[1]
+            })
+        else:
+            logger.info(f"📱 Клиент с телефоном {phone} не найден - можно регистрировать")
+            return jsonify({'exists': False, 'message': 'Клиент не найден'})
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка проверки телефона: {e}")
+        return jsonify({'exists': False, 'error': str(e)}), 500
+
+@app.route('/api/client/check-session', methods=['GET'])
+def check_client_session_status():
+    """Проверка статуса сессии клиента"""
+    try:
+        # Проверяем токен из заголовка
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        
+        if token:
+            try:
+                decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+                client_id = decoded.get('client_id')
+                phone = decoded.get('phone')
+                
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute('SELECT id, phone FROM clients WHERE id = %s', (client_id,))
+                client = cursor.fetchone()
+                conn.close()
+                
+                if client:
+                    return jsonify({
+                        'authenticated': True,
+                        'client': {
+                            'id': client[0],
+                            'phone': client[1]
+                        }
+                    })
+            except:
+                pass
+        
+        # Проверяем телефон из localStorage
+        phone = request.args.get('phone')
+        if phone:
+            phone = clean_phone_number(phone)
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT id, phone FROM clients WHERE phone = %s', (phone,))
+            client = cursor.fetchone()
+            conn.close()
+            
+            if client:
+                return jsonify({
+                    'authenticated': True,
+                    'client': {
+                        'id': client[0],
+                        'phone': client[1]
+                    },
+                    'has_password': True  # Предполагаем, что у клиента есть пароль
+                })
+        
+        return jsonify({'authenticated': False, 'message': 'Сессия не найдена'})
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка проверки сессии: {e}")
+        return jsonify({'authenticated': False, 'error': str(e)}), 500
+
+@app.route('/api/client/get-password', methods=['POST'])
+def get_client_password():
+    """Получение пароля клиента (для восстановления)"""
+    try:
+        data = request.json
+        phone = data.get('phone')
+        
+        if not phone:
+            return jsonify({'success': False, 'error': 'Телефон обязателен'}), 400
+        
+        phone = clean_phone_number(phone)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT id FROM clients WHERE phone = %s', (phone,))
+        client = cursor.fetchone()
+        
+        if client:
+            # Генерируем новый пароль
+            password = generate_temp_password()
+            
+            # Отправляем в Telegram если есть telegram_id
+            cursor.execute('SELECT telegram_id FROM clients WHERE phone = %s', (phone,))
+            telegram_result = cursor.fetchone()
+            
+            if telegram_result and telegram_result[0]:
+                telegram_id = telegram_result[0]
+                try:
+                    message = f"""
+🔑 Ваш пароль для входа в iWant:
+
+📱 Логин: {phone}
+🔑 Пароль: {password}
+
+💈 Для входа используйте эти данные на сайте.
+"""
+                    
+                    if TELEGRAM_BOT_TOKEN:
+                        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+                        payload = {
+                            'chat_id': telegram_id,
+                            'text': message,
+                            'parse_mode': 'Markdown'
+                        }
+                        
+                        response = requests.post(url, json=payload, timeout=10)
+                        if response.status_code == 200:
+                            logger.info(f"✅ Пароль отправлен в Telegram: {telegram_id}")
+                        else:
+                            logger.error(f"❌ Ошибка отправки в Telegram: {response.text}")
+                except Exception as e:
+                    logger.error(f"❌ Ошибка отправки пароля в Telegram: {e}")
+            
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Пароль отправлен в Telegram',
+                'phone': phone,
+                'password': password
+            })
+        else:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Клиент не найден'}), 404
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка получения пароля: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/client/logout', methods=['POST'])
+def client_logout():
+    """Выход клиента из системы"""
+    try:
+        data = request.json
+        phone = data.get('phone')
+        
+        logger.info(f"👋 Выход клиента: {phone}")
+        
+        # В реальной системе здесь бы мы инвалидировали токен,
+        # но для localStorage просто удаляем данные на клиенте
+        
+        return jsonify({
+            'success': True,
+            'message': 'Выход выполнен успешно'
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка выхода: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/client/dashboard', methods=['GET'])
+def get_client_dashboard():
+    """Главная страница клиента с барберами"""
+    try:
+        phone = request.args.get('phone')
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        
+        if not phone and not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        
+        client_info = None
+        
+        # Если есть токен, проверяем его
+        if token:
+            try:
+                decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+                client_id = decoded.get('client_id')
+                phone = decoded.get('phone')
+                
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute('SELECT id, phone FROM clients WHERE id = %s', (client_id,))
+                client = cursor.fetchone()
+                conn.close()
+                
+                if client:
+                    client_info = {'id': client[0], 'phone': client[1]}
+            except:
+                pass
+        
+        # Если нет токена, но есть телефон
+        if not client_info and phone:
+            phone = clean_phone_number(phone)
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT id, phone FROM clients WHERE phone = %s', (phone,))
+            client = cursor.fetchone()
+            
+            if client:
+                client_info = {'id': client[0], 'phone': client[1]}
+            
+            conn.close()
+        
+        if not client_info:
+            return jsonify({'success': False, 'error': 'Клиент не найден'}), 404
+        
+        # Получаем барберов клиента (из истории записей)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT DISTINCT b.code, b.name, b.phone,
+               COUNT(a.id) as total_appointments,
+               MAX(a.appointment_date) as last_appointment
+        FROM barbers b
+        LEFT JOIN appointments a ON b.code = a.barber_code 
+            AND a.client_phone = %s
+        WHERE b.code IN (
+            SELECT DISTINCT barber_code 
+            FROM appointments 
+            WHERE client_phone = %s
+        )
+        GROUP BY b.id, b.code, b.name, b.phone
+        ORDER BY MAX(a.appointment_date) DESC
+        ''', (client_info['phone'], client_info['phone']))
+        
+        barbers = []
+        for row in cursor.fetchall():
+            barbers.append({
+                'code': row[0],
+                'name': row[1] or f"Барбер {row[0]}",
+                'phone': row[2],
+                'total_appointments': row[3] or 0,
+                'last_appointment': row[4].isoformat() if row[4] else None
+            })
+        
+        # Получаем последние записи
+        cursor.execute('''
+        SELECT a.id, a.service_name, a.price, a.appointment_date, 
+               a.appointment_time, a.status, b.name as barber_name,
+               b.code as barber_code
+        FROM appointments a
+        LEFT JOIN barbers b ON a.barber_code = b.code
+        WHERE a.client_phone = %s
+        ORDER BY a.appointment_date DESC, a.appointment_time DESC
+        LIMIT 5
+        ''', (client_info['phone'],))
+        
+        recent_appointments = []
+        for row in cursor.fetchall():
+            recent_appointments.append({
+                'id': row[0],
+                'service': row[1],
+                'price': row[2],
+                'date': row[3].isoformat() if row[3] else None,
+                'time': str(row[4]) if row[4] else None,
+                'status': row[5],
+                'barber_name': row[6],
+                'barber_code': row[7]
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'client': client_info,
+            'barbers': barbers,
+            'recent_appointments': recent_appointments,
+            'stats': {
+                'total_barbers': len(barbers),
+                'total_appointments': sum(b['total_appointments'] for b in barbers),
+                'recent_appointments_count': len(recent_appointments)
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка получения дашборда: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+
+
 if __name__ == '__main__':
     print("=" * 80)
     print("🌐 BARBER BOOKING API ЗАПУЩЕН")
