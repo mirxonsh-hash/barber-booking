@@ -226,6 +226,41 @@
             font-size: 14px;
         }
         
+        .login-options {
+            margin-top: 30px;
+        }
+        
+        .login-option {
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .login-option:hover {
+            background: #2a2a2a;
+            border-color: #4a6fa5;
+        }
+        
+        .login-option-title {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .login-option-desc {
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .client-login-form {
+            display: none;
+            margin-top: 20px;
+        }
+        
         .test-data {
             margin-top: 30px;
             padding: 20px;
@@ -302,9 +337,10 @@
                 <div class="auth-card card fade-in">
                     <div class="auth-header">
                         <h1><i class="fas fa-user"></i> Запись к барберу</h1>
-                        <p class="subtitle">Введите код барбера для записи</p>
+                        <p class="subtitle">Выберите способ для продолжения</p>
                     </div>
                     
+                    <!-- Форма поиска барбера по коду -->
                     <form id="clientLoginForm" class="auth-form" method="POST" action="/client/find">
                         <div class="form-group">
                             <label for="masterCode" class="form-label">
@@ -335,7 +371,52 @@
                         <span>или</span>
                     </div>
                     
-                    <a href="/barber-login" class="btn btn-secondary btn-block">
+                    <!-- Опции входа для клиентов -->
+                    <div class="login-options">
+                        <div class="login-option" onclick="showClientLogin()">
+                            <div class="login-option-title">
+                                <i class="fas fa-mobile-alt"></i> Войти как клиент
+                            </div>
+                            <div class="login-option-desc">
+                                Используйте ваш телефон и пароль
+                            </div>
+                        </div>
+                        
+                        <div class="client-login-form" id="clientLoginForm2">
+                            <div class="form-group">
+                                <label for="clientPhone" class="form-label">
+                                    <i class="fas fa-phone"></i> Телефон
+                                </label>
+                                <input 
+                                    type="tel" 
+                                    id="clientPhone" 
+                                    class="form-input"
+                                    placeholder="+998 90 123 45 67"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label for="clientPassword" class="form-label">
+                                    <i class="fas fa-lock"></i> Пароль
+                                </label>
+                                <input 
+                                    type="password" 
+                                    id="clientPassword" 
+                                    class="form-input"
+                                    placeholder="Введите ваш пароль"
+                                >
+                            </div>
+                            <button class="btn btn-block" onclick="clientLogin()">
+                                <i class="fas fa-sign-in-alt"></i> Войти
+                            </button>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <a href="javascript:void(0)" onclick="showRegistration()" style="color: #4a6fa5; text-decoration: none;">
+                                    <i class="fas fa-user-plus"></i> Зарегистрироваться
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="/barber-login" class="btn btn-secondary btn-block" style="margin-top: 20px;">
                         <i class="fas fa-user-tie"></i> Я барбер
                     </a>
                     
@@ -360,87 +441,237 @@
     </footer>
 
     <script>
+        const API_BASE = 'https://barber-booking-db.onrender.com';
+        
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('clientLoginForm');
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
+            console.log('🔑 Страница входа загружена');
             
+            // Проверяем, есть ли сохраненная сессия
+            checkClientSession();
+            
+            // Настройка ввода телефона
+            setupPhoneInput();
+            
+            // Проверяем параметры URL
             const urlParams = new URLSearchParams(window.location.search);
             const errorFromServer = urlParams.get('error');
             const codeFromServer = urlParams.get('code');
             
             if (errorFromServer) {
-                errorMessage.textContent = decodeURIComponent(errorFromServer);
-                errorMessage.style.display = 'block';
+                document.getElementById('errorMessage').textContent = decodeURIComponent(errorFromServer);
+                document.getElementById('errorMessage').style.display = 'block';
                 
                 if (codeFromServer) {
                     document.getElementById('masterCode').value = decodeURIComponent(codeFromServer);
                 }
             }
+        });
+        
+        // Проверка сессии клиента
+        function checkClientSession() {
+            const clientToken = localStorage.getItem('clientToken');
+            const clientPhone = localStorage.getItem('clientPhone');
             
-            document.getElementById('masterCode').addEventListener('input', function() {
-                errorMessage.style.display = 'none';
-                successMessage.style.display = 'none';
-            });
-            
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
+            if (clientToken && clientPhone) {
+                console.log('🔑 Найдена сессия для:', clientPhone);
                 
-                const code = document.getElementById('masterCode').value.trim();
+                // Автоматически заполняем телефон
+                document.getElementById('clientPhone').value = clientPhone;
                 
-                if (!code) {
-                    errorMessage.textContent = 'Пожалуйста, введите код барбера';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-                
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Поиск...';
-                submitBtn.disabled = true;
-                
-                fetch('/api/client/login', {
-                    method: 'POST',
+                // Проверяем валидность токена
+                fetch(`${API_BASE}/api/client/session`, {
                     headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ code: code })
+                        'Authorization': `Bearer ${clientToken}`
+                    }
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        window.location.href = data.redirect_url;
-                    } else {
-                        errorMessage.textContent = data.error;
-                        errorMessage.style.display = 'block';
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
+                    if (data.authenticated) {
+                        console.log('✅ Сессия активна, перенаправляем...');
+                        // Пользователь уже залогинен - можно сразу искать барбера
+                        // Или показать сообщение
                     }
                 })
                 .catch(error => {
-                    console.error('Ошибка:', error);
-                    errorMessage.textContent = 'Ошибка подключения. Пробуем другой способ...';
-                    errorMessage.style.display = 'block';
-                    
-                    setTimeout(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                        
-                        const tempForm = document.createElement('form');
-                        tempForm.method = 'POST';
-                        tempForm.action = '/client/find';
-                        tempForm.style.display = 'none';
-                        
-                        const codeInput = document.createElement('input');
-                        codeInput.type = 'hidden';
-                        codeInput.name = 'code';
-                        codeInput.value = code;
-                        
-                        tempForm.appendChild(codeInput);
-                        document.body.appendChild(tempForm);
-                        tempForm.submit();
-                    }, 2000);
+                    console.error('❌ Ошибка проверки сессии:', error);
+                    localStorage.removeItem('clientToken');
                 });
+            }
+        }
+        
+        // Настройка ввода телефона
+        function setupPhoneInput() {
+            const phoneInput = document.getElementById('clientPhone');
+            
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                
+                if (value.length > 0) {
+                    let formatted = '';
+                    
+                    if (value.startsWith('998')) {
+                        value = value.substring(3);
+                    }
+                    
+                    if (value.length <= 2) {
+                        formatted = value;
+                    } else if (value.length <= 5) {
+                        formatted = `${value.substring(0, 2)} ${value.substring(2)}`;
+                    } else if (value.length <= 7) {
+                        formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5)}`;
+                    } else {
+                        formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5, 7)} ${value.substring(7, 9)}`;
+                    }
+                    
+                    e.target.value = formatted;
+                }
+            });
+        }
+        
+        // Показать форму входа для клиента
+        function showClientLogin() {
+            const loginForm = document.getElementById('clientLoginForm2');
+            loginForm.style.display = 'block';
+            document.getElementById('clientPhone').focus();
+        }
+        
+        // Показать регистрацию
+        function showRegistration() {
+            // Перенаправляем на главную для регистрации
+            window.location.href = '/';
+        }
+        
+        // Вход клиента по телефону и паролю
+        function clientLogin() {
+            const phone = document.getElementById('clientPhone').value.replace(/\s+/g, '');
+            const password = document.getElementById('clientPassword').value;
+            
+            if (!phone || phone.length < 9) {
+                alert('Пожалуйста, введите корректный номер телефона');
+                return;
+            }
+            
+            if (!password) {
+                alert('Пожалуйста, введите пароль');
+                return;
+            }
+            
+            const fullPhone = `+998${phone}`;
+            
+            // Показываем загрузку
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Вход...';
+            btn.disabled = true;
+            
+            // Отправляем запрос на авторизацию
+            fetch(`${API_BASE}/api/client/auth`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: fullPhone,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                if (data.success) {
+                    console.log('✅ Вход успешен:', data);
+                    
+                    // Сохраняем токен и телефон
+                    localStorage.setItem('clientToken', data.token);
+                    localStorage.setItem('clientPhone', data.phone);
+                    
+                    // Показываем сообщение об успехе
+                    document.getElementById('successMessage').textContent = 'Вход выполнен успешно!';
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    // Через 1 секунду перенаправляем
+                    setTimeout(() => {
+                        window.location.href = '/client-profile';
+                    }, 1000);
+                    
+                } else {
+                    document.getElementById('errorMessage').textContent = data.error || 'Ошибка входа';
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                console.error('❌ Ошибка входа:', error);
+                alert('Ошибка соединения с сервером');
+            });
+        }
+        
+        // Существующий код для поиска барбера по коду
+        document.getElementById('masterCode').addEventListener('input', function() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        });
+        
+        document.getElementById('clientLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const code = document.getElementById('masterCode').value.trim();
+            
+            if (!code) {
+                document.getElementById('errorMessage').textContent = 'Пожалуйста, введите код барбера';
+                document.getElementById('errorMessage').style.display = 'block';
+                return;
+            }
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Поиск...';
+            submitBtn.disabled = true;
+            
+            fetch('/api/client/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    document.getElementById('errorMessage').textContent = data.error;
+                    document.getElementById('errorMessage').style.display = 'block';
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                document.getElementById('errorMessage').textContent = 'Ошибка подключения. Пробуем другой способ...';
+                document.getElementById('errorMessage').style.display = 'block';
+                
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    
+                    const tempForm = document.createElement('form');
+                    tempForm.method = 'POST';
+                    tempForm.action = '/client/find';
+                    tempForm.style.display = 'none';
+                    
+                    const codeInput = document.createElement('input');
+                    codeInput.type = 'hidden';
+                    codeInput.name = 'code';
+                    codeInput.value = code;
+                    
+                    tempForm.appendChild(codeInput);
+                    document.body.appendChild(tempForm);
+                    tempForm.submit();
+                }, 2000);
             });
         });
     </script>
