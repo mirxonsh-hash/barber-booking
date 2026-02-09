@@ -5,13 +5,14 @@ const ClientAuth = {
     // Проверка сессии
     checkSession: async function() {
         const token = localStorage.getItem('clientToken');
+        const phone = localStorage.getItem('clientPhone');
         
-        if (!token) {
-            return { authenticated: false };
+        if (!token || !phone) {
+            return { authenticated: false, message: 'Нет данных сессии' };
         }
         
         try {
-            const response = await fetch(`${this.API_BASE}/api/client/session`, {
+            const response = await fetch(`${this.API_BASE}/api/client/check-session?phone=${encodeURIComponent(phone)}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -22,7 +23,7 @@ const ClientAuth = {
             
         } catch (error) {
             console.error('❌ Ошибка проверки сессии:', error);
-            return { authenticated: false };
+            return { authenticated: false, error: 'Ошибка соединения' };
         }
     },
     
@@ -125,8 +126,71 @@ const ClientAuth = {
         }
     },
     
+    // Проверка существования номера
+    checkPhoneExists: async function(phone) {
+        try {
+            const response = await fetch(`${this.API_BASE}/api/client/check-phone`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: phone
+                })
+            });
+            
+            const data = await response.json();
+            return data;
+            
+        } catch (error) {
+            console.error('❌ Ошибка проверки номера:', error);
+            return { exists: false, error: 'Ошибка соединения' };
+        }
+    },
+    
+    // Получение пароля (восстановление)
+    getPassword: async function(phone) {
+        try {
+            const response = await fetch(`${this.API_BASE}/api/client/get-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: phone
+                })
+            });
+            
+            const data = await response.json();
+            return data;
+            
+        } catch (error) {
+            console.error('❌ Ошибка получения пароля:', error);
+            return { success: false, error: 'Ошибка соединения' };
+        }
+    },
+    
     // Выход
     logout: function() {
+        const phone = localStorage.getItem('clientPhone');
+        
+        if (phone) {
+            // Отправляем запрос на сервер о выходе
+            fetch(`${this.API_BASE}/api/client/logout`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: phone
+                })
+            })
+            .catch(error => {
+                console.error('Ошибка при выходе:', error);
+            });
+        }
+        
+        // Очищаем данные сессии
         localStorage.removeItem('clientToken');
         localStorage.removeItem('clientPhone');
         localStorage.removeItem('clientId');
@@ -149,7 +213,7 @@ const ClientAuth = {
     
     // Проверить, авторизован ли клиент
     isAuthenticated: function() {
-        return !!localStorage.getItem('clientToken');
+        return !!localStorage.getItem('clientToken') && !!localStorage.getItem('clientPhone');
     },
     
     // Получить данные Telegram
@@ -175,6 +239,26 @@ const ClientAuth = {
         }
         
         return phone;
+    },
+    
+    // Автоматический вход при наличии сессии
+    autoLogin: function() {
+        const token = localStorage.getItem('clientToken');
+        const phone = localStorage.getItem('clientPhone');
+        
+        if (token && phone) {
+            console.log('🔐 Автоматический вход для:', phone);
+            
+            this.checkSession().then(data => {
+                if (data.authenticated) {
+                    console.log('✅ Сессия активна');
+                    // Можно выполнить дополнительные действия
+                } else {
+                    console.log('❌ Сессия истекла');
+                    this.logout();
+                }
+            });
+        }
     }
 };
 
@@ -184,6 +268,9 @@ window.ClientAuth = ClientAuth;
 // Автоматическая проверка сессии при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔐 ClientAuth загружен');
+    
+    // Автоматический вход если есть сессия
+    ClientAuth.autoLogin();
     
     // Проверяем сессию
     ClientAuth.checkSession().then(data => {
