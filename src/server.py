@@ -2100,20 +2100,6 @@ def get_client_dashboard():
         logger.error(f"❌ Ошибка получения дашборда: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-
-
-# ========== НОВЫЕ ФУНКЦИИ ДЛЯ СЕССИЙ И ПРОВЕРКИ ==========
-
-@app.route('/api/client/check-phone', methods=['POST'])
-def check_phone_exists():
-    """Проверка существования номера телефона"""
-    try:
-        data = request.json
-        phone = data.get('phone')
-        
-        if not phone:
-            return jsonify({'exists': False, 'error': 'Телефон не указан'}), 400
-        
         # Очищаем номер
         phone = clean_phone_number(phone)
         
