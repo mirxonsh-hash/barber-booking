@@ -654,6 +654,62 @@
     </div>
 
     <script>
+
+        // ========== ПРОВЕРКА АВТОРИЗАЦИИ ==========
+async function checkAuthBeforePanel() {
+    try {
+        const clientToken = localStorage.getItem('clientToken');
+        
+        if (!clientToken) {
+            console.log('⚠️ Токен не найден, перенаправляем на вход');
+            
+            // Сохраняем код барбера из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const barberCode = urlParams.get('code');
+            
+            if (barberCode) {
+                window.location.href = `${API_BASE}/client-login?code=${barberCode}`;
+            } else {
+                window.location.href = `${API_BASE}/client-login`;
+            }
+            return false;
+        }
+        
+        // Проверяем токен на сервере
+        const response = await fetch(`${API_BASE}/api/client/session`, {
+            headers: { 'Authorization': `Bearer ${clientToken}` }
+        });
+        
+        if (!response.ok) {
+            localStorage.removeItem('clientToken');
+            localStorage.removeItem('clientPhone');
+            
+            window.location.href = `${API_BASE}/client-login`;
+            return false;
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Ошибка проверки авторизации:', error);
+        return true; // Продолжаем работу даже при ошибке
+    }
+}
+
+// Добавьте вызов перед загрузкой данных
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🔐 Проверяем авторизацию...');
+    
+    const isAuthenticated = await checkAuthBeforePanel();
+    if (!isAuthenticated) return;
+    
+    // Остальной ваш код...
+    console.log('🚀 Клиентская панель загружается...');
+    loadUserAvatar();
+    loadBarberData();
+    generateDates();
+    initSteps();
+});
         // Конфигурация
         const API_BASE = 'https://barber-booking-db.onrender.com';
         
