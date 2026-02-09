@@ -674,6 +674,79 @@
                 }, 2000);
             });
         });
+
+        // ========== АВТОМАТИЧЕСКИЙ ВХОД КЛИЕНТА ==========
+async function checkAutoLogin() {
+    try {
+        // 1. Проверяем сохраненный токен клиента
+        const clientToken = localStorage.getItem('clientToken');
+        const clientPhone = localStorage.getItem('clientPhone');
+        
+        if (clientToken && clientPhone) {
+            console.log('🔑 Проверяем сессию клиента:', clientPhone);
+            
+            const response = await fetch(`${API_BASE}/api/client/session`, {
+                headers: { 'Authorization': `Bearer ${clientToken}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.authenticated) {
+                    console.log('✅ Клиент уже авторизован');
+                    
+                    // 2. Проверяем сохраненный код барбера
+                    const savedBarberCode = localStorage.getItem('last_barber_code') || 'barber';
+                    
+                    // 3. Переходим сразу в панель
+                    window.location.href = `${API_BASE}/client-panel?code=${savedBarberCode}`;
+                    return;
+                }
+            }
+        }
+        
+        // 4. Проверяем Telegram авторизацию
+        const telegramUser = localStorage.getItem('telegram_user');
+        if (telegramUser) {
+            console.log('📱 Telegram пользователь обнаружен');
+            
+            const userData = JSON.parse(telegramUser);
+            const phone = userData.phone || '';
+            
+            if (phone) {
+                // Авторизуемся автоматически через Telegram
+                const response = await fetch(`${API_BASE}/api/client/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: phone,
+                        password: '123456' // Стандартный пароль
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        localStorage.setItem('clientToken', data.token);
+                        localStorage.setItem('clientPhone', phone);
+                        
+                        // Переходим к выбору барбера
+                        window.location.href = `${API_BASE}/client-profile`;
+                        return;
+                    }
+                }
+            }
+        }
+        
+        console.log('👤 Требуется ручной вход');
+        
+    } catch (error) {
+        console.error('❌ Ошибка автоматического входа:', error);
+    }
+}
+
+// Вызываем проверку при загрузке
+setTimeout(checkAutoLogin, 500);
     </script>
 </body>
 </html>
+
