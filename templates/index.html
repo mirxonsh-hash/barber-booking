@@ -159,6 +159,242 @@
             font-size: clamp(12px, 2vw, 14px);
         }
         
+        /* СТИЛИ МОДАЛЬНЫХ ОКОН */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-container {
+            background: #1a1a1a;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid #333;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .close-modal {
+            background: #222;
+            border: 1px solid #333;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .close-modal:hover {
+            background: #333;
+            color: #fff;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            color: #aaa;
+            font-weight: 500;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 14px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: #4a6fa5;
+        }
+        
+        .phone-input-group {
+            display: flex;
+            align-items: center;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .phone-prefix {
+            padding: 0 15px;
+            color: #aaa;
+            font-weight: 500;
+            background: #2a2a2a;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+        
+        .phone-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 14px;
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        .phone-input:focus {
+            outline: none;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-btn-primary {
+            background: #4a6fa5;
+            color: white;
+        }
+        
+        .modal-btn-primary:hover {
+            background: #5a7fb5;
+        }
+        
+        .modal-btn-secondary {
+            background: #333;
+            color: #fff;
+            border: 1px solid #444;
+        }
+        
+        .modal-btn-secondary:hover {
+            background: #444;
+        }
+        
+        .credentials-modal {
+            text-align: center;
+        }
+        
+        .credentials-icon {
+            font-size: 48px;
+            color: #4a6fa5;
+            margin-bottom: 20px;
+        }
+        
+        .credentials-title {
+            font-size: 22px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .credentials-text {
+            color: #aaa;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .credentials-box {
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .credential-item:last-child {
+            border-bottom: none;
+        }
+        
+        .credential-label {
+            color: #aaa;
+            font-weight: 500;
+        }
+        
+        .credential-value {
+            color: #4a6fa5;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #222;
+            border-top: 3px solid #4a6fa5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         /* Адаптивные стили для мобильных устройств */
         @media (max-width: 480px) {
             .navbar {
@@ -190,6 +426,10 @@
             
             .hero p {
                 font-size: 16px;
+            }
+            
+            .modal-container {
+                max-height: 95vh;
             }
         }
         
@@ -273,9 +513,9 @@
                 <h1>Запись к барберу<br>за 30 секунд</h1>
                 <p>Выбирайте лучших мастеров, бронируйте удобное время, приходите без очередей</p>
                 <div class="hero-buttons">
-                    <a href="/client-login" class="btn btn-primary">
+                    <button class="btn btn-primary" onclick="handleClientClick()">
                         <i class="fas fa-user"></i> Я клиент
-                    </a>
+                    </button>
                     <a href="/barber-login" class="btn btn-secondary">
                         <i class="fas fa-user-tie"></i> Я барбер
                     </a>
@@ -294,6 +534,413 @@
         </div>
     </footer>
 
+    <!-- Модальное окно регистрации -->
+    <div id="registrationModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Регистрация</h3>
+                <button class="close-modal" onclick="closeRegistrationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="modal-form" id="registrationForm">
+                    <div class="form-group">
+                        <label class="form-label">Введите ваш номер телефона</label>
+                        <div class="phone-input-group">
+                            <div class="phone-prefix">+998</div>
+                            <input 
+                                type="tel" 
+                                class="phone-input"
+                                id="phoneInput"
+                                placeholder="90 123 45 67"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                maxlength="9"
+                                required
+                            >
+                        </div>
+                        <div class="form-hint" style="color: #666; font-size: 14px; margin-top: 5px;">
+                            Введите 9 цифр номера без кода страны
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeRegistrationModal()">
+                    Отмена
+                </button>
+                <button class="modal-btn modal-btn-primary" onclick="submitRegistration()">
+                    Зарегистрироваться
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно с логином и паролем -->
+    <div id="credentialsModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Регистрация завершена</h3>
+                <button class="close-modal" onclick="closeCredentialsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="credentials-modal">
+                    <div class="credentials-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="credentials-title">Добро пожаловать!</h3>
+                    <p class="credentials-text">
+                        Ваша регистрация прошла успешно. Данные для входа:
+                    </p>
+                    
+                    <div class="credentials-box">
+                        <div class="credential-item">
+                            <span class="credential-label">Логин:</span>
+                            <span class="credential-value" id="credentialLogin">+998901234567</span>
+                        </div>
+                        <div class="credential-item">
+                            <span class="credential-label">Пароль:</span>
+                            <span class="credential-value" id="credentialPassword">123456</span>
+                        </div>
+                    </div>
+                    
+                    <p class="credentials-text" style="color: #4a6fa5; font-size: 14px;">
+                        <i class="fas fa-info-circle"></i> Пароль также отправлен в Telegram чат
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="closeCredentialsModal()">
+                    Продолжить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно загрузки -->
+    <div id="loadingModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 300px; text-align: center;">
+            <div class="modal-body" style="padding: 40px 20px;">
+                <div class="spinner"></div>
+                <h3 style="color: #fff; margin-top: 20px;">Регистрация...</h3>
+                <p style="color: #aaa; margin-top: 10px;">Пожалуйста, подождите</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://barber-booking-db.onrender.com';
+        
+        // Глобальные переменные
+        let telegramData = null;
+        let isTelegramWebApp = false;
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Инициализация iWant...');
+            
+            // Проверяем, в Telegram Web App ли мы
+            initTelegramWebApp();
+            
+            // Проверяем существующую сессию
+            checkExistingSession();
+            
+            // Настройка ввода телефона
+            setupPhoneInput();
+        });
+        
+        // Инициализация Telegram Web App
+        function initTelegramWebApp() {
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                console.log('✅ Telegram Web App обнаружен!');
+                
+                const tg = Telegram.WebApp;
+                tg.expand();
+                tg.ready();
+                
+                // Получаем данные Telegram
+                const initData = tg.initData;
+                if (initData) {
+                    telegramData = initData;
+                    console.log('📱 Telegram данные получены');
+                    
+                    // Парсим данные пользователя
+                    try {
+                        const params = new URLSearchParams(initData);
+                        const userParam = params.get('user');
+                        if (userParam) {
+                            const user = JSON.parse(userParam);
+                            console.log('👤 Пользователь Telegram:', user);
+                            
+                            // Сохраняем в localStorage
+                            localStorage.setItem('telegram_user', JSON.stringify(user));
+                            localStorage.setItem('telegram_init_data', initData);
+                        }
+                    } catch (error) {
+                        console.error('❌ Ошибка парсинга Telegram данных:', error);
+                    }
+                }
+                
+                isTelegramWebApp = true;
+                
+                // Настройка кнопки "Назад"
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    closeAllModals();
+                });
+                
+            } else {
+                console.log('🌐 НЕ в Telegram Web App');
+                isTelegramWebApp = false;
+            }
+        }
+        
+        // Проверка существующей сессии
+        function checkExistingSession() {
+            const clientToken = localStorage.getItem('clientToken');
+            const clientPhone = localStorage.getItem('clientPhone');
+            
+            if (clientToken && clientPhone) {
+                console.log('🔑 Найдена существующая сессия:', clientPhone);
+                
+                // Проверяем валидность токена
+                fetch(`${API_BASE}/api/client/session`, {
+                    headers: {
+                        'Authorization': `Bearer ${clientToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        console.log('✅ Сессия активна');
+                        // Сессия валидна - пользователь уже залогинен
+                    } else {
+                        console.log('❌ Сессия истекла');
+                        localStorage.removeItem('clientToken');
+                        localStorage.removeItem('clientPhone');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Ошибка проверки сессии:', error);
+                });
+            }
+        }
+        
+        // Обработка клика "Я клиент"
+        function handleClientClick() {
+            const clientToken = localStorage.getItem('clientToken');
+            
+            if (clientToken) {
+                // Уже зарегистрирован - переходим к поиску барбера
+                window.location.href = '/client-login';
+            } else {
+                // Показываем окно регистрации
+                openRegistrationModal();
+            }
+        }
+        
+        // Открыть модальное окно регистрации
+        function openRegistrationModal() {
+            document.getElementById('registrationModal').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('phoneInput').focus();
+            }, 100);
+        }
+        
+        // Закрыть модальное окно регистрации
+        function closeRegistrationModal() {
+            document.getElementById('registrationModal').style.display = 'none';
+            document.getElementById('phoneInput').value = '';
+        }
+        
+        // Открыть модальное окно с данными для входа
+        function openCredentialsModal(phone, password) {
+            document.getElementById('credentialLogin').textContent = phone;
+            document.getElementById('credentialPassword').textContent = password;
+            document.getElementById('credentialsModal').style.display = 'flex';
+        }
+        
+        // Закрыть модальное окно с данными для входа
+        function closeCredentialsModal() {
+            document.getElementById('credentialsModal').style.display = 'none';
+            // После показа данных переходим к поиску барбера
+            window.location.href = '/client-login';
+        }
+        
+        // Показать окно загрузки
+        function showLoading() {
+            document.getElementById('loadingModal').style.display = 'flex';
+        }
+        
+        // Скрыть окно загрузки
+        function hideLoading() {
+            document.getElementById('loadingModal').style.display = 'none';
+        }
+        
+        // Закрыть все модальные окна
+        function closeAllModals() {
+            closeRegistrationModal();
+            closeCredentialsModal();
+            hideLoading();
+        }
+        
+        // Настройка ввода телефона
+        function setupPhoneInput() {
+            const phoneInput = document.getElementById('phoneInput');
+            
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                
+                // Форматируем номер
+                if (value.length > 0) {
+                    let formatted = '';
+                    
+                    if (value.length <= 2) {
+                        formatted = value;
+                    } else if (value.length <= 5) {
+                        formatted = `${value.substring(0, 2)} ${value.substring(2)}`;
+                    } else if (value.length <= 7) {
+                        formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5)}`;
+                    } else {
+                        formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5, 7)} ${value.substring(7, 9)}`;
+                    }
+                    
+                    e.target.value = formatted;
+                }
+            });
+            
+            phoneInput.addEventListener('keypress', function(e) {
+                // Разрешаем только цифры
+                if (!/\d/.test(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        // Отправка регистрации
+        function submitRegistration() {
+            const phoneInput = document.getElementById('phoneInput');
+            let phoneValue = phoneInput.value.replace(/\s+/g, '');
+            
+            if (!phoneValue || phoneValue.length < 9) {
+                alert('Пожалуйста, введите корректный номер телефона (9 цифр)');
+                phoneInput.focus();
+                return;
+            }
+            
+            // Форматируем номер
+            const fullPhone = `+998${phoneValue}`;
+            console.log('📱 Регистрируем номер:', fullPhone);
+            
+            // Показываем загрузку
+            showLoading();
+            
+            // Подготавливаем данные для отправки
+            const registrationData = {
+                phone: fullPhone,
+                send_to_telegram: true
+            };
+            
+            // Добавляем данные Telegram если есть
+            if (telegramData) {
+                registrationData.telegram_data = telegramData;
+            }
+            
+            // Отправляем запрос на регистрацию
+            fetch(`${API_BASE}/api/client/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(registrationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.success) {
+                    console.log('✅ Регистрация успешна:', data);
+                    
+                    // Сохраняем данные в localStorage
+                    localStorage.setItem('clientPhone', data.phone);
+                    
+                    // Если есть токен, сохраняем
+                    if (data.token) {
+                        localStorage.setItem('clientToken', data.token);
+                    }
+                    
+                    // Сохраняем пароль для отображения
+                    localStorage.setItem('clientPassword', data.password);
+                    
+                    // Показываем окно с данными для входа
+                    closeRegistrationModal();
+                    openCredentialsModal(data.phone, data.password);
+                    
+                } else {
+                    console.error('❌ Ошибка регистрации:', data.error);
+                    alert('Ошибка регистрации: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('❌ Ошибка сети:', error);
+                alert('Ошибка соединения с сервером. Проверьте интернет соединение.');
+            });
+        }
+        
+        // Автоматический вход при наличии сохраненной сессии
+        function autoLoginIfNeeded() {
+            const clientToken = localStorage.getItem('clientToken');
+            const clientPhone = localStorage.getItem('clientPhone');
+            
+            if (clientToken && clientPhone) {
+                console.log('🔐 Автоматический вход для:', clientPhone);
+                
+                // Проверяем токен
+                fetch(`${API_BASE}/api/client/session`, {
+                    headers: {
+                        'Authorization': `Bearer ${clientToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        // Пользователь уже залогинен - переходим сразу
+                        window.location.href = '/client-login';
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Ошибка проверки сессии:', error);
+                });
+            }
+        }
+        
+        // Вызываем автоматический вход при загрузке
+        setTimeout(autoLoginIfNeeded, 1000);
+        
+        // Закрытие модальных окон по клику на оверлей
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeAllModals();
+            }
+        });
+        
+        // Закрытие по клавише ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAllModals();
+            }
+        });
+        
+        // Проверка ввода при отправке формы
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitRegistration();
+        });
+    </script>
     <script src="js/home.js"></script>
 </body>
 </html>
