@@ -513,8 +513,8 @@
                 <h1>Запись к барберу<br>за 30 секунд</h1>
                 <p>Выбирайте лучших мастеров, бронируйте удобное время, приходите без очередей</p>
                 <div class="hero-buttons">
-                    <button class="btn btn-primary" onclick="handleClientClick()">
-                        <i class="fas fa-user"></i> Я клиент
+                    <button class="btn btn-primary" id="clientButton" onclick="handleClientClick()">
+                        <i class="fas fa-user"></i> <span id="clientButtonText">Я клиент</span>
                     </button>
                     <a href="/barber-login" class="btn btn-secondary">
                         <i class="fas fa-user-tie"></i> Я барбер
@@ -553,14 +553,15 @@
                                 type="tel" 
                                 class="phone-input"
                                 id="phoneInput"
-                                placeholder="94 629 00 90"
+                                placeholder="91 123 45 67"
                                 inputmode="numeric"
-                                pattern="[0-9]*"
+                                pattern="[0-9\s]*"
+                                maxlength="11"
                                 required
                             >
                         </div>
                         <div class="form-hint" style="color: #666; font-size: 14px; margin-top: 5px;">
-                            Введите 9 цифр номера без кода страны (например: 94 629 00 90)
+                            Введите 9 цифр номера без кода страны (например: 91 123 45 67)
                         </div>
                     </div>
                 </form>
@@ -703,7 +704,42 @@
             
             // Настройка ввода телефона
             setupPhoneInput();
+            
+            // Обновляем кнопку клиента
+            updateClientButton();
         });
+        
+        // ========== ОБНОВЛЕНИЕ КНОПКИ КЛИЕНТА ==========
+        function updateClientButton() {
+            const clientToken = localStorage.getItem('clientToken');
+            const clientPhone = localStorage.getItem('clientPhone');
+            const buttonText = document.getElementById('clientButtonText');
+            const clientButton = document.getElementById('clientButton');
+            
+            if (clientToken && clientPhone) {
+                // Пользователь авторизован
+                if (buttonText) {
+                    buttonText.textContent = 'Мои записи';
+                }
+                if (clientButton) {
+                    clientButton.innerHTML = '<i class="fas fa-calendar-alt"></i> Мои записи';
+                    clientButton.onclick = function() {
+                        // Получаем сохраненного барбера или используем по умолчанию
+                        const savedBarberCode = localStorage.getItem('last_barber_code') || 'barber';
+                        window.location.href = `${API_BASE}/client-panel?code=${savedBarberCode}`;
+                    };
+                }
+            } else {
+                // Пользователь не авторизован
+                if (buttonText) {
+                    buttonText.textContent = 'Я клиент';
+                }
+                if (clientButton) {
+                    clientButton.innerHTML = '<i class="fas fa-user"></i> Я клиент';
+                    clientButton.onclick = handleClientClick;
+                }
+            }
+        }
         
         // Инициализация Telegram Web App
         function initTelegramWebApp() {
@@ -1051,6 +1087,9 @@
                     // Закрываем модальное окно
                     closeLoginModal();
                     
+                    // Обновляем кнопку
+                    updateClientButton();
+                    
                     // Перенаправляем в профиль
                     window.location.href = '/client-profile';
                     
@@ -1115,8 +1154,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.authenticated) {
-                        // Пользователь уже залогинен - переходим сразу в профиль
-                        window.location.href = '/client-profile';
+                        // Пользователь уже залогинен - обновляем кнопку
+                        updateClientButton();
                     }
                 })
                 .catch(error => {
