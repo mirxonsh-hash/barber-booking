@@ -553,15 +553,14 @@
                                 type="tel" 
                                 class="phone-input"
                                 id="phoneInput"
-                                placeholder="90 123 45 67"
+                                placeholder="94 629 00 90"
                                 inputmode="numeric"
                                 pattern="[0-9]*"
-                                maxlength="9"
                                 required
                             >
                         </div>
                         <div class="form-hint" style="color: #666; font-size: 14px; margin-top: 5px;">
-                            Введите 9 цифр номера без кода страны
+                            Введите 9 цифр номера без кода страны (например: 94 629 00 90)
                         </div>
                     </div>
                 </form>
@@ -787,17 +786,19 @@
             hideLoading();
         }
         
-        // Настройка ввода телефона
+        // Настройка ввода телефона - ИСПРАВЛЕННАЯ ФУНКЦИЯ
         function setupPhoneInput() {
             const phoneInput = document.getElementById('phoneInput');
             
             phoneInput.addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
                 
+                // Ограничиваем 9 цифрами
+                value = value.substring(0, 9);
+                
                 // Форматируем номер
+                let formatted = '';
                 if (value.length > 0) {
-                    let formatted = '';
-                    
                     if (value.length <= 2) {
                         formatted = value;
                     } else if (value.length <= 5) {
@@ -807,9 +808,9 @@
                     } else {
                         formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5, 7)} ${value.substring(7, 9)}`;
                     }
-                    
-                    e.target.value = formatted;
                 }
+                
+                e.target.value = formatted;
             });
             
             phoneInput.addEventListener('keypress', function(e) {
@@ -820,13 +821,21 @@
             });
         }
         
-        // Отправка регистрации
+        // Отправка регистрации - ИСПРАВЛЕННАЯ ФУНКЦИЯ
         function submitRegistration() {
             const phoneInput = document.getElementById('phoneInput');
             let phoneValue = phoneInput.value.replace(/\s+/g, '');
             
-            if (!phoneValue || phoneValue.length < 9) {
-                alert('Пожалуйста, введите корректный номер телефона (9 цифр)');
+            // Проверяем точно 9 цифр
+            if (!phoneValue || phoneValue.length !== 9) {
+                alert('Пожалуйста, введите 9 цифр номера телефона');
+                phoneInput.focus();
+                return;
+            }
+            
+            // Проверяем что это только цифры
+            if (!/^\d{9}$/.test(phoneValue)) {
+                alert('Номер телефона должен содержать только цифры');
                 phoneInput.focus();
                 return;
             }
