@@ -929,6 +929,289 @@
         
         // Вызываем автоматический вход при загрузке
         setTimeout(autoLoginIfNeeded, 1000);
+
+# ========== КЛИЕНТСКАЯ РЕГИСТРАЦИЯ ==========
+import secrets
+import string
+import time
+
+@app.route('/api/client/register', methods=['POST'])
+def register_client():
+    """Регистрация клиента через телефон"""
+    try:
+        data = request.json
+        phone = data.get('phone')
+        telegram_data = data.get('telegram_data')
+        
+        logger.info(f"📱 Регистрация клиента. Телефон: {phone}, Telegram данные: {'есть' if telegram_data else 'нет'}")
+        
+        if not phone:
+            return jsonify({'success': False, 'error': 'Телефон обязателен'}), 400
+        
+        # Очищаем номер телефона
+        def clean_phone_number(phone):
+            # Убираем все нецифровые символы
+            digits = ''.join(filter(str.isdigit, phone))
+            
+            # Для узбекских номеров
+            if digits.startswith('998'):
+                return f"+{digits}"
+            elif digits.startswith('7'):
+                return f"+{digits}"
+            else:
+                # Добавляем код Узбекистана
+                return f"+998{digits[-9:]}"
+        
+        phone = clean_phone_number(phone)
+        
+        # Генерируем пароль
+        def generate_temp_password(length=6):
+            alphabet = string.digits  # Только цифры для простоты
+            return ''.join(secrets.choice(alphabet) for _ in range(length))
+        
+        password = generate_temp_password()
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Проверяем, существует ли уже клиент
+        cursor.execute('SELECT id FROM clients WHERE phone = %s', (phone,))
+        existing_client = cursor.fetchone()
+        
+        if existing_client:
+            client_id = existing_client[0]
+            logger.info(f"✅ Клиент уже существует: ID={client_id}, телефон={phone}")
+            
+            # Если есть Telegram данные, обновляем
+            if telegram_data:
+                try:
+                    data_dict = {}
+                    for item in telegram_data.split('&'):
+                        if '=' in item:
+                            key, value = item.split('=', 1)
+                            data_dict[key] = value
+                    
+                    user_str = data_dict.get('user')
+                    if user_str:
+                        user_data = json.loads(user_str)
+                        
+                        cursor.execute('''
+                        UPDATE clients SET 
+                            telegram_id = %s,
+                            first_name = %s,
+                            last_name = %s,
+                            username = %s,
+                            photo_url = %s,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE id = %s
+                        ''', (
+                            user_data.get('id'),
+                            user_data.get('first_name', ''),
+                            user_data.get('last_name', ''),
+                            user_data.get('username', ''),
+                            user_data.get('photo_url', ''),
+                            client_id
+                        ))
+                except Exception as e:
+                    logger.error(f"❌ Ошибка обработки Telegram данных: {e}")
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Клиент уже зарегистрирован',
+                'client_id': client_id,
+                'phone': phone,
+                'password': password,
+                'is_existing': True
+            })
+        
+        # Создаем нового клиента
+        cursor.execute('''
+        INSERT INTO clients (phone, created_at, updated_at)
+        VALUES (%s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING id
+        ''', (phone,))
+        
+        result = cursor.fetchone()
+        new_client_id = result[0] if result else None
+        
+        # Если есть данные Telegram, обновляем
+        if telegram_data:
+            try:
+                data_dict = {}
+                for item in telegram_data.split('&'):
+                    if '=' in item:
+                        key, value = item.split('=', 1)
+                        data_dict[key] = value
+                
+                user_str = data_dict.get('user')
+                if user_str:
+                    user_data = json.loads(user_str)
+                    
+                    cursor.execute('''
+                    UPDATE clients SET 
+                        telegram_id = %s,
+                        first_name = %s,
+                        last_name = %s,
+                        username = %s,
+                        photo_url = %s,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    ''', (
+                        user_data.get('id'),
+                        user_data.get('first_name', ''),
+                        user_data.get('last_name', ''),
+                        user_data.get('username', ''),
+                        user_data.get('photo_url', ''),
+                        new_client_id
+                    ))
+            except Exception as e:
+                logger.error(f"❌ Ошибка обработки Telegram данных: {e}")
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"✅ Новый клиент зарегистрирован: ID={new_client_id}, телефон={phone}")
+        
+        # Отправляем в Telegram если есть данные
+        if telegram_data and data.get('send_to_telegram', True):
+            try:
+                data_dict = {}
+                for item in telegram_data.split('&'):
+                    if '=' in item:
+                        key, value = item.split('=', 1)
+                        data_dict[key] = value
+                
+                user_str = data_dict.get('user')
+                if user_str:
+                    user_data = json.loads(user_str)
+                    telegram_id = user_data.get('id')
+                    
+                    if telegram_id:
+                        message = f"""
+✅ Вы успешно зарегистрированы в iWant!
+
+📱 Ваш логин: {phone}
+🔑 Ваш пароль: {password}
+
+💈 Теперь вы можете записываться к барберам!
+🌐 Сайт: https://barber-booking-db.onrender.com
+"""
+                        
+                        bot_token = TELEGRAM_BOT_TOKEN
+                        if bot_token:
+                            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                            payload = {
+                                'chat_id': telegram_id,
+                                'text': message,
+                                'parse_mode': 'Markdown'
+                            }
+                            
+                            response = requests.post(url, json=payload, timeout=10)
+                            if response.status_code == 200:
+                                logger.info(f"✅ Логин/пароль отправлены в Telegram: {telegram_id}")
+            except Exception as e:
+                logger.error(f"❌ Ошибка отправки в Telegram: {e}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Регистрация успешна',
+            'client_id': new_client_id,
+            'phone': phone,
+            'password': password,
+            'is_existing': False
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка регистрации клиента: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
+
+@app.route('/api/client/session', methods=['GET'])
+def check_client_session():
+    """Проверка сессии клиента"""
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        
+        if not token:
+            return jsonify({'authenticated': False})
+        
+        decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, phone FROM clients WHERE id = %s', (decoded['client_id'],))
+        client = cursor.fetchone()
+        conn.close()
+        
+        if client:
+            return jsonify({
+                'authenticated': True,
+                'client': {
+                    'id': client[0],
+                    'phone': client[1]
+                }
+            })
+        
+        return jsonify({'authenticated': False})
+        
+    except:
+        return jsonify({'authenticated': False})
+
+@app.route('/api/client/auth', methods=['POST'])
+def client_auth():
+    """Авторизация клиента по телефону и паролю"""
+    try:
+        data = request.json
+        phone = data.get('phone')
+        password = data.get('password')
+        
+        if not phone or not password:
+            return jsonify({'success': False, 'error': 'Телефон и пароль обязательны'}), 400
+        
+        # Очищаем номер телефона
+        def clean_phone_number(phone):
+            digits = ''.join(filter(str.isdigit, phone))
+            if digits.startswith('998'):
+                return f"+{digits}"
+            elif digits.startswith('7'):
+                return f"+{digits}"
+            else:
+                return f"+998{digits[-9:]}"
+        
+        phone = clean_phone_number(phone)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Пока просто проверяем существование клиента (в будущем добавить проверку пароля)
+        cursor.execute('SELECT id FROM clients WHERE phone = %s', (phone,))
+        client = cursor.fetchone()
+        conn.close()
+        
+        if client:
+            # Генерируем токен для клиента
+            token = jwt.encode({
+                'client_id': client[0],
+                'phone': phone,
+                'exp': datetime.utcnow() + timedelta(days=30)
+            }, JWT_SECRET, algorithm='HS256')
+            
+            return jsonify({
+                'success': True,
+                'token': token,
+                'client_id': client[0],
+                'phone': phone
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Клиент не найден'}), 404
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка авторизации клиента: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
         
         // Закрытие модальных окон по клику на оверлей
         document.addEventListener('click', function(event) {
@@ -953,3 +1236,4 @@
     <script src="js/home.js"></script>
 </body>
 </html>
+
