@@ -303,17 +303,8 @@ const BarberSystem = {
 // Экспортируем для использования
 window.BarberSystem = BarberSystem;
 
-// Авто-проверка при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ BarberSystem API загружен');
-    console.log('🔗 Сервер:', BarberSystem.baseURL);
-    
-    // Проверяем доступность сервера
-    BarberSystem.checkServerStatus().then(isOnline => {
-        if (isOnline) {
-            console.log('🌐 Сервер доступен');
-        } else {
-            console.warn('⚠️ Сервер недоступен');
-        }
-    });
-});
+// Авто-проверка при загрузке - ТОЛЬКО ДЛЯ ОТЛАДКИ
+// document.addEventListener('DOMContentLoaded', function() {
+//     console.log('✅ BarberSystem API загружен');
+//     console.log('🔗 Сервер:', BarberSystem.baseURL);
+// });
