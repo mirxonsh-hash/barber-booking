@@ -395,7 +395,7 @@
         <div class="container">
             <nav class="navbar">
                 <a href="/" class="logo">
-                    <img src="/images/logo.gif" alt="iWant" class="logo-img">
+                    <i class="fas fa-cut" style="font-size: 28px; color: #4a6fa5;"></i> iWant
                 </a>
                 <ul class="nav-links">
                     <li><a href="/" class="nav-link">Главная</a></li>
@@ -512,7 +512,7 @@
     </footer>
 
     <script>
-        const API_BASE = 'https://barber-booking-db.onrender.com';
+        const API_BASE = window.location.origin; // Автоматическое определение
         
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('barberLoginForm');
@@ -543,7 +543,7 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            username: username,
+                            code: username,  // ИСПРАВЛЕНО: используем code вместо username
                             password: password
                         })
                     });
@@ -599,7 +599,7 @@
                 
                 fetch(`${API_BASE}/api/barber/check`, {
                     headers: {
-                        'Authorization': 'Bearer ' + barberToken
+                        'Authorization': `Bearer ${barberToken}`
                     }
                 })
                 .then(response => response.json())
