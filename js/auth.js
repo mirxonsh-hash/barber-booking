@@ -159,7 +159,6 @@ async function checkBarberAuth() {
             localStorage.removeItem('barber_code');
             localStorage.removeItem('barber_name');
             localStorage.removeItem('barber_id');
-            window.location.href = API_BASE_URL + '/barber-login';
             return false;
         }
         
@@ -212,3 +211,4 @@ window.Auth = {
     logoutBarber,
     API_BASE_URL: API_BASE_URL
 };
+
