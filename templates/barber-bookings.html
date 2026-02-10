@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Записи | iWant Панель барбера</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="/css/common.css">
     <style>
-        /* Дополнительные стили для страницы записей */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -230,7 +229,6 @@
     </style>
 </head>
 <body>
-    <!-- Хедер -->
     <header class="header">
         <div class="container">
             <nav class="navbar">
@@ -243,12 +241,12 @@
                 </button>
                 
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="barber-panel.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
-                    <li><a href="barber-bookings.html" class="nav-link active"><i class="fas fa-calendar-alt"></i> Записи</a></li>
-                    <li><a href="barber-finances.html" class="nav-link"><i class="fas fa-chart-line"></i> Финансы</a></li>
-                    <li><a href="barber-schedule.html" class="nav-link"><i class="fas fa-clock"></i> График</a></li>
-                    <li><a href="barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
-                    <li><a href="barber-profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a></li>
+                    <li><a href="/barber-panel" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
+                    <li><a href="/barber-bookings.html" class="nav-link active"><i class="fas fa-calendar-alt"></i> Записи</a></li>
+                    <li><a href="/barber-finances.html" class="nav-link"><i class="fas fa-chart-line"></i> Финансы</a></li>
+                    <li><a href="/barber-schedule.html" class="nav-link"><i class="fas fa-clock"></i> График</a></li>
+                    <li><a href="/barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
+                    <li><a href="/barber-profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a></li>
                     <li><a href="#" class="nav-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
                 </ul>
             </nav>
@@ -256,7 +254,6 @@
     </header>
 
     <main class="container">
-        <!-- Заголовок страницы -->
         <div class="page-header">
             <h1 class="section-title">
                 <i class="fas fa-calendar-alt"></i> Все записи
@@ -270,7 +267,6 @@
             </div>
         </div>
         
-        <!-- Фильтры -->
         <div class="filters">
             <button class="filter-btn active" data-filter="all">Все</button>
             <button class="filter-btn" data-filter="today">Сегодня</button>
@@ -281,14 +277,11 @@
             <button class="filter-btn" data-filter="cancelled">Отменены</button>
         </div>
         
-        <!-- Поиск -->
         <div class="search-box">
             <input type="text" class="search-input" id="searchInput" placeholder="Поиск по имени, телефону или услуге...">
         </div>
         
-        <!-- Список записей -->
         <div class="bookings-list" id="bookingsList">
-            <!-- Записи будут загружены через JavaScript -->
             <div class="empty-state">
                 <div class="empty-icon">
                     <i class="fas fa-spinner fa-spin"></i>
@@ -298,13 +291,9 @@
             </div>
         </div>
         
-        <!-- Пагинация -->
-        <div class="pagination" id="pagination">
-            <!-- Пагинация будет сгенерирована через JavaScript -->
-        </div>
+        <div class="pagination" id="pagination"></div>
     </main>
 
-    <!-- Футер -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -316,9 +305,7 @@
 
     <script src="/js/api.js"></script>
     <script>
-        // JavaScript для страницы записей
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация мобильного меню
             const navToggle = document.getElementById('navToggle');
             const navLinks = document.getElementById('navLinks');
             
@@ -327,7 +314,6 @@
                     navLinks.classList.toggle('active');
                 });
                 
-                // Закрытие меню при клике на ссылку
                 document.querySelectorAll('.nav-link').forEach(link => {
                     link.addEventListener('click', () => {
                         navLinks.classList.remove('active');
@@ -335,7 +321,6 @@
                 });
             }
             
-            // Устанавливаем текущую дату
             const today = new Date();
             const formattedDate = today.toLocaleDateString('ru-RU', {
                 weekday: 'long',
@@ -345,26 +330,23 @@
             });
             document.getElementById('todayDate').textContent = formattedDate;
             
-            // Кнопка выхода
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (confirm('Вы действительно хотите выйти?')) {
                         localStorage.clear();
-                        window.location.href = 'barber-login.html';
+                        window.location.href = '/barber-login.html';
                     }
                 });
             }
             
-            // Переменные для управления данными
             let allBookings = [];
             let filteredBookings = [];
             let currentFilter = 'all';
             let currentPage = 1;
             const bookingsPerPage = 10;
             
-            // Загрузка записей
             async function loadBookings() {
                 try {
                     const response = await BarberSystem.getBarberAppointments();
@@ -372,7 +354,6 @@
                     if (response.success && response.appointments) {
                         allBookings = response.appointments;
                         
-                        // Сортируем по дате (новые сначала)
                         allBookings.sort((a, b) => {
                             const dateA = new Date(a.date + ' ' + a.time);
                             const dateB = new Date(b.date + ' ' + b.time);
@@ -389,7 +370,6 @@
                 }
             }
             
-            // Применение фильтров
             function applyFilter() {
                 const today = new Date().toISOString().split('T')[0];
                 
@@ -404,7 +384,6 @@
                     return true;
                 });
                 
-                // Применяем поиск если есть
                 const searchTerm = document.getElementById('searchInput').value.toLowerCase();
                 if (searchTerm) {
                     filteredBookings = filteredBookings.filter(booking => {
@@ -420,7 +399,6 @@
                 displayBookings();
             }
             
-            // Отображение записей
             function displayBookings() {
                 const container = document.getElementById('bookingsList');
                 const pagination = document.getElementById('pagination');
@@ -449,13 +427,11 @@
                     return;
                 }
                 
-                // Пагинация
                 const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
                 const startIndex = (currentPage - 1) * bookingsPerPage;
                 const endIndex = startIndex + bookingsPerPage;
                 const pageBookings = filteredBookings.slice(startIndex, endIndex);
                 
-                // Отображаем записи
                 let html = '';
                 pageBookings.forEach(booking => {
                     const date = new Date(booking.date);
@@ -559,18 +535,15 @@
                 
                 container.innerHTML = html;
                 
-                // Генерируем пагинацию
                 if (totalPages > 1) {
                     let paginationHtml = '';
                     
-                    // Кнопка "Назад"
                     paginationHtml += `
                         <button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
                             <i class="fas fa-chevron-left"></i>
                         </button>
                     `;
                     
-                    // Номера страниц
                     for (let i = 1; i <= totalPages; i++) {
                         if (
                             i === 1 || 
@@ -587,7 +560,6 @@
                         }
                     }
                     
-                    // Кнопка "Вперед"
                     paginationHtml += `
                         <button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
                             <i class="fas fa-chevron-right"></i>
@@ -600,7 +572,6 @@
                 }
             }
             
-            // Функция обновления статуса записи
             async function updateBookingStatus(bookingId, newStatus) {
                 if (!confirm('Изменить статус записи?')) return;
                 
@@ -619,35 +590,27 @@
                 }
             }
             
-            // Функция смены страницы
             function changePage(page) {
                 currentPage = page;
                 displayBookings();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
             
-            // Делаем функции глобально доступными
             window.updateBookingStatus = updateBookingStatus;
             window.changePage = changePage;
             
-            // Обработчики фильтров
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    // Убираем активный класс у всех кнопок
                     document.querySelectorAll('.filter-btn').forEach(b => {
                         b.classList.remove('active');
                     });
                     
-                    // Добавляем активный класс нажатой кнопке
                     this.classList.add('active');
-                    
-                    // Устанавливаем фильтр
                     currentFilter = this.dataset.filter;
                     applyFilter();
                 });
             });
             
-            // Поиск
             const searchInput = document.getElementById('searchInput');
             let searchTimeout;
             searchInput.addEventListener('input', function() {
@@ -657,7 +620,6 @@
                 }, 500);
             });
             
-            // Кнопка обновления
             const refreshBtn = document.getElementById('refreshBtn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', async function() {
@@ -672,7 +634,6 @@
                 });
             }
             
-            // Функция для отображения пустого состояния
             function showEmptyState(message, icon = 'fas fa-calendar-times') {
                 const container = document.getElementById('bookingsList');
                 container.innerHTML = `
@@ -689,7 +650,6 @@
                 `;
             }
             
-            // Функция для отображения уведомлений
             function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
                 notification.className = `alert alert-${type}`;
@@ -711,25 +671,22 @@
                 }, 3000);
             }
             
-            // Проверяем авторизацию
             async function checkAuth() {
                 try {
                     const response = await BarberSystem.checkAuth();
                     if (!response.authenticated) {
-                        window.location.href = 'barber-login.html';
+                        window.location.href = '/barber-login.html';
                     } else {
                         await loadBookings();
                     }
                 } catch (error) {
                     console.error('Ошибка проверки авторизации:', error);
-                    window.location.href = 'barber-login.html';
+                    window.location.href = '/barber-login.html';
                 }
             }
             
-            // Инициализация
             checkAuth();
             
-            // Авто-обновление каждые 30 секунд
             setInterval(async () => {
                 await loadBookings();
             }, 30000);
