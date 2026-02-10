@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Стеклянный эффект для всех элементов */
+        /* (стили остаются без изменений - не меняйте их) */
         .header, .auth-card, .form-input, .btn,
         .nav-link, .test-data, .error-message {
             backdrop-filter: blur(10px);
@@ -48,7 +48,6 @@
             border-bottom: 1px solid rgba(51, 51, 51, 0.5);
         }
         
-        /* Модальное окно успеха */
         .success-modal-overlay {
             display: none;
             position: fixed;
@@ -116,14 +115,12 @@
             line-height: 1.5;
         }
         
-        /* Стили логотипа */
         .logo-img {
             height: 40px;
             width: auto;
             filter: brightness(0) invert(1);
         }
         
-        /* Базовые стили */
         * {
             margin: 0;
             padding: 0;
@@ -512,15 +509,19 @@
     </footer>
 
     <script>
-        const API_BASE = window.location.origin; // Автоматическое определение
+        const API_BASE = window.location.origin;
+        let autoLoginCheckDone = false; // Флаг для предотвращения повторных проверок
         
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('barberLoginForm');
             const errorMessage = document.getElementById('errorMessage');
             const loginBtn = document.getElementById('loginBtn');
             
-            // Проверяем авторизацию
-            checkBarberAutoLogin();
+            // Проверяем авторизацию (ТОЛЬКО ОДИН РАЗ)
+            if (!autoLoginCheckDone) {
+                checkBarberAutoLogin();
+                autoLoginCheckDone = true;
+            }
             
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
@@ -595,6 +596,12 @@
         
         // ========== ИСПРАВЛЕННАЯ ФУНКЦИЯ: Автопроверка барбера ==========
         function checkBarberAutoLogin() {
+            // Проверяем, не на странице ли мы barber-panel (чтобы избежать петли)
+            if (window.location.pathname.includes('barber-panel')) {
+                console.log('⚠️ Мы уже на странице barber-panel, пропускаем проверку');
+                return;
+            }
+            
             const barberToken = localStorage.getItem('barber_token');
             const barberCode = localStorage.getItem('barber_code');
             const clientToken = localStorage.getItem('clientToken');
@@ -622,9 +629,8 @@
                         // Автоматический переход ТОЛЬКО если на странице входа
                         if (window.location.pathname.includes('barber-login')) {
                             console.log('🔄 Перенаправляем в панель барбера...');
-                            setTimeout(() => {
-                                window.location.href = `${API_BASE}/barber-panel?token=${encodeURIComponent(barberToken)}`;
-                            }, 1000);
+                            // Убираем setTimeout чтобы избежать повторного вызова
+                            window.location.href = `${API_BASE}/barber-panel?token=${encodeURIComponent(barberToken)}`;
                         }
                     } else {
                         console.log('❌ Сессия барбера истекла');
@@ -640,9 +646,6 @@
                 console.log('👨‍🎨 Требуется вход барбера');
             }
         }
-
-        // Запускаем проверку при загрузке
-        setTimeout(checkBarberAutoLogin, 1000);
         
         // Функции для модального окна успеха
         function showSuccessModal(message) {
