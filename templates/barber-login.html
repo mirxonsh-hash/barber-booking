@@ -538,15 +538,15 @@
                 
                 try {
                     const response = await fetch(`${API_BASE}/api/barber/login`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            code: username,  // ИСПРАВЛЕНО: используем code вместо username
-                            password: password
-                        })
-                    });
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        code: username,  // Это поле ввода с id="username"
+        password: password
+    })
+});
                     
                     const data = await response.json();
                     
@@ -662,3 +662,4 @@
     </script>
 </body>
 </html>
+
