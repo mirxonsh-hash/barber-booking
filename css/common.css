@@ -1,4 +1,4 @@
-/* css/common.css - ОБНОВЛЕННАЯ ВЕРСИЯ С ФОНОМ */
+/* css/common.css - ОБНОВЛЕННАЯ ВЕРСИЯ С ФОНОМ И СТЕКЛЯННЫМ ЭФФЕКТОМ */
 :root {
     --primary-color: #4a6fa5;
     --primary-hover: #5a7fb5;
@@ -11,8 +11,8 @@
     --info-color: #17a2b8;
     
     --bg-dark: #0a0a0a;
-    --bg-card: #1a1a1a;
-    --bg-input: #222;
+    --bg-card: rgba(26, 26, 26, 0.7);
+    --bg-input: rgba(34, 34, 34, 0.7);
     --bg-overlay: rgba(0, 0, 0, 0.85);
     
     --text-white: #ffffff;
@@ -20,9 +20,9 @@
     --text-lighter: #666;
     --text-dark: #333;
     
-    --border-color: #333;
-    --border-light: #444;
-    --border-input: #444;
+    --border-color: rgba(51, 51, 51, 0.5);
+    --border-light: rgba(68, 68, 68, 0.5);
+    --border-input: rgba(68, 68, 68, 0.5);
     
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -57,19 +57,77 @@ body {
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     
-    /* ТВОЙ ФОН */
+    /* ФОН С ИЗОБРАЖЕНИЕМ */
     background: 
         linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.9)),
         url('/images/fon.jpg') center/cover no-repeat fixed;
-    
-    /* Убери если не нужно затемнение */
-    /* background-color: var(--bg-dark); */ /* ← УДАЛИ ЭТУ СТРОКУ ЕСЛИ ЕСТЬ! */
 }
 
 /* Все контентные блоки поверх фона */
 .container, .header, .card, .modal-container, .footer {
     position: relative;
     z-index: 1;
+}
+
+/* Стеклянный эффект для основных элементов */
+.btn, .form-input, .card, .modal-content, .nav-link {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: var(--bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.btn:hover, .nav-link:hover {
+    background: rgba(74, 111, 165, 0.4) !important;
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: rgba(74, 111, 165, 0.3) !important;
+}
+
+.form-input:focus {
+    background: rgba(34, 34, 34, 0.8) !important;
+    border-color: rgba(74, 111, 165, 0.5) !important;
+    box-shadow: 
+        0 0 0 2px rgba(74, 111, 165, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    background: rgba(74, 111, 165, 0.3) !important;
+    border-color: rgba(74, 111, 165, 0.5) !important;
+}
+
+.btn-secondary {
+    background: rgba(51, 51, 51, 0.7) !important;
+}
+
+.btn-secondary:hover {
+    background: rgba(74, 111, 165, 0.4) !important;
+}
+
+.btn-primary {
+    background: rgba(74, 111, 165, 0.3) !important;
+}
+
+.btn-primary:hover {
+    background: rgba(74, 111, 165, 0.5) !important;
+}
+
+/* Стили для аватаров и иконок */
+.profile-avatar, .barber-avatar, .avatar {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: rgba(74, 111, 165, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Reset & Base Styles */
@@ -127,13 +185,14 @@ a:hover {
 
 /* Header & Navigation */
 .header {
-    background-color: rgba(26, 26, 26, 0.95);
+    background-color: rgba(26, 26, 26, 0.9);
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 1000;
     box-shadow: var(--shadow-sm);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .navbar {
@@ -179,12 +238,10 @@ a:hover {
 
 .nav-link:hover {
     color: var(--text-white);
-    background-color: var(--secondary-color);
 }
 
 .nav-link.active {
     color: var(--primary-color);
-    background-color: var(--primary-light);
 }
 
 .nav-link.active::after {
@@ -245,25 +302,6 @@ a:hover {
 }
 
 /* Button Variants */
-.btn-primary {
-    background-color: var(--primary-color);
-    color: var(--text-white);
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-hover);
-}
-
-.btn-secondary {
-    background-color: var(--secondary-color);
-    color: var(--text-white);
-    border: 1px solid var(--border-light);
-}
-
-.btn-secondary:hover {
-    background-color: var(--secondary-light);
-}
-
 .btn-outline {
     background-color: transparent;
     color: var(--primary-color);
@@ -333,8 +371,6 @@ a:hover {
 .form-input {
     width: 100%;
     padding: var(--spacing-md);
-    background-color: var(--bg-input);
-    border: 2px solid var(--border-input);
     border-radius: var(--radius-sm);
     color: var(--text-white);
     font-size: 1rem;
@@ -343,7 +379,6 @@ a:hover {
 
 .form-input:focus {
     outline: none;
-    border-color: var(--primary-color);
 }
 
 .form-input::placeholder {
@@ -358,8 +393,6 @@ a:hover {
 /* Phone Input Specific */
 .phone-input-group {
     display: flex;
-    background-color: var(--bg-input);
-    border: 2px solid var(--border-input);
     border-radius: var(--radius-sm);
     overflow: hidden;
     transition: border-color var(--transition-fast);
@@ -433,7 +466,6 @@ a:hover {
 
 /* Cards */
 .card {
-    background-color: rgba(26, 26, 26, 0.95);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
     overflow: hidden;
@@ -473,6 +505,8 @@ a:hover {
     display: flex;
     align-items: flex-start;
     gap: var(--spacing-sm);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .alert-icon {
@@ -532,11 +566,11 @@ a:hover {
     justify-content: center;
     padding: var(--spacing-md);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     animation: fadeIn var(--transition-normal);
 }
 
 .modal-container {
-    background-color: rgba(26, 26, 26, 0.98);
     border-radius: var(--radius-lg);
     width: 100%;
     max-width: 500px;
@@ -599,11 +633,14 @@ a:hover {
 
 /* Footer */
 .footer {
-    background-color: rgba(26, 26, 26, 0.95);
+    background-color: rgba(26, 26, 26, 0.9);
     color: var(--text-light);
     padding: var(--spacing-xl) 0;
+    text-align: center;
     border-top: 1px solid var(--border-color);
     margin-top: auto;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .footer-content {
@@ -666,6 +703,8 @@ a:hover {
     font-weight: 600;
     border-radius: var(--radius-sm);
     line-height: 1;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .badge-primary {
