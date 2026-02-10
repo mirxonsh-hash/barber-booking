@@ -123,4 +123,348 @@
                     </a>
                 </div>
             </div>
-        </div
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="section-title">
+            <i class="fas fa-user"></i> Профиль
+        </h1>
+        
+        <div class="profile-container">
+            <!-- Левая колонка - аватар и статистика -->
+            <div class="profile-sidebar glass-effect">
+                <div class="avatar-container">
+                    <div class="avatar" id="avatarDisplay">
+                        <i class="fas fa-user-tie"></i>
+                        <!-- Если есть аватар, показываем изображение -->
+                        <!-- <img src="" alt="" id="avatarImage" style="display: none;"> -->
+                    </div>
+                    <div class="avatar-change" onclick="openAvatarModal()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+                
+                <h2 class="barber-name" id="displayName">Барбер</h2>
+                <div class="barber-code">Код: <strong id="displayCode">barber</strong></div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statAppointments">42</div>
+                        <div class="stat-label">Записей всего</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statRating">4.8</div>
+                        <div class="stat-label">Рейтинг</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statClients">35</div>
+                        <div class="stat-label">Клиентов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statIncome">625K</div>
+                        <div class="stat-label">Заработано</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Правая колонка - форма редактирования -->
+            <div class="profile-content glass-effect">
+                <form id="profileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Имя</label>
+                            <input type="text" id="inputName" class="form-input" placeholder="Ваше имя" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Телефон</label>
+                            <input type="tel" id="inputPhone" class="form-input" placeholder="+998 90 123 45 67">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email (необязательно)</label>
+                        <input type="email" id="inputEmail" class="form-input" placeholder="example@mail.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Описание (для клиентов)</label>
+                        <textarea id="inputBio" class="form-input" rows="4" placeholder="Расскажите о себе, своем опыте и специализации..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Адрес салона (необязательно)</label>
+                        <input type="text" id="inputAddress" class="form-input" placeholder="Город, улица, дом">
+                    </div>
+                    
+                    <div class="code-section">
+                        <label class="form-label">Ваш личный код для клиентов</label>
+                        <div class="code-display">
+                            <div class="code-value" id="profileCode">barber</div>
+                            <button type="button" class="btn btn-primary" onclick="copyProfileCode()">
+                                <i class="far fa-copy"></i> Копировать
+                            </button>
+                        </div>
+                        <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                            <i class="fas fa-info-circle"></i> Клиенты используют этот код для записи к вам
+                        </p>
+                    </div>
+                </form>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="saveProfile()">
+                        <i class="fas fa-save"></i> Сохранить изменения
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetProfile()">
+                        <i class="fas fa-redo"></i> Сбросить
+                    </button>
+                </div>
+                
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h3 style="color: #fff; margin-bottom: 15px;">
+                        <i class="fas fa-cog"></i> Дополнительные настройки
+                    </h3>
+                    <button class="btn btn-secondary" style="margin-right: 10px;">
+                        <i class="fas fa-bell"></i> Уведомления
+                    </button>
+                    <button class="btn btn-secondary" style="margin-right: 10px;">
+                        <i class="fas fa-shield-alt"></i> Безопасность
+                    </button>
+                    <button class="btn btn-danger" onclick="confirmLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно для аватара -->
+    <div id="avatarModal" class="modal-overlay">
+        <div class="modal-container glass-effect">
+            <div class="modal-header">
+                <h3 class="modal-title">Изменение аватара</h3>
+                <div class="close-modal" onclick="closeAvatarModal()">
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div id="avatarPreview" style="width: 150px; height: 150px; border-radius: 50%; background: rgba(74, 111, 165, 0.2); margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #4a6fa5; overflow: hidden;">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Выберите изображение</label>
+                    <input type="file" id="avatarInput" accept="image/*" class="form-input">
+                </div>
+                
+                <div style="text-align: center; margin: 20px 0;">
+                    <p style="color: #aaa; font-size: 14px;">
+                        Рекомендуемый размер: 500×500 пикселей<br>
+                        Форматы: JPG, PNG, GIF
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAvatarModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="saveAvatar()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Система онлайн-записи к барберам</p>
+            <p>© 2026 iWant. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Данные профиля
+        const profileData = {
+            name: 'Александр Барберов',
+            phone: '+998901234567',
+            email: 'barber@example.com',
+            bio: 'Опытный барбер с 5-летним стажем. Специализация: мужские стрижки, уход за бородой, классическое бритье. Работаю с любыми типами волос.',
+            address: 'Ташкент, ул. Навои, 15',
+            code: 'barber123',
+            avatar: null,
+            stats: {
+                appointments: 42,
+                rating: 4.8,
+                clients: 35,
+                income: '625K'
+            }
+        };
+        
+        function loadProfile() {
+            // Загружаем из localStorage
+            const savedProfile = localStorage.getItem('barber_profile');
+            if (savedProfile) {
+                Object.assign(profileData, JSON.parse(savedProfile));
+            }
+            
+            // Заполняем форму
+            document.getElementById('inputName').value = profileData.name;
+            document.getElementById('inputPhone').value = profileData.phone;
+            document.getElementById('inputEmail').value = profileData.email;
+            document.getElementById('inputBio').value = profileData.bio;
+            document.getElementById('inputAddress').value = profileData.address;
+            document.getElementById('profileCode').textContent = profileData.code;
+            
+            // Обновляем отображение
+            document.getElementById('displayName').textContent = profileData.name;
+            document.getElementById('displayCode').textContent = profileData.code;
+            
+            // Обновляем статистику
+            document.getElementById('statAppointments').textContent = profileData.stats.appointments;
+            document.getElementById('statRating').textContent = profileData.stats.rating;
+            document.getElementById('statClients').textContent = profileData.stats.clients;
+            document.getElementById('statIncome').textContent = profileData.stats.income;
+            
+            // Загружаем аватар если есть
+            if (profileData.avatar) {
+                const avatarDisplay = document.getElementById('avatarDisplay');
+                avatarDisplay.innerHTML = `<img src="${profileData.avatar}" alt="Аватар" style="width: 100%; height: 100%; object-fit: cover;">`;
+                
+                const avatarPreview = document.getElementById('avatarPreview');
+                avatarPreview.innerHTML = `<img src="${profileData.avatar}" alt="Превью" style="width: 100%; height: 100%; object-fit: cover;">`;
+            }
+        }
+        
+        function saveProfile() {
+            // Собираем данные из формы
+            profileData.name = document.getElementById('inputName').value.trim();
+            profileData.phone = document.getElementById('inputPhone').value.trim();
+            profileData.email = document.getElementById('inputEmail').value.trim();
+            profileData.bio = document.getElementById('inputBio').value.trim();
+            profileData.address = document.getElementById('inputAddress').value.trim();
+            
+            // Обновляем отображение
+            document.getElementById('displayName').textContent = profileData.name;
+            
+            // Сохраняем в localStorage
+            localStorage.setItem('barber_profile', JSON.stringify(profileData));
+            
+            showNotification('Профиль сохранен!');
+        }
+        
+        function resetProfile() {
+            if (confirm('Сбросить все изменения к последним сохраненным данным?')) {
+                loadProfile();
+                showNotification('Изменения сброшены');
+            }
+        }
+        
+        function openAvatarModal() {
+            document.getElementById('avatarModal').style.display = 'flex';
+        }
+        
+        function closeAvatarModal() {
+            document.getElementById('avatarModal').style.display = 'none';
+        }
+        
+        function saveAvatar() {
+            const input = document.getElementById('avatarInput');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Сохраняем аватар в данных профиля
+                    profileData.avatar = e.target.result;
+                    
+                    // Обновляем отображение
+                    const avatarDisplay = document.getElementById('avatarDisplay');
+                    avatarDisplay.innerHTML = `<img src="${e.target.result}" alt="Аватар" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Превью" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    
+                    // Сохраняем профиль
+                    localStorage.setItem('barber_profile', JSON.stringify(profileData));
+                    
+                    closeAvatarModal();
+                    showNotification('Аватар обновлен!');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Предпросмотр аватара при выборе файла
+        document.getElementById('avatarInput').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Превью" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        
+        function copyProfileCode() {
+            const code = document.getElementById('profileCode').textContent;
+            navigator.clipboard.writeText(code)
+                .then(() => {
+                    showNotification('Код скопирован!');
+                })
+                .catch(() => {
+                    showNotification('Ошибка копирования');
+                });
+        }
+        
+        function confirmLogout() {
+            if (confirm('Вы действительно хотите выйти из аккаунта?')) {
+                // Очищаем localStorage и перенаправляем на страницу входа
+                localStorage.removeItem('barber_token');
+                localStorage.removeItem('barber_code');
+                window.location.href = 'barber-login.html';
+            }
+        }
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: rgba(74, 111, 165, 0.9);
+                color: white;
+                border-radius: 8px;
+                backdrop-filter: blur(10px);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+        });
+        
+        // Добавляем CSS анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
