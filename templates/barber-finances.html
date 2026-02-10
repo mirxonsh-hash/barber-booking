@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Финансы | iWant Панель барбера</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="/css/common.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Дополнительные стили для страницы финансов */
         .finance-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -68,7 +67,6 @@
             color: var(--error-color);
         }
         
-        /* Периоды */
         .period-selector {
             display: flex;
             gap: 10px;
@@ -100,7 +98,6 @@
             color: var(--primary-color);
         }
         
-        /* Диаграммы */
         .charts-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -129,7 +126,6 @@
             position: relative;
         }
         
-        /* Таблица транзакций */
         .transactions-table {
             width: 100%;
             border-collapse: collapse;
@@ -188,12 +184,10 @@
             font-weight: 600;
         }
         
-        /* Кнопка экспорта */
         .export-btn {
             margin: 20px 0;
         }
         
-        /* Empty state */
         .empty-transactions {
             text-align: center;
             padding: 50px 20px;
@@ -239,7 +233,6 @@
     </style>
 </head>
 <body>
-    <!-- Хедер -->
     <header class="header">
         <div class="container">
             <nav class="navbar">
@@ -252,12 +245,12 @@
                 </button>
                 
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="barber-panel.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
-                    <li><a href="barber-bookings.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Записи</a></li>
-                    <li><a href="barber-finances.html" class="nav-link active"><i class="fas fa-chart-line"></i> Финансы</a></li>
-                    <li><a href="barber-schedule.html" class="nav-link"><i class="fas fa-clock"></i> График</a></li>
-                    <li><a href="barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
-                    <li><a href="barber-profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a></li>
+                    <li><a href="/barber-panel" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
+                    <li><a href="/barber-bookings.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Записи</a></li>
+                    <li><a href="/barber-finances.html" class="nav-link active"><i class="fas fa-chart-line"></i> Финансы</a></li>
+                    <li><a href="/barber-schedule.html" class="nav-link"><i class="fas fa-clock"></i> График</a></li>
+                    <li><a href="/barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
+                    <li><a href="/barber-profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a></li>
                     <li><a href="#" class="nav-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
                 </ul>
             </nav>
@@ -265,7 +258,6 @@
     </header>
 
     <main class="container">
-        <!-- Заголовок -->
         <div class="page-header" style="margin-bottom: 30px;">
             <h1 class="section-title">
                 <i class="fas fa-chart-line"></i> Финансы
@@ -281,7 +273,6 @@
             </div>
         </div>
         
-        <!-- Карточки с суммами -->
         <div class="finance-cards">
             <div class="finance-card">
                 <div class="finance-icon">
@@ -320,7 +311,6 @@
             </div>
         </div>
         
-        <!-- Выбор периода -->
         <div class="period-selector">
             <button class="period-btn active" data-period="day">День</button>
             <button class="period-btn" data-period="week">Неделя</button>
@@ -328,7 +318,6 @@
             <button class="period-btn" data-period="year">Год</button>
         </div>
         
-        <!-- Диаграммы -->
         <div class="charts-container">
             <div class="chart-card">
                 <div class="chart-title">Доход по дням</div>
@@ -345,7 +334,6 @@
             </div>
         </div>
         
-        <!-- История транзакций -->
         <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin: 40px 0 20px;">
             <h2 class="section-title">
                 <i class="fas fa-history"></i> История операций
@@ -368,7 +356,6 @@
                     </tr>
                 </thead>
                 <tbody id="transactionsBody">
-                    <!-- Транзакции будут загружены через JavaScript -->
                     <tr>
                         <td colspan="6" style="text-align: center; padding: 40px;">
                             <div class="empty-icon">
@@ -381,7 +368,6 @@
             </table>
         </div>
         
-        <!-- Статистика -->
         <div class="chart-card" style="margin-top: 40px;">
             <div class="chart-title">Статистика выполнения</div>
             <div class="chart-wrapper">
@@ -390,7 +376,6 @@
         </div>
     </main>
 
-    <!-- Футер -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -402,9 +387,7 @@
 
     <script src="/js/api.js"></script>
     <script>
-        // JavaScript для страницы финансов
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация мобильного меню
             const navToggle = document.getElementById('navToggle');
             const navLinks = document.getElementById('navLinks');
             
@@ -420,26 +403,22 @@
                 });
             }
             
-            // Кнопка выхода
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (confirm('Вы действительно хотите выйти?')) {
                         localStorage.clear();
-                        window.location.href = 'barber-login.html';
+                        window.location.href = '/barber-login.html';
                     }
                 });
             }
             
-            // Переменные для данных
             let financesData = {};
             let currentPeriod = 'day';
             let incomeChart, servicesChart, statsChart;
             
-            // Инициализация диаграмм
             function initCharts() {
-                // Диаграмма доходов
                 const incomeCtx = document.getElementById('incomeChart').getContext('2d');
                 incomeChart = new Chart(incomeCtx, {
                     type: 'line',
@@ -487,7 +466,6 @@
                     }
                 });
                 
-                // Диаграмма услуг
                 const servicesCtx = document.getElementById('servicesChart').getContext('2d');
                 servicesChart = new Chart(servicesCtx, {
                     type: 'doughnut',
@@ -521,7 +499,6 @@
                     }
                 });
                 
-                // Статистическая диаграмма
                 const statsCtx = document.getElementById('statsChart').getContext('2d');
                 statsChart = new Chart(statsCtx, {
                     type: 'bar',
@@ -571,16 +548,12 @@
                 });
             }
             
-            // Загрузка финансовых данных
             async function loadFinances() {
                 try {
-                    // Получаем записи
                     const response = await BarberSystem.getBarberAppointments();
                     
                     if (response.success && response.appointments) {
                         const appointments = response.appointments;
-                        
-                        // Рассчитываем финансовые показатели
                         calculateFinances(appointments);
                         updateCharts(appointments);
                         updateTransactions(appointments);
@@ -593,7 +566,6 @@
                 }
             }
             
-            // Расчет финансовых показателей
             function calculateFinances(appointments) {
                 const today = new Date().toISOString().split('T')[0];
                 const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -607,43 +579,35 @@
                 appointments.forEach(appointment => {
                     const price = appointment.price || 0;
                     
-                    // Сегодня
                     if (appointment.date === today && appointment.status === 'completed') {
                         todayIncome += price;
                     }
                     
-                    // Неделя
                     if (appointment.date >= oneWeekAgo && appointment.status === 'completed') {
                         weekIncome += price;
                     }
                     
-                    // Месяц
                     if (appointment.date >= oneMonthAgo && appointment.status === 'completed') {
                         monthIncome += price;
                     }
                     
-                    // Все время
                     if (appointment.status === 'completed') {
                         totalIncome += price;
                     }
                 });
                 
-                // Обновляем карточки
                 document.getElementById('todayIncome').textContent = formatCurrency(todayIncome);
                 document.getElementById('weekIncome').textContent = formatCurrency(weekIncome);
                 document.getElementById('monthIncome').textContent = formatCurrency(monthIncome);
                 document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
                 
-                // Проценты роста (заглушка)
                 document.getElementById('todayChange').textContent = '+12%';
                 document.getElementById('weekChange').textContent = '+8%';
                 document.getElementById('monthChange').textContent = '+15%';
                 document.getElementById('totalChange').textContent = '+25%';
             }
             
-            // Обновление диаграмм
             function updateCharts(appointments) {
-                // Данные для диаграммы доходов по дням
                 const last7Days = getLastNDays(7);
                 const incomeByDay = {};
                 
@@ -660,14 +624,12 @@
                     }
                 });
                 
-                // Обновляем диаграмму доходов
                 incomeChart.data.labels = last7Days.map(day => 
                     new Date(day).toLocaleDateString('ru-RU', { weekday: 'short' })
                 );
                 incomeChart.data.datasets[0].data = last7Days.map(day => incomeByDay[day]);
                 incomeChart.update();
                 
-                // Данные для диаграммы услуг
                 const servicesData = {};
                 appointments.forEach(appointment => {
                     if (appointment.status === 'completed' && appointment.service_name) {
@@ -684,7 +646,6 @@
                 servicesChart.data.datasets[0].data = topServices.map(([, count]) => count);
                 servicesChart.update();
                 
-                // Статистика по статусам
                 const stats = {
                     completed: appointments.filter(a => a.status === 'completed').length,
                     cancelled: appointments.filter(a => a.status === 'cancelled').length,
@@ -701,7 +662,6 @@
                 statsChart.update();
             }
             
-            // Обновление таблицы транзакций
             function updateTransactions(appointments) {
                 const tbody = document.getElementById('transactionsBody');
                 
@@ -721,7 +681,6 @@
                     return;
                 }
                 
-                // Сортируем по дате (новые сначала)
                 const sortedAppointments = [...appointments].sort((a, b) => {
                     return new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time);
                 });
@@ -786,7 +745,6 @@
                 document.getElementById('transactionsCount').textContent = completedCount;
             }
             
-            // Вспомогательные функции
             function getLastNDays(n) {
                 const days = [];
                 for (let i = n - 1; i >= 0; i--) {
@@ -800,9 +758,7 @@
                 return amount.toLocaleString('ru-RU') + ' руб.';
             }
             
-            // Функции для глобального доступа
             window.viewBooking = function(bookingId) {
-                // Можно реализовать просмотр деталей записи
                 alert(`Просмотр записи #${bookingId}`);
             };
             
@@ -824,7 +780,6 @@
                 }
             };
             
-            // Обработчики фильтров по периодам
             document.querySelectorAll('.period-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.period-btn').forEach(b => {
@@ -833,12 +788,9 @@
                     
                     this.classList.add('active');
                     currentPeriod = this.dataset.period;
-                    // Здесь можно добавить фильтрацию по периодам
-                    // applyPeriodFilter();
                 });
             });
             
-            // Кнопка обновления
             const refreshBtn = document.getElementById('refreshBtn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', async function() {
@@ -853,16 +805,13 @@
                 });
             }
             
-            // Кнопка экспорта
             const exportBtn = document.getElementById('exportBtn');
             if (exportBtn) {
                 exportBtn.addEventListener('click', function() {
-                    // Здесь можно реализовать экспорт данных
                     showNotification('Экспорт данных в разработке', 'info');
                 });
             }
             
-            // Функция для отображения уведомлений
             function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
                 notification.className = `alert alert-${type}`;
@@ -884,7 +833,6 @@
                 }, 3000);
             }
             
-            // Функция для пустого состояния
             function showEmptyState() {
                 const tbody = document.getElementById('transactionsBody');
                 tbody.innerHTML = `
@@ -903,26 +851,23 @@
                 `;
             }
             
-            // Проверка авторизации
             async function checkAuth() {
                 try {
                     const response = await BarberSystem.checkAuth();
                     if (!response.authenticated) {
-                        window.location.href = 'barber-login.html';
+                        window.location.href = '/barber-login.html';
                     } else {
                         initCharts();
                         await loadFinances();
                     }
                 } catch (error) {
                     console.error('Ошибка проверки авторизации:', error);
-                    window.location.href = 'barber-login.html';
+                    window.location.href = '/barber-login.html';
                 }
             }
             
-            // Инициализация
             checkAuth();
             
-            // Авто-обновление каждые 60 секунд
             setInterval(async () => {
                 await loadFinances();
             }, 60000);
