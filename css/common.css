@@ -1,5 +1,33 @@
 /* css/common.css - ОБНОВЛЕННАЯ ВЕРСИЯ */
 :root {
+
+    /* ФОН НА ВСЕХ СТРАНИЦАХ */
+body {
+    background-image: url('/static/images/fon.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+}
+
+/* Полупрозрачный оверлей для читаемости текста */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* затемнение 60% */
+    z-index: -1;
+}
+
+/* Все контентные блоки поверх фона */
+.container, .header, .card, .modal-container, .footer {
+    position: relative;
+    z-index: 1;
+}
+    
     --primary-color: #4a6fa5;
     --primary-hover: #5a7fb5;
     --primary-light: rgba(74, 111, 165, 0.1);
