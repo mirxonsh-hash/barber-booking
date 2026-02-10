@@ -538,15 +538,15 @@
                 
                 try {
                     const response = await fetch(`${API_BASE}/api/barber/login`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-        code: username,  // Это поле ввода с id="username"
-        password: password
-    })
-});
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            code: username,
+                            password: password
+                        })
+                    });
                     
                     const data = await response.json();
                     
@@ -557,6 +557,10 @@
                         localStorage.setItem('barber_token', data.token);
                         localStorage.setItem('barber_code', data.barber?.code || username);
                         localStorage.setItem('barber_name', data.barber?.name || 'Барбер');
+                        
+                        // ОЧИЩАЕМ токен клиента (если есть)
+                        localStorage.removeItem('clientToken');
+                        localStorage.removeItem('clientPhone');
                         
                         // Показываем модальное окно успеха
                         showSuccessModal('Вы успешно вошли в систему. Через 3 секунды вы будете перенаправлены в панель управления.');
@@ -589,11 +593,20 @@
             }
         });
         
-        // ========== АВТОПРОВЕРКА БАРБЕРА ==========
+        // ========== ИСПРАВЛЕННАЯ ФУНКЦИЯ: Автопроверка барбера ==========
         function checkBarberAutoLogin() {
             const barberToken = localStorage.getItem('barber_token');
             const barberCode = localStorage.getItem('barber_code');
+            const clientToken = localStorage.getItem('clientToken');
             
+            // 1. Если есть токен клиента - очищаем его
+            if (clientToken && !barberToken) {
+                console.log('⚠️ Обнаружен токен клиента на странице барбера - очищаем');
+                localStorage.removeItem('clientToken');
+                localStorage.removeItem('clientPhone');
+            }
+            
+            // 2. Проверяем токен барбера
             if (barberToken && barberCode) {
                 console.log('✂️ Проверяем сессию барбера:', barberCode);
                 
@@ -605,17 +618,23 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.authenticated) {
-                        console.log('✅ Барбер уже авторизован, переходим в панель');
-                        window.location.href = `${API_BASE}/barber-panel?token=${encodeURIComponent(barberToken)}`;
+                        console.log('✅ Барбер уже авторизован');
+                        // Автоматический переход ТОЛЬКО если на странице входа
+                        if (window.location.pathname.includes('barber-login')) {
+                            console.log('🔄 Перенаправляем в панель барбера...');
+                            setTimeout(() => {
+                                window.location.href = `${API_BASE}/barber-panel?token=${encodeURIComponent(barberToken)}`;
+                            }, 1000);
+                        }
                     } else {
-                        console.log('❌ Сессия истекла, очищаем данные');
+                        console.log('❌ Сессия барбера истекла');
                         localStorage.removeItem('barber_token');
                         localStorage.removeItem('barber_code');
                         localStorage.removeItem('barber_name');
                     }
                 })
                 .catch(() => {
-                    console.log('📡 Ошибка проверки сессии');
+                    console.log('📡 Ошибка проверки сессии барбера');
                 });
             } else {
                 console.log('👨‍🎨 Требуется вход барбера');
@@ -662,4 +681,3 @@
     </script>
 </body>
 </html>
-
