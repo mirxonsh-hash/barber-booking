@@ -8,6 +8,123 @@
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Стеклянный эффект для всех элементов */
+        .header, .auth-card, .form-input, .btn,
+        .nav-link, .test-data, .error-message {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background: rgba(26, 26, 26, 0.7) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover, .nav-link:hover, .register-link:hover {
+            background: rgba(74, 111, 165, 0.4) !important;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 12px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: rgba(74, 111, 165, 0.3) !important;
+        }
+        
+        .nav-link.active {
+            background: rgba(74, 111, 165, 0.3) !important;
+            border-color: rgba(74, 111, 165, 0.5) !important;
+        }
+        
+        .form-input:focus {
+            background: rgba(34, 34, 34, 0.8) !important;
+            border-color: rgba(74, 111, 165, 0.5) !important;
+            box-shadow: 
+                0 0 0 2px rgba(74, 111, 165, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .credential-item {
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+        }
+        
+        /* Модальное окно успеха */
+        .success-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .success-modal {
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            max-width: 400px;
+            width: 90%;
+            animation: modalAppear 0.5s ease-out;
+        }
+        
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .success-icon {
+            font-size: 60px;
+            color: #4a6fa5;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .success-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .success-message {
+            color: #aaa;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        /* Стили логотипа */
+        .logo-img {
+            height: 40px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+        
+        /* Базовые стили */
         * {
             margin: 0;
             padding: 0;
@@ -15,16 +132,16 @@
         }
         
         body {
-            background-color: #0a0a0a;
             color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
         }
         
         .header {
-            background: #1a1a1a;
             padding: 20px 0;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         .container {
@@ -64,7 +181,6 @@
         }
         
         .nav-link:hover, .nav-link.active {
-            background: #333;
             color: #fff;
         }
         
@@ -82,10 +198,8 @@
         }
         
         .auth-card {
-            background: #1a1a1a;
             border-radius: 12px;
             padding: 40px;
-            border: 1px solid #333;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
         
@@ -126,8 +240,6 @@
         .form-input {
             width: 100%;
             padding: 14px;
-            background: #222;
-            border: 1px solid #444;
             border-radius: 8px;
             color: #fff;
             font-size: 16px;
@@ -136,7 +248,6 @@
         
         .form-input:focus {
             outline: none;
-            border-color: #4a6fa5;
         }
         
         .form-hint {
@@ -151,7 +262,6 @@
         .btn {
             width: 100%;
             padding: 16px;
-            background: #4a6fa5;
             color: white;
             border: none;
             border-radius: 8px;
@@ -166,7 +276,6 @@
         }
         
         .btn:hover {
-            background: #5a7fb5;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(74, 111, 165, 0.4);
         }
@@ -183,7 +292,6 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
-            border: 1px solid rgba(220, 53, 69, 0.3);
         }
         
         .form-footer {
@@ -208,9 +316,7 @@
         .test-data {
             margin-top: 30px;
             padding: 20px;
-            background: #222;
             border-radius: 8px;
-            border: 1px solid #333;
         }
         
         .test-data h4 {
@@ -230,7 +336,6 @@
             justify-content: space-between;
             margin-bottom: 8px;
             padding: 8px 0;
-            border-bottom: 1px solid #333;
         }
         
         .credential-item:last-child {
@@ -258,11 +363,12 @@
         }
         
         .footer {
-            background: #1a1a1a;
             color: #aaa;
             padding: 30px 0;
             text-align: center;
-            border-top: 1px solid #333;
+            border-top: 1px solid rgba(51, 51, 51, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         @media (max-width: 768px) {
@@ -286,12 +392,11 @@
     </style>
 </head>
 <body>
-    <!-- ОСТАЛЬНОЙ HTML КОД БЕЗ ИЗМЕНЕНИЙ -->
     <header class="header">
         <div class="container">
             <nav class="navbar">
                 <a href="/" class="logo">
-                    <i class="fas fa-cut"></i> iWant
+                    <img src="/images/logo.gif" alt="iWant" class="logo-img">
                 </a>
                 <ul class="nav-links">
                     <li><a href="/" class="nav-link">Главная</a></li>
@@ -381,6 +486,22 @@
         </div>
     </main>
 
+    <!-- Модальное окно успеха -->
+    <div id="successModal" class="success-modal-overlay">
+        <div class="success-modal">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="success-title">Успешный вход!</h2>
+            <p class="success-message" id="successModalMessage">
+                Вы успешно вошли в систему. Через 3 секунды вы будете перенаправлены в панель управления.
+            </p>
+            <button class="btn" onclick="goToPanel()" style="background: rgba(74, 111, 165, 0.2);">
+                Перейти сейчас
+            </button>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -393,10 +514,15 @@
 
     <script src="js/api.js"></script>
     <script>
+        const API_BASE = 'https://barber-booking-db.onrender.com';
+        
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('barberLoginForm');
             const errorMessage = document.getElementById('errorMessage');
             const loginBtn = document.getElementById('loginBtn');
+            
+            // Проверяем авторизацию
+            checkBarberAutoLogin();
             
             loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
@@ -413,18 +539,43 @@
                 loginBtn.disabled = true;
                 
                 try {
-                    const result = await BarberSystem.loginBarber(username, password);
+                    const response = await fetch(`${API_BASE}/api/barber/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            password: password
+                        })
+                    });
                     
-                    if (result.success) {
-                        console.log('Успешный вход:', result.barber);
-                        window.location.href = '/barber-panel';
+                    const data = await response.json();
+                    
+                    if (data.success && data.token) {
+                        console.log('✅ Успешный вход:', data);
+                        
+                        // Сохраняем токен
+                        localStorage.setItem('barber_token', data.token);
+                        localStorage.setItem('barber_code', data.barber?.code || username);
+                        localStorage.setItem('barber_name', data.barber?.name || 'Барбер');
+                        
+                        // Показываем модальное окно успеха
+                        showSuccessModal('Вы успешно вошли в систему. Через 3 секунды вы будете перенаправлены в панель управления.');
+                        
+                        // Автоматический переход через 3 секунды
+                        setTimeout(() => {
+                            window.location.href = `${API_BASE}/barber-panel?token=${encodeURIComponent(data.token)}`;
+                        }, 3000);
+                        
                     } else {
-                        showError(result.error || 'Ошибка входа');
+                        showError(data.error || 'Ошибка входа');
+                        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войти';
+                        loginBtn.disabled = false;
                     }
                 } catch (error) {
                     console.error('Ошибка входа:', error);
                     showError('Ошибка соединения с сервером');
-                } finally {
                     loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войти';
                     loginBtn.disabled = false;
                 }
@@ -443,8 +594,14 @@
                 const token = localStorage.getItem('barberToken');
                 if (token) {
                     try {
-                        const auth = await BarberSystem.checkAuth();
-                        if (auth.authenticated) {
+                        const response = await fetch(`${API_BASE}/api/barber/check`, {
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        if (data.authenticated) {
                             window.location.href = '/barber-panel';
                         }
                     } catch (error) {
@@ -453,65 +610,78 @@
                 }
             }
         });
+        
+        // ========== АВТОПРОВЕРКА БАРБЕРА ==========
+        function checkBarberAutoLogin() {
+            const barberToken = localStorage.getItem('barber_token');
+            const barberCode = localStorage.getItem('barber_code');
+            
+            if (barberToken && barberCode) {
+                console.log('✂️ Проверяем сессию барбера:', barberCode);
+                
+                fetch(`${API_BASE}/api/barber/check`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + barberToken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        console.log('✅ Барбер уже авторизован, переходим в панель');
+                        window.location.href = `${API_BASE}/barber-panel?token=${encodeURIComponent(barberToken)}`;
+                    } else {
+                        console.log('❌ Сессия истекла, очищаем данные');
+                        localStorage.removeItem('barber_token');
+                        localStorage.removeItem('barber_code');
+                        localStorage.removeItem('barber_name');
+                    }
+                })
+                .catch(() => {
+                    console.log('📡 Ошибка проверки сессии');
+                });
+            } else {
+                console.log('👨‍🎨 Требуется вход барбера');
+            }
+        }
+
+        // Запускаем проверку при загрузке
+        setTimeout(checkBarberAutoLogin, 1000);
+        
+        // Функции для модального окна успеха
+        function showSuccessModal(message) {
+            const modal = document.getElementById('successModal');
+            const messageElement = document.getElementById('successModalMessage');
+            
+            if (modal && messageElement) {
+                messageElement.textContent = message;
+                modal.style.display = 'flex';
+            }
+        }
+        
+        function closeSuccessModal() {
+            const modal = document.getElementById('successModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        function goToPanel() {
+            const token = localStorage.getItem('barber_token');
+            if (token) {
+                window.location.href = `${API_BASE}/barber-panel?token=${encodeURIComponent(token)}`;
+            } else {
+                closeSuccessModal();
+            }
+        }
+        
+        // Проверяем, нужно ли показать окно успеха после действия
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            setTimeout(() => {
+                showSuccessModal('Действие выполнено успешно!');
+            }, 1000);
+        }
     </script>
+    <script src="js/auth.js"></script>
 </body>
 </html>
-<script src="js/auth.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const token = localStorage.getItem('barber_token');
-        if (token) {
-            fetch('https://barber-booking-db.onrender.com/api/barber/check', {
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.authenticated) {
-                    window.location.href = 'https://barber-booking-db.onrender.com/barber-panel?token=' + encodeURIComponent(token);
-                }
-            })
-            .catch(() => {
-                console.log('Требуется авторизация');
-            });
-        }
-    });
-
-    // ========== АВТОПРОВЕРКА БАРБЕРА ==========
-function checkBarberAutoLogin() {
-    const barberToken = localStorage.getItem('barber_token');
-    const barberCode = localStorage.getItem('barber_code');
-    
-    if (barberToken && barberCode) {
-        console.log('✂️ Проверяем сессию барбера:', barberCode);
-        
-        fetch(`${API_BASE}/api/barber/check`, {
-            headers: {
-                'Authorization': 'Bearer ' + barberToken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.authenticated) {
-                console.log('✅ Барбер уже авторизован, переходим в панель');
-                window.location.href = `${API_BASE}/barber-panel?token=${encodeURIComponent(barberToken)}`;
-            } else {
-                console.log('❌ Сессия истекла, очищаем данные');
-                localStorage.removeItem('barber_token');
-                localStorage.removeItem('barber_code');
-                localStorage.removeItem('barber_name');
-            }
-        })
-        .catch(() => {
-            console.log('📡 Ошибка проверки сессии');
-        });
-    } else {
-        console.log('👨‍🎨 Требуется вход барбера');
-    }
-}
-
-// Запускаем проверку при загрузке
-setTimeout(checkBarberAutoLogin, 1000);
-</script>
-
