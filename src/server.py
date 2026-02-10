@@ -201,7 +201,35 @@ try:
 except Exception as e:
     logger.error(f"❌ Ошибка инициализации БД: {e}")
 
-# ========== ФИКС ДЛЯ СТАТИЧЕСКИХ ФАЙЛОВ ==========
+# ========== ФИКС ДЛЯ .HTML ФАЙЛОВ ==========
+@app.route('/barber-login.html')
+def redirect_barber_login_html():
+    return redirect('/barber-login')
+
+@app.route('/barber-panel.html')
+def redirect_barber_panel_html():
+    return redirect('/barber-panel')
+
+@app.route('/client-login.html')
+def redirect_client_login_html():
+    return redirect('/client-login')
+
+@app.route('/client-panel.html')
+def redirect_client_panel_html():
+    code = request.args.get('code', '')
+    if code:
+        return redirect(f'/client-panel?code={code}')
+    return redirect('/client-panel')
+
+@app.route('/client-profile.html')
+def redirect_client_profile_html():
+    return redirect('/client-profile')
+
+@app.route('/profile.html')
+def redirect_profile_html():
+    return redirect('/profile')
+
+# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
 @app.route('/css/<path:filename>')
 def serve_css(filename):
     return send_from_directory(os.path.join(BASE_DIR, 'css'), filename)
