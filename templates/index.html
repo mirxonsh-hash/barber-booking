@@ -907,26 +907,32 @@
             }
         }
         
-        // Проверка существующей сессии
+        // ========== ИСПРАВЛЕННАЯ ФУНКЦИЯ: Проверка существующей сессии ==========
         function checkExistingSession() {
             const clientToken = localStorage.getItem('clientToken');
             const clientPhone = localStorage.getItem('clientPhone');
+            const barberToken = localStorage.getItem('barber_token');
             
+            // 1. Если есть токен барбера - игнорируем клиентскую проверку
+            if (barberToken) {
+                console.log('🔐 Найден токен барбера - не проверяем клиента');
+                return;
+            }
+            
+            // 2. Если есть токен клиента - проверяем
             if (clientToken && clientPhone) {
-                console.log('🔑 Найдена существующая сессия:', clientPhone);
+                console.log('🔑 Найдена сессия клиента:', clientPhone);
                 
-                // Проверяем валидность токена
+                // Проверяем валидность токена (БЕЗ АВТОРЕДИРЕКТА!)
                 fetch(`${API_BASE}/api/client/check-session?phone=${encodeURIComponent(clientPhone)}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.authenticated) {
-                            console.log('✅ Сессия активна, перенаправляем...');
-                            // Автоматически перенаправляем в личный кабинет
-                            setTimeout(() => {
-                                window.location.href = '/client-profile';
-                            }, 500);
+                            console.log('✅ Сессия клиента активна');
+                            // ТОЛЬКО обновляем кнопку, НЕ редиректим!
+                            updateClientButton();
                         } else {
-                            console.log('❌ Сессия истекла');
+                            console.log('❌ Сессия клиента невалидна');
                             localStorage.removeItem('clientToken');
                             localStorage.removeItem('clientPhone');
                         }
@@ -934,6 +940,8 @@
                     .catch(error => {
                         console.error('❌ Ошибка проверки сессии:', error);
                     });
+            } else {
+                console.log('👤 Нет сохраненной сессии клиента');
             }
         }
         
