@@ -2143,6 +2143,53 @@ def get_client_dashboard():
         logger.error(f"❌ Ошибка получения дашборда: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ========== ДОПОЛНИТЕЛЬНЫЕ СТРАНИЦЫ ДЛЯ БАРБЕРА ==========
+@app.route('/bookings')
+def bookings_page():
+    return render_template('bookings.html')
+
+@app.route('/barber-finances')
+def barber_finances_page():
+    return render_template('barber-finances.html')
+
+@app.route('/barber-profile')
+def barber_profile_page():
+    return render_template('barber-profile.html')
+
+@app.route('/barber-schedule')
+def barber_schedule_page():
+    return render_template('barber-schedule.html')
+
+@app.route('/barber-services')
+def barber_services_page():
+    return render_template('barber-services.html')
+
+@app.route('/bookings.html')
+def redirect_bookings_html():
+    return redirect('/bookings')
+
+@app.route('/barber-finances.html')
+def redirect_barber_finances_html():
+    return redirect('/barber-finances')
+
+@app.route('/barber-profile.html')
+def redirect_barber_profile_html():
+    return redirect('/barber-profile')
+
+@app.route('/barber-schedule.html')
+def redirect_barber_schedule_html():
+    return redirect('/barber-schedule')
+
+@app.route('/barber-services.html')
+def redirect_barber_services_html():
+    return redirect('/barber-services')
+
+# ========== КОНЕЦ ДОПОЛНИТЕЛЬНЫХ СТРАНИЦ ==========
+
+if __name__ == '__main__':
+    print("=" * 80)
+    # ... существующий код запуска ...
+
 if __name__ == '__main__':
     print("=" * 80)
     print("🌐 BARBER BOOKING API ЗАПУЩЕН")
