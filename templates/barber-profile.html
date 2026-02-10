@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Профиль | iWant Панель барбера</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="/css/common.css">
     <style>
-        /* Дополнительные стили для страницы профиля */
         .profile-container {
             display: grid;
             grid-template-columns: 300px 1fr;
@@ -212,7 +211,6 @@
             flex-wrap: wrap;
         }
         
-        /* Модальное окно для аватара */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -321,7 +319,6 @@
     </style>
 </head>
 <body>
-    <!-- Хедер -->
     <header class="header">
         <div class="container">
             <nav class="navbar">
@@ -334,12 +331,12 @@
                 </button>
                 
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="barber-panel.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
-                    <li><a href="barber-bookings.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Записи</a></li>
-                    <li><a href="barber-finances.html" class="nav-link"><i class="fas fa-chart-line"></i> Финансы</a></li>
-                    <li><a href="barber-schedule.html" class="nav-link"><i class="fas fa-clock"></i> График</a></li>
-                    <li><a href="barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
-                    <li><a href="barber-profile.html" class="nav-link active"><i class="fas fa-user"></i> Профиль</a></li>
+                    <li><a href="/barber-panel" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
+                    <li><a href="/barber-bookings.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Записи</a></li>
+                    <li><a href="/barber-finances.html" class="nav-link"><i class="fas fa-chart-line"></i> Финансы</a></li>
+                    <li><a href="/barber-schedule.html" class="nav-link"><i class="fas fa-clock"></i> График</a></li>
+                    <li><a href="/barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
+                    <li><a href="/barber-profile.html" class="nav-link active"><i class="fas fa-user"></i> Профиль</a></li>
                     <li><a href="#" class="nav-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
                 </ul>
             </nav>
@@ -352,7 +349,6 @@
         </h1>
         
         <div class="profile-container">
-            <!-- Левая колонка - аватар и статистика -->
             <div class="profile-sidebar">
                 <div class="avatar-container">
                     <div class="avatar" id="avatarDisplay">
@@ -398,9 +394,7 @@
                 </div>
             </div>
             
-            <!-- Правая колонка - форма редактирования -->
             <div class="profile-content">
-                <!-- Основная информация -->
                 <div class="form-section">
                     <h3 class="form-section-title">
                         <i class="fas fa-user-edit"></i> Основная информация
@@ -437,7 +431,6 @@
                     </form>
                 </div>
                 
-                <!-- Код для клиентов -->
                 <div class="code-section">
                     <h3 class="form-section-title" style="border: none; padding: 0; margin-bottom: 15px;">
                         <i class="fas fa-key"></i> Ваш личный код
@@ -464,7 +457,6 @@
                     </div>
                 </div>
                 
-                <!-- Действия -->
                 <div class="action-buttons">
                     <button class="btn btn-primary" id="saveProfileBtn">
                         <i class="fas fa-save"></i> Сохранить изменения
@@ -477,7 +469,6 @@
                     </button>
                 </div>
                 
-                <!-- Опасная зона -->
                 <div class="danger-zone">
                     <h3 class="danger-title">
                         <i class="fas fa-exclamation-triangle"></i> Опасная зона
@@ -500,7 +491,6 @@
         </div>
     </main>
 
-    <!-- Модальное окно для аватара -->
     <div id="avatarModal" class="modal-overlay">
         <div class="modal-container glass-effect" style="max-width: 400px;">
             <div class="modal-header" style="padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
@@ -552,7 +542,6 @@
         </div>
     </div>
 
-    <!-- Футер -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -564,9 +553,7 @@
 
     <script src="/js/api.js"></script>
     <script>
-        // JavaScript для страницы профиля
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация мобильного меню
             const navToggle = document.getElementById('navToggle');
             const navLinks = document.getElementById('navLinks');
             
@@ -582,19 +569,17 @@
                 });
             }
             
-            // Кнопка выхода
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (confirm('Вы действительно хотите выйти?')) {
                         localStorage.clear();
-                        window.location.href = 'barber-login.html';
+                        window.location.href = '/barber-login.html';
                     }
                 });
             }
             
-            // Данные профиля
             let profileData = {
                 name: 'Барбер',
                 phone: '',
@@ -612,9 +597,7 @@
                 }
             };
             
-            // Загрузка профиля
             function loadProfile() {
-                // Загружаем из localStorage
                 const savedProfile = localStorage.getItem('barber_profile');
                 const savedBarber = BarberSystem.getCurrentBarber();
                 
@@ -626,54 +609,45 @@
                     }
                 }
                 
-                // Если есть данные из API, обновляем
                 if (savedBarber) {
                     profileData.name = savedBarber.name || profileData.name;
                     profileData.code = savedBarber.code || profileData.code;
                 }
                 
-                // Заполняем форму
                 document.getElementById('inputName').value = profileData.name;
                 document.getElementById('inputPhone').value = profileData.phone || '';
                 document.getElementById('inputEmail').value = profileData.email || '';
                 document.getElementById('inputBio').value = profileData.bio || '';
                 document.getElementById('inputAddress').value = profileData.address || '';
                 
-                // Обновляем отображение
                 document.getElementById('displayName').textContent = profileData.name;
                 document.getElementById('displayCode').textContent = profileData.code;
                 document.getElementById('profileCode').textContent = profileData.code;
                 document.getElementById('regDate').textContent = profileData.stats.regDate;
                 
-                // Обновляем статистику
                 updateStats();
                 
-                // Загружаем аватар если есть
                 if (profileData.avatar) {
                     updateAvatar(profileData.avatar);
                 }
             }
             
-            // Обновление статистики
             function updateStats() {
-                // Получаем реальную статистику
                 const stats = BarberSystem.getBarberStats();
                 
                 document.getElementById('statAppointments').textContent = stats.total || 0;
-                document.getElementById('statRating').textContent = '4.8'; // Заглушка
-                document.getElementById('statClients').textContent = '0'; // Можно рассчитать
-                document.getElementById('statIncome').textContent = '0'; // Можно рассчитать
+                document.getElementById('statRating').textContent = '4.8';
+                document.getElementById('statClients').textContent = '0';
+                document.getElementById('statIncome').textContent = '0';
                 
-                // Сохраняем обновленную статистику
                 profileData.stats = {
                     ...profileData.stats,
                     appointments: stats.total,
-                    clients: stats.completed, // Используем завершенные записи как клиентов
-                    income: stats.total * 15000 // Примерная сумма
+                    clients: stats.completed,
+                    income: stats.total * 15000
                 };
             }
             
-            // Сохранение профиля
             const saveProfileBtn = document.getElementById('saveProfileBtn');
             if (saveProfileBtn) {
                 saveProfileBtn.addEventListener('click', function() {
@@ -682,20 +656,16 @@
             }
             
             function saveProfile() {
-                // Собираем данные из формы
                 profileData.name = document.getElementById('inputName').value.trim();
                 profileData.phone = document.getElementById('inputPhone').value.trim();
                 profileData.email = document.getElementById('inputEmail').value.trim();
                 profileData.bio = document.getElementById('inputBio').value.trim();
                 profileData.address = document.getElementById('inputAddress').value.trim();
                 
-                // Обновляем отображение
                 document.getElementById('displayName').textContent = profileData.name;
                 
-                // Сохраняем в localStorage
                 localStorage.setItem('barber_profile', JSON.stringify(profileData));
                 
-                // Обновляем в API (если нужно)
                 const barberData = BarberSystem.getCurrentBarber();
                 if (barberData) {
                     barberData.name = profileData.name;
@@ -705,7 +675,6 @@
                 showNotification('Профиль сохранен!', 'success');
             }
             
-            // Кнопка сброса
             const resetBtn = document.getElementById('resetBtn');
             if (resetBtn) {
                 resetBtn.addEventListener('click', function() {
@@ -716,7 +685,6 @@
                 });
             }
             
-            // Копирование кода
             const copyCodeBtn = document.getElementById('copyCodeBtn');
             if (copyCodeBtn) {
                 copyCodeBtn.addEventListener('click', function() {
@@ -736,7 +704,6 @@
                 });
             }
             
-            // Поделиться кодом
             const shareCodeBtn = document.getElementById('shareCodeBtn');
             if (shareCodeBtn) {
                 shareCodeBtn.addEventListener('click', function() {
@@ -761,14 +728,12 @@
                 });
             }
             
-            // Смена пароля
             const changePasswordBtn = document.getElementById('changePasswordBtn');
             if (changePasswordBtn) {
                 changePasswordBtn.addEventListener('click', function() {
                     const newPassword = prompt('Введите новый пароль (минимум 6 символов):');
                     
                     if (newPassword && newPassword.length >= 6) {
-                        // Здесь можно добавить логику смены пароля через API
                         showNotification('Функция смены пароля в разработке', 'info');
                     } else if (newPassword) {
                         alert('Пароль должен содержать минимум 6 символов');
@@ -776,7 +741,6 @@
                 });
             }
             
-            // Экспорт данных
             const exportDataBtn = document.getElementById('exportDataBtn');
             if (exportDataBtn) {
                 exportDataBtn.addEventListener('click', function() {
@@ -784,7 +748,6 @@
                 });
             }
             
-            // Удаление аккаунта
             const deleteAccountBtn = document.getElementById('deleteAccountBtn');
             if (deleteAccountBtn) {
                 deleteAccountBtn.addEventListener('click', function() {
@@ -796,7 +759,6 @@
                 });
             }
             
-            // Смена кода
             const refreshCodeBtn = document.getElementById('refreshCodeBtn');
             if (refreshCodeBtn) {
                 refreshCodeBtn.addEventListener('click', function() {
@@ -813,7 +775,6 @@
                 });
             }
             
-            // Генерация нового кода
             function generateNewCode() {
                 const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
                 let code = '';
@@ -823,7 +784,6 @@
                 return code;
             }
             
-            // Управление аватаром
             const avatarChangeBtn = document.getElementById('avatarChangeBtn');
             if (avatarChangeBtn) {
                 avatarChangeBtn.addEventListener('click', openAvatarModal);
@@ -848,7 +808,6 @@
                 cancelAvatarBtn.addEventListener('click', closeAvatarModal);
             }
             
-            // Выбор аватара
             document.querySelectorAll('.avatar-option').forEach(option => {
                 option.addEventListener('click', function() {
                     document.querySelectorAll('.avatar-option').forEach(opt => {
@@ -861,7 +820,6 @@
                 });
             });
             
-            // Загрузка своего изображения
             const avatarUpload = document.getElementById('avatarUpload');
             if (avatarUpload) {
                 avatarUpload.addEventListener('change', function(e) {
@@ -877,7 +835,6 @@
                 });
             }
             
-            // Сохранение аватара
             const saveAvatarBtn = document.getElementById('saveAvatarBtn');
             if (saveAvatarBtn) {
                 saveAvatarBtn.addEventListener('click', function() {
@@ -930,7 +887,6 @@
                 return icons[type] || 'fas fa-user';
             }
             
-            // Функция для отображения уведомлений
             function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
                 notification.className = `alert alert-${type}`;
@@ -952,22 +908,20 @@
                 }, 3000);
             }
             
-            // Проверка авторизации
             async function checkAuth() {
                 try {
                     const response = await BarberSystem.checkAuth();
                     if (!response.authenticated) {
-                        window.location.href = 'barber-login.html';
+                        window.location.href = '/barber-login.html';
                     } else {
                         loadProfile();
                     }
                 } catch (error) {
                     console.error('Ошибка проверки авторизации:', error);
-                    window.location.href = 'barber-login.html';
+                    window.location.href = '/barber-login.html';
                 }
             }
             
-            // Инициализация
             checkAuth();
         });
     </script>
