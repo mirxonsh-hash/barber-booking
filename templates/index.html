@@ -1059,4 +1059,290 @@
                     } else if (value.length <= 5) {
                         formatted = `${value.substring(0, 2)} ${value.substring(2)}`;
                     } else if (value.length <= 7) {
-                        formatted
+                        formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5)}`;
+                    } else {
+                        formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5, 7)} ${value.substring(7, 9)}`;
+                    }
+                }
+                
+                e.target.value = formatted;
+            });
+            
+            phoneInput.addEventListener('keypress', function(e) {
+                // Разрешаем только цифры
+                if (!/\d/.test(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        // Отправка регистрации
+        function submitRegistration() {
+            const phoneInput = document.getElementById('phoneInput');
+            let phoneValue = phoneInput.value.replace(/\s+/g, '');
+            
+            // Проверяем точно 9 цифр
+            if (!phoneValue || phoneValue.length !== 9) {
+                alert('Пожалуйста, введите 9 цифр номера телефона');
+                phoneInput.focus();
+                return;
+            }
+            
+            // Проверяем что это только цифры
+            if (!/^\d{9}$/.test(phoneValue)) {
+                alert('Номер телефона должен содержать только цифры');
+                phoneInput.focus();
+                return;
+            }
+            
+            // Форматируем номер
+            const fullPhone = `+998${phoneValue}`;
+            console.log('📱 Проверяем номер:', fullPhone);
+            
+            // Показываем загрузку
+            showLoading('Проверка номера...', 'Проверяем, зарегистрирован ли уже этот номер');
+            
+            // СНАЧАЛА ПРОВЕРЯЕМ, ЕСТЬ ЛИ ТАКОЙ ПОЛЬЗОВАТЕЛЬ
+            fetch(`${API_BASE}/api/client/check-phone`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: fullPhone
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    // ПОЛЬЗОВАТЕЛЬ УЖЕ ЗАРЕГИСТРИРОВАН
+                    hideLoading();
+                    closeRegistrationModal();
+                    
+                    // Сохраняем телефон
+                    currentPhone = fullPhone;
+                    localStorage.setItem('clientPhone', fullPhone);
+                    
+                    // ПОКАЗЫВАЕМ ФОРМУ ВХОДА вместо регистрации
+                    openLoginModal(fullPhone);
+                } else {
+                    // ПОЛЬЗОВАТЕЛЯ НЕТ - РЕГИСТРИРУЕМ
+                    proceedWithRegistration(fullPhone);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('❌ Ошибка проверки:', error);
+                // Если API не работает, продолжаем регистрацию
+                proceedWithRegistration(fullPhone);
+            });
+        }
+        
+        // Продолжение регистрации
+        function proceedWithRegistration(phone) {
+            showLoading('Регистрация...', 'Создаем ваш аккаунт');
+            
+            // Подготавливаем данные для отправки
+            const registrationData = {
+                phone: phone,
+                send_to_telegram: true
+            };
+            
+            // Добавляем данные Telegram если есть
+            if (telegramData) {
+                registrationData.telegram_data = telegramData;
+            }
+            
+            // Отправляем запрос на регистрацию
+            fetch(`${API_BASE}/api/client/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(registrationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.success) {
+                    console.log('✅ Регистрация успешна:', data);
+                    
+                    // Сохраняем данные в localStorage
+                    localStorage.setItem('clientPhone', data.phone);
+                    
+                    // Если есть токен, сохраняем
+                    if (data.token) {
+                        localStorage.setItem('clientToken', data.token);
+                    }
+                    
+                    // Сохраняем пароль для отображения
+                    localStorage.setItem('clientPassword', data.password);
+                    
+                    // Показываем окно с данными для входа
+                    closeRegistrationModal();
+                    openCredentialsModal(data.phone, data.password);
+                    
+                } else {
+                    console.error('❌ Ошибка регистрации:', data.error);
+                    alert('Ошибка регистрации: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('❌ Ошибка сети:', error);
+                alert('Ошибка соединения с сервером. Проверьте интернет соединение.');
+            });
+        }
+        
+        // Вход существующего пользователя
+        function submitLogin() {
+            const password = document.getElementById('loginPasswordInput').value;
+            
+            if (!password) {
+                alert('Пожалуйста, введите пароль');
+                document.getElementById('loginPasswordInput').focus();
+                return;
+            }
+            
+            showLoading('Вход...', 'Проверяем данные');
+            
+            fetch(`${API_BASE}/api/client/auth`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: currentPhone,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.success) {
+                    console.log('✅ Вход успешен:', data);
+                    
+                    // Сохраняем токен и телефон
+                    localStorage.setItem('clientToken', data.token);
+                    localStorage.setItem('clientPhone', data.phone);
+                    
+                    // Закрываем модальное окно
+                    closeLoginModal();
+                    
+                    // Обновляем кнопку
+                    updateClientButton();
+                    
+                    // Перенаправляем в профиль
+                    window.location.href = '/client-profile';
+                    
+                } else {
+                    alert('Ошибка входа: ' + (data.error || 'Неверный пароль'));
+                    document.getElementById('loginPasswordInput').focus();
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('❌ Ошибка входа:', error);
+                alert('Ошибка соединения с сервером');
+            });
+        }
+        
+        // Забыли пароль
+        function forgotPassword() {
+            if (confirm('Отправить новый пароль в Telegram чат?')) {
+                showLoading('Восстановление...', 'Отправляем новый пароль');
+                
+                fetch(`${API_BASE}/api/client/get-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone: currentPhone
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    
+                    if (data.success) {
+                        alert('✅ Новый пароль отправлен в Telegram чат! Проверьте сообщения от бота.');
+                        document.getElementById('loginPasswordInput').value = data.password;
+                    } else {
+                        alert('Ошибка: ' + (data.error || 'Не удалось отправить пароль'));
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    alert('Ошибка соединения с сервером');
+                });
+            }
+        }
+        
+        // Автоматический вход при наличии сохраненной сессии
+        function autoLoginIfNeeded() {
+            const clientToken = localStorage.getItem('clientToken');
+            const clientPhone = localStorage.getItem('clientPhone');
+            
+            if (clientToken && clientPhone) {
+                console.log('🔐 Автоматический вход для:', clientPhone);
+                
+                // Проверяем токен
+                fetch(`${API_BASE}/api/client/session`, {
+                    headers: {
+                        'Authorization': `Bearer ${clientToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        // Пользователь уже залогинен - обновляем кнопку
+                        updateClientButton();
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Ошибка проверки сессии:', error);
+                });
+            }
+        }
+        
+        // Вызываем автоматический вход при загрузке
+        setTimeout(autoLoginIfNeeded, 1000);
+        
+        function goHome() {
+            closeSuccessModal();
+            window.location.href = '/';
+        }
+        
+        // Закрытие модальных окон по клику на оверлей
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeAllModals();
+            }
+        });
+        
+        // Закрытие по клавише ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAllModals();
+            }
+        });
+        
+        // Проверка ввода при отправке формы
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitRegistration();
+        });
+        
+        // Проверка входа при отправке формы
+        document.getElementById('loginPasswordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitLogin();
+            }
+        });
+    </script>
+    <script src="js/home.js"></script>
+</body>
+</html>
