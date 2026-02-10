@@ -201,6 +201,20 @@ try:
 except Exception as e:
     logger.error(f"❌ Ошибка инициализации БД: {e}")
 
+# ========== ФИКС ДЛЯ СТАТИЧЕСКИХ ФАЙЛОВ ==========
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    return send_from_directory(os.path.join(BASE_DIR, 'css'), filename)
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory(os.path.join(BASE_DIR, 'js'), filename)
+
+@app.route('/images/<path:filename>')
+def serve_images(filename):
+    return send_from_directory(os.path.join(BASE_DIR, 'images'), filename)
+
+# ========== ОСНОВНЫЕ СТРАНИЦЫ ==========
 @app.route('/')
 def index():
     return render_template('index.html')
