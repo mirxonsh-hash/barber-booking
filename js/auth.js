@@ -198,17 +198,18 @@ if (window.location.href.includes('barber-panel')) {
     document.addEventListener('DOMContentLoaded', async function() {
         const isAuthenticated = await checkBarberAuth();
         if (!isAuthenticated) {
-            console.log('Не авторизован, редирект...');
+            console.log('Не авторизован, но остаемся на странице');
+            // НЕ редиректим автоматически, показываем страницу с кнопкой входа
         } else {
             console.log('Авторизован, показываем панель');
         }
     });
 }
-
 // Экспорт для использования в других файлах
 window.Auth = {
     checkBarberAuth,
     logoutBarber,
     API_BASE_URL: API_BASE_URL
 };
+
 
