@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход для барбера | iWant</title>
-    <link rel="stylesheet" href="css/common.css">
-    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* Стеклянный эффект для всех элементов */
@@ -512,7 +511,6 @@
         </div>
     </footer>
 
-    <script src="js/api.js"></script>
     <script>
         const API_BASE = 'https://barber-booking-db.onrender.com';
         
@@ -589,26 +587,6 @@
                     errorMessage.style.display = 'none';
                 }, 5000);
             }
-            
-            async function checkExistingAuth() {
-                const token = localStorage.getItem('barberToken');
-                if (token) {
-                    try {
-                        const response = await fetch(`${API_BASE}/api/barber/check`, {
-                            headers: {
-                                'Authorization': 'Bearer ' + token
-                            }
-                        });
-                        
-                        const data = await response.json();
-                        if (data.authenticated) {
-                            window.location.href = '/barber-panel';
-                        }
-                    } catch (error) {
-                        console.log('Нужна авторизация');
-                    }
-                }
-            }
         });
         
         // ========== АВТОПРОВЕРКА БАРБЕРА ==========
@@ -682,6 +660,5 @@
             }, 1000);
         }
     </script>
-    <script src="js/auth.js"></script>
 </body>
 </html>
