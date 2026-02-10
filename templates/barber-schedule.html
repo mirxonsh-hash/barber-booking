@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>График работы | iWant Панель барбера</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="/css/common.css">
     <style>
-        /* Дополнительные стили для страницы графика */
         .schedule-container {
             padding: 20px;
             backdrop-filter: blur(10px);
@@ -73,7 +72,6 @@
             color: var(--text-light);
         }
         
-        /* Переключатели */
         .switch {
             position: relative;
             display: inline-block;
@@ -120,7 +118,6 @@
             transform: translateX(24px);
         }
         
-        /* Перерыв */
         .break-settings {
             margin-bottom: 30px;
         }
@@ -139,7 +136,6 @@
             margin-top: 15px;
         }
         
-        /* Выходные */
         .days-off {
             margin-bottom: 30px;
         }
@@ -176,7 +172,6 @@
             color: var(--text-white);
         }
         
-        /* Кнопки действий */
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -184,7 +179,6 @@
             flex-wrap: wrap;
         }
         
-        /* Предпросмотр графика */
         .schedule-preview {
             margin-top: 40px;
             padding: 20px;
@@ -279,7 +273,6 @@
     </style>
 </head>
 <body>
-    <!-- Хедер -->
     <header class="header">
         <div class="container">
             <nav class="navbar">
@@ -292,12 +285,12 @@
                 </button>
                 
                 <ul class="nav-links" id="navLinks">
-                    <li><a href="barber-panel.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
-                    <li><a href="barber-bookings.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Записи</a></li>
-                    <li><a href="barber-finances.html" class="nav-link"><i class="fas fa-chart-line"></i> Финансы</a></li>
-                    <li><a href="barber-schedule.html" class="nav-link active"><i class="fas fa-clock"></i> График</a></li>
-                    <li><a href="barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
-                    <li><a href="barber-profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a></li>
+                    <li><a href="/barber-panel" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
+                    <li><a href="/barber-bookings.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Записи</a></li>
+                    <li><a href="/barber-finances.html" class="nav-link"><i class="fas fa-chart-line"></i> Финансы</a></li>
+                    <li><a href="/barber-schedule.html" class="nav-link active"><i class="fas fa-clock"></i> График</a></li>
+                    <li><a href="/barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
+                    <li><a href="/barber-profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a></li>
                     <li><a href="#" class="nav-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
                 </ul>
             </nav>
@@ -305,7 +298,6 @@
     </header>
 
     <main class="container">
-        <!-- Заголовок -->
         <div class="page-header" style="margin-bottom: 30px;">
             <h1 class="section-title">
                 <i class="fas fa-clock"></i> График работы
@@ -314,17 +306,13 @@
         </div>
         
         <div class="schedule-container">
-            <!-- Часы работы -->
             <div class="work-hours">
                 <h2 class="hours-title">
                     <i class="far fa-clock"></i> Часы работы
                 </h2>
-                <div class="hours-grid" id="workHoursGrid">
-                    <!-- Часы работы будут загружены через JavaScript -->
-                </div>
+                <div class="hours-grid" id="workHoursGrid"></div>
             </div>
             
-            <!-- Обеденный перерыв -->
             <div class="break-settings">
                 <h2 class="hours-title">
                     <i class="fas fa-coffee"></i> Обеденный перерыв
@@ -348,17 +336,13 @@
                 </div>
             </div>
             
-            <!-- Выходные дни -->
             <div class="days-off">
                 <h2 class="hours-title">
                     <i class="fas fa-umbrella-beach"></i> Выходные дни
                 </h2>
-                <div class="days-grid" id="daysOffGrid">
-                    <!-- Дни выходных будут загружены через JavaScript -->
-                </div>
+                <div class="days-grid" id="daysOffGrid"></div>
             </div>
             
-            <!-- Кнопки действий -->
             <div class="action-buttons">
                 <button class="btn btn-primary" id="saveScheduleBtn">
                     <i class="fas fa-save"></i> Сохранить график
@@ -372,17 +356,13 @@
             </div>
         </div>
         
-        <!-- Предпросмотр графика -->
         <div class="schedule-preview" id="schedulePreview" style="display: none;">
             <h3 class="preview-title">
                 <i class="fas fa-calendar-alt"></i> Предпросмотр графика
             </h3>
-            <div class="preview-grid" id="previewGrid">
-                <!-- Предпросмотр будет сгенерирован через JavaScript -->
-            </div>
+            <div class="preview-grid" id="previewGrid"></div>
         </div>
         
-        <!-- Информация -->
         <div class="card" style="margin-top: 40px; padding: 20px;">
             <h3 style="margin-bottom: 15px; color: var(--text-white);">
                 <i class="fas fa-info-circle"></i> Информация
@@ -396,7 +376,6 @@
         </div>
     </main>
 
-    <!-- Футер -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -408,9 +387,7 @@
 
     <script src="/js/api.js"></script>
     <script>
-        // JavaScript для страницы графика работы
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация мобильного меню
             const navToggle = document.getElementById('navToggle');
             const navLinks = document.getElementById('navLinks');
             
@@ -426,19 +403,17 @@
                 });
             }
             
-            // Кнопка выхода
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     if (confirm('Вы действительно хотите выйти?')) {
                         localStorage.clear();
-                        window.location.href = 'barber-login.html';
+                        window.location.href = '/barber-login.html';
                     }
                 });
             }
             
-            // Данные графика работы
             let scheduleData = {
                 workHours: [
                     { day: 'Понедельник', start: '09:00', end: '19:00', enabled: true },
@@ -457,9 +432,7 @@
                 daysOff: ['Воскресенье']
             };
             
-            // Загрузка графика
             function loadSchedule() {
-                // Загружаем из localStorage
                 const savedSchedule = localStorage.getItem('barber_schedule');
                 if (savedSchedule) {
                     try {
@@ -474,7 +447,6 @@
                 loadDaysOff();
             }
             
-            // Загрузка часов работы
             function loadWorkHours() {
                 const container = document.getElementById('workHoursGrid');
                 let html = '';
@@ -498,7 +470,6 @@
                 
                 container.innerHTML = html;
                 
-                // Добавляем обработчики для переключателей
                 scheduleData.workHours.forEach((_, index) => {
                     const toggle = document.getElementById(`toggle${index}`);
                     const startInput = document.getElementById(`start${index}`);
@@ -513,7 +484,6 @@
                             startInput.value = '';
                             endInput.value = '';
                         } else {
-                            // Устанавливаем значения по умолчанию
                             const defaultTimes = {
                                 0: { start: '09:00', end: '19:00' },
                                 1: { start: '09:00', end: '19:00' },
@@ -533,7 +503,6 @@
                 });
             }
             
-            // Загрузка настроек перерыва
             function loadBreakSettings() {
                 const breakToggle = document.getElementById('breakToggle');
                 const breakStart = document.getElementById('breakStart');
@@ -543,10 +512,8 @@
                 breakStart.value = scheduleData.break.start;
                 breakEnd.value = scheduleData.break.end;
                 
-                // Включаем/выключаем поля ввода перерыва
                 toggleBreakFields(scheduleData.break.enabled);
                 
-                // Добавляем обработчик изменения переключателя
                 breakToggle.addEventListener('change', function() {
                     toggleBreakFields(this.checked);
                 });
@@ -563,13 +530,11 @@
                     breakStart.value = '';
                     breakEnd.value = '';
                 } else {
-                    // Устанавливаем значения по умолчанию
                     breakStart.value = '13:00';
                     breakEnd.value = '14:00';
                 }
             }
             
-            // Загрузка выходных дней
             function loadDaysOff() {
                 const container = document.getElementById('daysOffGrid');
                 const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
@@ -588,7 +553,6 @@
                 container.innerHTML = html;
             }
             
-            // Сохранение графика
             const saveScheduleBtn = document.getElementById('saveScheduleBtn');
             if (saveScheduleBtn) {
                 saveScheduleBtn.addEventListener('click', function() {
@@ -597,7 +561,6 @@
             }
             
             function saveSchedule() {
-                // Собираем данные о часах работы
                 const workHours = [];
                 for (let i = 0; i < scheduleData.workHours.length; i++) {
                     const enabled = document.getElementById(`toggle${i}`).checked;
@@ -612,12 +575,10 @@
                     });
                 }
                 
-                // Собираем данные о перерыве
                 const breakEnabled = document.getElementById('breakToggle').checked;
                 const breakStart = document.getElementById('breakStart').value;
                 const breakEnd = document.getElementById('breakEnd').value;
                 
-                // Собираем данные о выходных
                 const daysOff = [];
                 for (let i = 0; i < 7; i++) {
                     if (document.getElementById(`dayOff${i}`).checked) {
@@ -626,7 +587,6 @@
                     }
                 }
                 
-                // Обновляем данные
                 scheduleData.workHours = workHours;
                 scheduleData.break = {
                     enabled: breakEnabled,
@@ -635,16 +595,12 @@
                 };
                 scheduleData.daysOff = daysOff;
                 
-                // Сохраняем в localStorage
                 localStorage.setItem('barber_schedule', JSON.stringify(scheduleData));
                 
                 showNotification('График работы сохранен!', 'success');
-                
-                // Показываем предпросмотр
                 showPreview();
             }
             
-            // Сброс графика
             const resetScheduleBtn = document.getElementById('resetScheduleBtn');
             if (resetScheduleBtn) {
                 resetScheduleBtn.addEventListener('click', function() {
@@ -673,7 +629,6 @@
                 });
             }
             
-            // Предпросмотр графика
             const previewBtn = document.getElementById('previewBtn');
             if (previewBtn) {
                 previewBtn.addEventListener('click', function() {
@@ -700,7 +655,6 @@
                         previewClass = 'on';
                         previewText = `${day.start} - ${day.end}`;
                         
-                        // Добавляем перерыв если он включен
                         if (scheduleData.break.enabled) {
                             previewText += `<br><small style='color: var(--warning-color);'>Перерыв: ${scheduleData.break.start}-${scheduleData.break.end}</small>`;
                         }
@@ -719,12 +673,9 @@
                 });
                 
                 previewGrid.innerHTML = html;
-                
-                // Прокручиваем к предпросмотру
                 previewContainer.scrollIntoView({ behavior: 'smooth' });
             }
             
-            // Функция для отображения уведомлений
             function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
                 notification.className = `alert alert-${type}`;
@@ -746,22 +697,20 @@
                 }, 3000);
             }
             
-            // Проверка авторизации
             async function checkAuth() {
                 try {
                     const response = await BarberSystem.checkAuth();
                     if (!response.authenticated) {
-                        window.location.href = 'barber-login.html';
+                        window.location.href = '/barber-login.html';
                     } else {
                         loadSchedule();
                     }
                 } catch (error) {
                     console.error('Ошибка проверки авторизации:', error);
-                    window.location.href = 'barber-login.html';
+                    window.location.href = '/barber-login.html';
                 }
             }
             
-            // Инициализация
             checkAuth();
         });
     </script>
