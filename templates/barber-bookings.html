@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Записи | iWant Панель барбера</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Стили из barber-panel.html */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; width: 100vw; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .glass-effect { background: rgba(26, 26, 26, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1); border-radius: 12px; }
+        
+        .header { padding: 20px 0; position: sticky; top: 0; z-index: 1000; background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .logo i { color: #4a6fa5; }
+        .nav-menu { display: flex; gap: 15px; align-items: center; }
+        .nav-item { padding: 10px 20px; border-radius: 8px; text-decoration: none; color: #aaa; transition: all 0.3s; backdrop-filter: blur(10px); background: rgba(26, 26, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .nav-item:hover, .nav-item.active { background: rgba(74, 111, 165, 0.3); color: #fff; border-color: rgba(74, 111, 165, 0.5); }
+        
+        .section-title { font-size: 24px; margin: 30px 0 20px; color: #fff; display: flex; align-items: center; gap: 10px; }
+        
+        .filters { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 16px; border-radius: 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #aaa; cursor: pointer; transition: all 0.3s; }
+        .filter-btn.active { background: rgba(74, 111, 165, 0.3); color: #fff; border-color: rgba(74, 111, 165, 0.5); }
+        .filter-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        
+        .appointments-list { margin: 20px 0; }
+        .appointment-card { margin-bottom: 15px; padding: 20px; }
+        .appointment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .appointment-id { font-size: 14px; color: #aaa; }
+        .appointment-time { font-size: 18px; font-weight: 600; color: #fff; }
+        .appointment-client { margin-bottom: 10px; }
+        .client-name { font-size: 16px; font-weight: 600; color: #fff; }
+        .client-phone { font-size: 14px; color: #4a6fa5; text-decoration: none; }
+        .appointment-service { margin-bottom: 10px; }
+        .service-name { font-size: 14px; color: #aaa; }
+        .service-price { font-size: 16px; font-weight: 600; color: #fff; }
+        .appointment-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .action-btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; transition: all 0.3s; flex: 1; }
+        .btn-confirm { background: rgba(40, 167, 69, 0.2); color: #6eff8f; border: 1px solid rgba(40, 167, 69, 0.3); }
+        .btn-confirm:hover { background: rgba(40, 167, 69, 0.3); }
+        .btn-cancel { background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.3); }
+        .btn-cancel:hover { background: rgba(220, 53, 69, 0.3); }
+        .btn-complete { background: rgba(0, 123, 255, 0.2); color: #6ea8ff; border: 1px solid rgba(0, 123, 255, 0.3); }
+        .btn-complete:hover { background: rgba(0, 123, 255, 0.3); }
+        
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .status-new { background: rgba(74, 111, 165, 0.2); color: #8bb4ff; }
+        .status-confirmed { background: rgba(40, 167, 69, 0.2); color: #6eff8f; }
+        .status-cancelled { background: rgba(220, 53, 69, 0.2); color: #ff6b6b; }
+        .status-completed { background: rgba(23, 162, 184, 0.2); color: #6ef7ff; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: #666; }
+        .empty-state i { font-size: 48px; margin-bottom: 20px; color: #4a6fa5; }
+        
+        .footer { margin-top: 40px; padding: 30px 0; text-align: center; color: #666; font-size: 14px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; gap: 15px; }
+            .nav-menu { width: 100%; justify-content: center; flex-wrap: wrap; }
+            .appointment-actions { flex-direction: column; }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-menu { flex-direction: column; width: 100%; }
+            .nav-item { width: 100%; text-align: center; }
+            .container { padding: 0 15px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <i class="fas fa-cut"></i> iWant
+                </a>
+                <div class="nav-menu">
+                    <a href="barber-panel.html" class="nav-item">
+                        <i class="fas fa-tachometer-alt"></i> Панель
+                    </a>
+                    <a href="barber-bookings.html" class="nav-item active">
+                        <i class="fas fa-calendar-alt"></i> Записи
+                    </a>
+                    <a href="barber-finances.html" class="nav-item">
+                        <i class="fas fa-chart-line"></i> Финансы
+                    </a>
+                    <a href="barber-schedule.html" class="nav-item">
+                        <i class="fas fa-clock"></i> График
+                    </a>
+                    <a href="barber-services.html" class="nav-item">
+                        <i class="fas fa-scissors"></i> Услуги
+                    </a>
+                    <a href="barber-profile.html" class="nav-item">
+                        <i class="fas fa-user"></i> Профиль
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="section-title">
+            <i class="fas fa-calendar-alt"></i> Записи
+        </h1>
+        
+        <!-- Фильтры -->
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterAppointments('all')">Все</button>
+            <button class="filter-btn" onclick="filterAppointments('today')">Сегодня</button>
+            <button class="filter-btn" onclick="filterAppointments('new')">Новые</button>
+            <button class="filter-btn" onclick="filterAppointments('confirmed')">Подтвержденные</button>
+            <button class="filter-btn" onclick="filterAppointments('pending')">Ожидают</button>
+        </div>
+        
+        <!-- Список записей -->
+        <div class="appointments-list" id="appointmentsList">
+            <!-- Записи будут загружены через JavaScript -->
+            <div class="empty-state glass-effect" id="loadingState">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Загрузка записей...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Система онлайн-записи к барберам</p>
+            <p>© 2026 iWant. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mock данные записей
+        const mockAppointments = [
+            {
+                id: 1,
+                date: '2024-03-20',
+                time: '14:30',
+                client_name: 'Иван Петров',
+                phone: '+998901234567',
+                service: 'Стрижка',
+                price: 15000,
+                status: 'new'
+            },
+            {
+                id: 2,
+                date: '2024-03-20',
+                time: '16:00',
+                client_name: 'Алексей Сидоров',
+                phone: '+998902345678',
+                service: 'Борода',
+                price: 10000,
+                status: 'confirmed'
+            },
+            {
+                id: 3,
+                date: '2024-03-21',
+                time: '11:00',
+                client_name: 'Максим Иванов',
+                phone: '+998903456789',
+                service: 'Стрижка + Борода',
+                price: 20000,
+                status: 'pending'
+            },
+            {
+                id: 4,
+                date: '2024-03-19',
+                time: '15:30',
+                client_name: 'Дмитрий Козлов',
+                phone: '+998904567890',
+                service: 'Стрижка',
+                price: 15000,
+                status: 'completed'
+            },
+            {
+                id: 5,
+                date: '2024-03-18',
+                time: '13:00',
+                client_name: 'Андрей Новиков',
+                phone: '+998905678901',
+                service: 'Отец + Сын',
+                price: 25000,
+                status: 'cancelled'
+            }
+        ];
+        
+        function loadAppointments(filter = 'all') {
+            const container = document.getElementById('appointmentsList');
+            
+            // Фильтрация записей
+            let filteredAppointments = mockAppointments;
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            switch(filter) {
+                case 'today':
+                    filteredAppointments = mockAppointments.filter(app => app.date === today);
+                    break;
+                case 'new':
+                    filteredAppointments = mockAppointments.filter(app => app.status === 'new');
+                    break;
+                case 'confirmed':
+                    filteredAppointments = mockAppointments.filter(app => app.status === 'confirmed');
+                    break;
+                case 'pending':
+                    filteredAppointments = mockAppointments.filter(app => app.status === 'pending');
+                    break;
+            }
+            
+            if (filteredAppointments.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state glass-effect">
+                        <i class="far fa-calendar-times"></i>
+                        <h3>Записей нет</h3>
+                        <p>Нет записей по выбранному фильтру</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            filteredAppointments.forEach(app => {
+                const statusText = getStatusText(app.status);
+                const statusClass = `status-${app.status}`;
+                const date = new Date(app.date).toLocaleDateString('ru-RU');
+                
+                html += `
+                    <div class="appointment-card glass-effect">
+                        <div class="appointment-header">
+                            <div>
+                                <div class="appointment-id">#${app.id}</div>
+                                <div class="appointment-time">${date} • ${app.time}</div>
+                            </div>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="appointment-client">
+                            <div class="client-name">${app.client_name}</div>
+                            <a href="tel:${app.phone}" class="client-phone">
+                                <i class="fas fa-phone"></i> ${app.phone}
+                            </a>
+                        </div>
+                        
+                        <div class="appointment-service">
+                            <div class="service-name">${app.service}</div>
+                            <div class="service-price">${app.price} руб.</div>
+                        </div>
+                        
+                        <div class="appointment-actions">
+                            ${getActionButtons(app)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'new': 'Новая',
+                'confirmed': 'Подтверждено',
+                'pending': 'Ожидание',
+                'completed': 'Выполнено',
+                'cancelled': 'Отменено'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function getActionButtons(appointment) {
+            const { id, status } = appointment;
+            
+            switch(status) {
+                case 'new':
+                case 'pending':
+                    return `
+                        <button class="action-btn btn-confirm" onclick="updateStatus(${id}, 'confirmed')">
+                            <i class="fas fa-check"></i> Подтвердить
+                        </button>
+                        <button class="action-btn btn-cancel" onclick="updateStatus(${id}, 'cancelled')">
+                            <i class="fas fa-times"></i> Отменить
+                        </button>
+                    `;
+                case 'confirmed':
+                    return `
+                        <button class="action-btn btn-complete" onclick="updateStatus(${id}, 'completed')">
+                            <i class="fas fa-check-double"></i> Выполнено
+                        </button>
+                        <button class="action-btn btn-cancel" onclick="updateStatus(${id}, 'cancelled')">
+                            <i class="fas fa-times"></i> Отменить
+                        </button>
+                    `;
+                case 'completed':
+                    return `<span style="color: #28a745; text-align: center; padding: 10px;"><i class="fas fa-check-circle"></i> Завершено</span>`;
+                case 'cancelled':
+                    return `<span style="color: #dc3545; text-align: center; padding: 10px;"><i class="fas fa-ban"></i> Отменено</span>`;
+                default:
+                    return '';
+            }
+        }
+        
+        function updateStatus(appointmentId, newStatus) {
+            if (confirm(`Изменить статус записи #${appointmentId} на "${getStatusText(newStatus)}"?`)) {
+                // В реальном приложении здесь был бы запрос к API
+                const appointment = mockAppointments.find(app => app.id === appointmentId);
+                if (appointment) {
+                    appointment.status = newStatus;
+                    showNotification(`Статус записи #${appointmentId} изменен`);
+                    loadAppointments(getActiveFilter());
+                }
+            }
+        }
+        
+        function filterAppointments(filter) {
+            // Обновляем активную кнопку фильтра
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadAppointments(filter);
+        }
+        
+        function getActiveFilter() {
+            const activeBtn = document.querySelector('.filter-btn.active');
+            return activeBtn ? activeBtn.onclick.toString().match(/filterAppointments\('(\w+)'\)/)[1] : 'all';
+        }
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: rgba(74, 111, 165, 0.9);
+                color: white;
+                border-radius: 8px;
+                backdrop-filter: blur(10px);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => loadAppointments(), 1000);
+        });
+        
+        // Добавляем CSS анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
