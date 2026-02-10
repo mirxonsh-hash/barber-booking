@@ -1,33 +1,5 @@
-/* css/common.css - ОБНОВЛЕННАЯ ВЕРСИЯ */
+/* css/common.css - ОБНОВЛЕННАЯ ВЕРСИЯ С ФОНОМ */
 :root {
-
-    /* ФОН НА ВСЕХ СТРАНИЦАХ */
-body {
-    background-image: url('/static/images/fon.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-}
-
-/* Полупрозрачный оверлей для читаемости текста */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6); /* затемнение 60% */
-    z-index: -1;
-}
-
-/* Все контентные блоки поверх фона */
-.container, .header, .card, .modal-container, .footer {
-    position: relative;
-    z-index: 1;
-}
-    
     --primary-color: #4a6fa5;
     --primary-hover: #5a7fb5;
     --primary-light: rgba(74, 111, 165, 0.1);
@@ -75,6 +47,31 @@ body::before {
     --spacing-2xl: 48px;
 }
 
+/* ===== ФОН НА ВСЕХ СТРАНИЦАХ ===== */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: var(--text-white);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    
+    /* ТВОЙ ФОН */
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.9)),
+        url('/images/fon.jpg') center/cover no-repeat fixed;
+    
+    /* Убери если не нужно затемнение */
+    /* background-color: var(--bg-dark); */ /* ← УДАЛИ ЭТУ СТРОКУ ЕСЛИ ЕСТЬ! */
+}
+
+/* Все контентные блоки поверх фона */
+.container, .header, .card, .modal-container, .footer {
+    position: relative;
+    z-index: 1;
+}
+
 /* Reset & Base Styles */
 * {
     margin: 0;
@@ -85,17 +82,6 @@ body::before {
 
 html {
     scroll-behavior: smooth;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background-color: var(--bg-dark);
-    color: var(--text-white);
-    line-height: 1.6;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
 }
 
 /* Typography */
@@ -141,14 +127,13 @@ a:hover {
 
 /* Header & Navigation */
 .header {
-    background-color: var(--bg-card);
+    background-color: rgba(26, 26, 26, 0.95);
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 1000;
     box-shadow: var(--shadow-sm);
     backdrop-filter: blur(10px);
-    background-color: rgba(26, 26, 26, 0.95);
 }
 
 .navbar {
@@ -448,7 +433,7 @@ a:hover {
 
 /* Cards */
 .card {
-    background-color: var(--bg-card);
+    background-color: rgba(26, 26, 26, 0.95);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
     overflow: hidden;
@@ -540,18 +525,18 @@ a:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--bg-overlay);
+    background-color: rgba(0, 0, 0, 0.95);
     z-index: 9999;
     display: none;
     align-items: center;
     justify-content: center;
     padding: var(--spacing-md);
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(10px);
     animation: fadeIn var(--transition-normal);
 }
 
 .modal-container {
-    background-color: var(--bg-card);
+    background-color: rgba(26, 26, 26, 0.98);
     border-radius: var(--radius-lg);
     width: 100%;
     max-width: 500px;
@@ -570,7 +555,7 @@ a:hover {
     align-items: center;
     position: sticky;
     top: 0;
-    background-color: var(--bg-card);
+    background-color: rgba(26, 26, 26, 0.98);
     z-index: 1;
 }
 
@@ -614,7 +599,7 @@ a:hover {
 
 /* Footer */
 .footer {
-    background-color: var(--bg-card);
+    background-color: rgba(26, 26, 26, 0.95);
     color: var(--text-light);
     padding: var(--spacing-xl) 0;
     border-top: 1px solid var(--border-color);
@@ -861,7 +846,7 @@ a:hover {
         top: 70px;
         left: 0;
         right: 0;
-        background-color: var(--bg-card);
+        background-color: rgba(26, 26, 26, 0.98);
         flex-direction: column;
         padding: var(--spacing-md);
         gap: var(--spacing-sm);
