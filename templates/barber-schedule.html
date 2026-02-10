@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>График работы | iWant Панель барбера</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Основные стили из barber-panel.html */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; width: 100vw; overflow-x: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .glass-effect { background: rgba(26, 26, 26, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1); border-radius: 12px; }
+        
+        .header { padding: 20px 0; position: sticky; top: 0; z-index: 1000; background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .logo i { color: #4a6fa5; }
+        .nav-menu { display: flex; gap: 15px; align-items: center; }
+        .nav-item { padding: 10px 20px; border-radius: 8px; text-decoration: none; color: #aaa; transition: all 0.3s; backdrop-filter: blur(10px); background: rgba(26, 26, 26, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .nav-item:hover, .nav-item.active { background: rgba(74, 111, 165, 0.3); color: #fff; border-color: rgba(74, 111, 165, 0.5); }
+        
+        .section-title { font-size: 24px; margin: 30px 0 20px; color: #fff; display: flex; align-items: center; gap: 10px; }
+        
+        /* Расписание */
+        .schedule-container { padding: 20px; margin: 20px 0; }
+        
+        .work-hours { margin-bottom: 30px; }
+        .hours-title { font-size: 18px; margin-bottom: 15px; color: #fff; }
+        .hours-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .hour-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 8px; background: rgba(0, 0, 0, 0.2); }
+        .day-name { font-weight: 600; }
+        .time-inputs { display: flex; align-items: center; gap: 10px; }
+        .time-input { padding: 8px 12px; border-radius: 6px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; width: 80px; text-align: center; }
+        .time-separator { color: #666; }
+        
+        /* Перерыв */
+        .break-settings { margin-bottom: 30px; }
+        .break-toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: #4a6fa5; }
+        input:checked + .toggle-slider:before { transform: translateX(24px); }
+        
+        .break-times { display: flex; align-items: center; gap: 15px; margin-top: 15px; }
+        
+        /* Выходные */
+        .days-off { margin-bottom: 30px; }
+        .days-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .day-checkbox { position: relative; }
+        .day-checkbox input { display: none; }
+        .day-label { display: inline-block; padding: 10px 20px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; transition: all 0.3s; }
+        .day-checkbox input:checked + .day-label { background: rgba(74, 111, 165, 0.3); border-color: rgba(74, 111, 165, 0.5); color: #fff; }
+        
+        /* Кнопки */
+        .action-buttons { display: flex; gap: 15px; margin-top: 30px; }
+        .btn { padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-primary { background: rgba(74, 111, 165, 0.3); color: #fff; border: 1px solid rgba(74, 111, 165, 0.5); }
+        .btn-primary:hover { background: rgba(74, 111, 165, 0.5); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+        
+        .footer { margin-top: 40px; padding: 30px 0; text-align: center; color: #666; font-size: 14px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; gap: 15px; }
+            .nav-menu { width: 100%; justify-content: center; flex-wrap: wrap; }
+            .hours-grid { grid-template-columns: 1fr; }
+            .break-times, .action-buttons { flex-direction: column; }
+            .days-grid { justify-content: center; }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-menu { flex-direction: column; width: 100%; }
+            .nav-item { width: 100%; text-align: center; }
+            .container { padding: 0 15px; }
+            .day-label { padding: 8px 16px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <i class="fas fa-cut"></i> iWant
+                </a>
+                <div class="nav-menu">
+                    <a href="barber-panel.html" class="nav-item">
+                        <i class="fas fa-tachometer-alt"></i> Панель
+                    </a>
+                    <a href="barber-bookings.html" class="nav-item">
+                        <i class="fas fa-calendar-alt"></i> Записи
+                    </a>
+                    <a href="barber-finances.html" class="nav-item">
+                        <i class="fas fa-chart-line"></i> Финансы
+                    </a>
+                    <a href="barber-schedule.html" class="nav-item active">
+                        <i class="fas fa-clock"></i> График
+                    </a>
+                    <a href="barber-services.html" class="nav-item">
+                        <i class="fas fa-scissors"></i> Услуги
+                    </a>
+                    <a href="barber-profile.html" class="nav-item">
+                        <i class="fas fa-user"></i> Профиль
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="section-title">
+            <i class="fas fa-clock"></i> График работы
+        </h1>
+        
+        <div class="schedule-container glass-effect">
+            <!-- Часы работы -->
+            <div class="work-hours">
+                <h2 class="hours-title">
+                    <i class="far fa-clock"></i> Часы работы
+                </h2>
+                <div class="hours-grid" id="workHoursGrid">
+                    <!-- Часы работы будут загружены через JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Перерыв -->
+            <div class="break-settings">
+                <h2 class="hours-title">
+                    <i class="fas fa-coffee"></i> Обеденный перерыв
+                </h2>
+                <div class="break-toggle">
+                    <span>Включить перерыв</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="breakToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="break-times" id="breakTimes">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #aaa;">Начало</label>
+                        <input type="time" id="breakStart" class="time-input" value="13:00">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #aaa;">Конец</label>
+                        <input type="time" id="breakEnd" class="time-input" value="14:00">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Выходные дни -->
+            <div class="days-off">
+                <h2 class="hours-title">
+                    <i class="fas fa-umbrella-beach"></i> Выходные дни
+                </h2>
+                <div class="days-grid" id="daysOffGrid">
+                    <!-- Дни будут загружены через JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Кнопки действий -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="saveSchedule()">
+                    <i class="fas fa-save"></i> Сохранить график
+                </button>
+                <button class="btn btn-secondary" onclick="resetSchedule()">
+                    <i class="fas fa-redo"></i> Сбросить
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Система онлайн-записи к барберам</p>
+            <p>© 2026 iWant. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Данные графика работы
+        const scheduleData = {
+            workHours: [
+                { day: 'Понедельник', start: '09:00', end: '19:00', enabled: true },
+                { day: 'Вторник', start: '09:00', end: '19:00', enabled: true },
+                { day: 'Среда', start: '09:00', end: '19:00', enabled: true },
+                { day: 'Четверг', start: '09:00', end: '19:00', enabled: true },
+                { day: 'Пятница', start: '09:00', end: '20:00', enabled: true },
+                { day: 'Суббота', start: '10:00', end: '18:00', enabled: true },
+                { day: 'Воскресенье', start: '', end: '', enabled: false }
+            ],
+            break: {
+                enabled: true,
+                start: '13:00',
+                end: '14:00'
+            },
+            daysOff: ['Воскресенье']
+        };
+        
+        function loadSchedule() {
+            loadWorkHours();
+            loadBreakSettings();
+            loadDaysOff();
+        }
+        
+        function loadWorkHours() {
+            const container = document.getElementById('workHoursGrid');
+            let html = '';
+            
+            scheduleData.workHours.forEach((day, index) => {
+                const dayId = `day${index}`;
+                html += `
+                    <div class="hour-item">
+                        <span class="day-name">${day.day}</span>
+                        <div class="time-inputs">
+                            <label class="toggle-switch" style="margin-right: 10px;">
+                                <input type="checkbox" id="toggle${index}" ${day.enabled ? 'checked' : ''} onchange="toggleDay(${index}, this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <input type="time" id="start${index}" class="time-input" value="${day.start}" ${!day.enabled ? 'disabled' : ''}>
+                            <span class="time-separator">—</span>
+                            <input type="time" id="end${index}" class="time-input" value="${day.end}" ${!day.enabled ? 'disabled' : ''}>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function loadBreakSettings() {
+            document.getElementById('breakToggle').checked = scheduleData.break.enabled;
+            document.getElementById('breakStart').value = scheduleData.break.start;
+            document.getElementById('breakEnd').value = scheduleData.break.end;
+            
+            // Включаем/выключаем поля ввода перерыва
+            toggleBreakFields(scheduleData.break.enabled);
+            
+            // Добавляем обработчик изменения переключателя
+            document.getElementById('breakToggle').addEventListener('change', function() {
+                toggleBreakFields(this.checked);
+            });
+        }
+        
+        function loadDaysOff() {
+            const container = document.getElementById('daysOffGrid');
+            const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+            
+            let html = '';
+            days.forEach((day, index) => {
+                const isChecked = scheduleData.daysOff.includes(day);
+                html += `
+                    <div class="day-checkbox">
+                        <input type="checkbox" id="dayOff${index}" ${isChecked ? 'checked' : ''}>
+                        <label for="dayOff${index}" class="day-label">${day}</label>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function toggleDay(index, enabled) {
+            const startInput = document.getElementById(`start${index}`);
+            const endInput = document.getElementById(`end${index}`);
+            
+            startInput.disabled = !enabled;
+            endInput.disabled = !enabled;
+            
+            if (!enabled) {
+                startInput.value = '';
+                endInput.value = '';
+            } else {
+                // Устанавливаем значения по умолчанию
+                const defaultTimes = {
+                    0: { start: '09:00', end: '19:00' }, // Пн
+                    1: { start: '09:00', end: '19:00' }, // Вт
+                    2: { start: '09:00', end: '19:00' }, // Ср
+                    3: { start: '09:00', end: '19:00' }, // Чт
+                    4: { start: '09:00', end: '20:00' }, // Пт
+                    5: { start: '10:00', end: '18:00' }, // Сб
+                    6: { start: '', end: '' }            // Вс
+                };
+                
+                if (defaultTimes[index]) {
+                    startInput.value = defaultTimes[index].start;
+                    endInput.value = defaultTimes[index].end;
+                }
+            }
+        }
+        
+        function toggleBreakFields(enabled) {
+            const breakStart = document.getElementById('breakStart');
+            const breakEnd = document.getElementById('breakEnd');
+            
+            breakStart.disabled = !enabled;
+            breakEnd.disabled = !enabled;
+            
+            if (!enabled) {
+                breakStart.value = '';
+                breakEnd.value = '';
+            } else {
+                // Устанавливаем значения по умолчанию
+                breakStart.value = '13:00';
+                breakEnd.value = '14:00';
+            }
+        }
+        
+        function saveSchedule() {
+            // Собираем данные о часах работы
+            const workHours = [];
+            for (let i = 0; i < scheduleData.workHours.length; i++) {
+                const enabled = document.getElementById(`toggle${i}`).checked;
+                const start = document.getElementById(`start${i}`).value;
+                const end = document.getElementById(`end${i}`).value;
+                
+                workHours.push({
+                    day: scheduleData.workHours[i].day,
+                    start: enabled ? start : '',
+                    end: enabled ? end : '',
+                    enabled: enabled
+                });
+            }
+            
+            // Собираем данные о перерыве
+            const breakEnabled = document.getElementById('breakToggle').checked;
+            const breakStart = document.getElementById('breakStart').value;
+            const breakEnd = document.getElementById('breakEnd').value;
+            
+            // Собираем данные о выходных
+            const daysOff = [];
+            for (let i = 0; i < 7; i++) {
+                if (document.getElementById(`dayOff${i}`).checked) {
+                    const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+                    daysOff.push(days[i]);
+                }
+            }
+            
+            // Сохраняем в localStorage (в реальном приложении - отправляем на сервер)
+            const schedule = {
+                workHours: workHours,
+                break: {
+                    enabled: breakEnabled,
+                    start: breakStart,
+                    end: breakEnd
+                },
+                daysOff: daysOff
+            };
+            
+            localStorage.setItem('barber_schedule', JSON.stringify(schedule));
+            showNotification('График работы сохранен!');
+        }
+        
+        function resetSchedule() {
+            if (confirm('Сбросить все настройки графика к значениям по умолчанию?')) {
+                // Сбрасываем к значениям по умолчанию
+                scheduleData.workHours = [
+                    { day: 'Понедельник', start: '09:00', end: '19:00', enabled: true },
+                    { day: 'Вторник', start: '09:00', end: '19:00', enabled: true },
+                    { day: 'Среда', start: '09:00', end: '19:00', enabled: true },
+                    { day: 'Четверг', start: '09:00', end: '19:00', enabled: true },
+                    { day: 'Пятница', start: '09:00', end: '20:00', enabled: true },
+                    { day: 'Суббота', start: '10:00', end: '18:00', enabled: true },
+                    { day: 'Воскресенье', start: '', end: '', enabled: false }
+                ];
+                
+                scheduleData.break = {
+                    enabled: true,
+                    start: '13:00',
+                    end: '14:00'
+                };
+                
+                scheduleData.daysOff = ['Воскресенье'];
+                
+                loadSchedule();
+                showNotification('График сброшен к значениям по умолчанию');
+            }
+        }
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: rgba(74, 111, 165, 0.9);
+                color: white;
+                border-radius: 8px;
+                backdrop-filter: blur(10px);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            // Загружаем сохраненный график или значения по умолчанию
+            const savedSchedule = localStorage.getItem('barber_schedule');
+            if (savedSchedule) {
+                Object.assign(scheduleData, JSON.parse(savedSchedule));
+            }
+            
+            loadSchedule();
+        });
+        
+        // Добавляем CSS анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
