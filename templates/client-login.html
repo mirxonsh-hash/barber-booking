@@ -8,6 +8,136 @@
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Стеклянный эффект для кнопок и форм */
+        .btn, .login-option, .auth-card, .form-input, .nav-link {
+            background: rgba(26, 26, 26, 0.7) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover, .login-option:hover, .nav-link:hover {
+            background: rgba(74, 111, 165, 0.4) !important;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 12px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: rgba(74, 111, 165, 0.3) !important;
+        }
+        
+        .form-input:focus {
+            background: rgba(34, 34, 34, 0.8) !important;
+            border-color: rgba(74, 111, 165, 0.5) !important;
+            box-shadow: 
+                0 0 0 2px rgba(74, 111, 165, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-link.active {
+            background: rgba(74, 111, 165, 0.3) !important;
+            border-color: rgba(74, 111, 165, 0.5) !important;
+        }
+        
+        .btn-secondary {
+            background: rgba(51, 51, 51, 0.7) !important;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(74, 111, 165, 0.4) !important;
+        }
+        
+        .error-message, .success-message {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .test-data {
+            background: rgba(34, 34, 34, 0.7) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Модальное окно успеха после записи */
+        .success-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .success-modal {
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            max-width: 400px;
+            width: 90%;
+            animation: modalAppear 0.5s ease-out;
+        }
+        
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .success-icon {
+            font-size: 60px;
+            color: #4a6fa5;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .success-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .success-message {
+            color: #aaa;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        /* Стили логотипа */
+        .logo-img {
+            height: 40px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -15,16 +145,17 @@
         }
         
         body {
-            background-color: #0a0a0a;
             color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
         }
         
         .header {
-            background: #1a1a1a;
+            background: rgba(26, 26, 26, 0.9);
             padding: 20px 0;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         .container {
@@ -64,7 +195,6 @@
         }
         
         .nav-link:hover, .nav-link.active {
-            background: #333;
             color: #fff;
         }
         
@@ -82,10 +212,8 @@
         }
         
         .auth-card {
-            background: #1a1a1a;
             border-radius: 12px;
             padding: 40px;
-            border: 1px solid #333;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
         
@@ -126,8 +254,6 @@
         .form-input {
             width: 100%;
             padding: 14px;
-            background: #222;
-            border: 1px solid #444;
             border-radius: 8px;
             color: #fff;
             font-size: 16px;
@@ -136,7 +262,6 @@
         
         .form-input:focus {
             outline: none;
-            border-color: #4a6fa5;
         }
         
         .form-hint {
@@ -151,7 +276,6 @@
         .btn {
             width: 100%;
             padding: 16px;
-            background: #4a6fa5;
             color: white;
             border: none;
             border-radius: 8px;
@@ -166,19 +290,12 @@
         }
         
         .btn:hover {
-            background: #5a7fb5;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(74, 111, 165, 0.4);
         }
         
         .btn-secondary {
-            background: #333;
-            border: 1px solid #444;
-        }
-        
-        .btn-secondary:hover {
-            background: #444;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(68, 68, 68, 0.5);
         }
         
         .btn-block {
@@ -193,7 +310,6 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
-            border: 1px solid rgba(220, 53, 69, 0.3);
         }
         
         .success-message {
@@ -203,7 +319,6 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
-            border: 1px solid rgba(40, 167, 69, 0.3);
         }
         
         .divider {
@@ -218,7 +333,7 @@
             content: "";
             flex: 1;
             height: 1px;
-            background: #333;
+            background: rgba(51, 51, 51, 0.5);
         }
         
         .divider span {
@@ -231,8 +346,6 @@
         }
         
         .login-option {
-            background: #222;
-            border: 1px solid #333;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 10px;
@@ -241,8 +354,7 @@
         }
         
         .login-option:hover {
-            background: #2a2a2a;
-            border-color: #4a6fa5;
+            border-color: rgba(74, 111, 165, 0.3);
         }
         
         .login-option-title {
@@ -264,9 +376,7 @@
         .test-data {
             margin-top: 30px;
             padding: 20px;
-            background: #222;
             border-radius: 8px;
-            border: 1px solid #333;
         }
         
         .test-data h4 {
@@ -288,11 +398,13 @@
         }
         
         .footer {
-            background: #1a1a1a;
+            background: rgba(26, 26, 26, 0.9);
             color: #aaa;
             padding: 30px 0;
             text-align: center;
-            border-top: 1px solid #333;
+            border-top: 1px solid rgba(51, 51, 51, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         @media (max-width: 768px) {
@@ -320,7 +432,7 @@
         <div class="container">
             <nav class="navbar">
                 <a href="/" class="logo">
-                    <i class="fas fa-cut"></i> iWant
+                    <img src="/images/logo.gif" alt="iWant" class="logo-img">
                 </a>
                 <ul class="nav-links">
                     <li><a href="/" class="nav-link">Главная</a></li>
@@ -439,6 +551,22 @@
             </div>
         </div>
     </footer>
+
+    <!-- Модальное окно успеха -->
+    <div id="successModal" class="success-modal-overlay">
+        <div class="success-modal">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="success-title">Успешно записались!</h2>
+            <p class="success-message" id="successModalMessage">
+                Вы успешно записались к барберу. Через 3 секунды вы будете перенаправлены на главную страницу.
+            </p>
+            <button class="btn" onclick="goHome()" style="background: rgba(74, 111, 165, 0.2);">
+                Перейти сейчас
+            </button>
+        </div>
+    </div>
 
     <script>
         const API_BASE = 'https://barber-booking-db.onrender.com';
@@ -676,77 +804,111 @@
         });
 
         // ========== АВТОМАТИЧЕСКИЙ ВХОД КЛИЕНТА ==========
-async function checkAutoLogin() {
-    try {
-        // 1. Проверяем сохраненный токен клиента
-        const clientToken = localStorage.getItem('clientToken');
-        const clientPhone = localStorage.getItem('clientPhone');
-        
-        if (clientToken && clientPhone) {
-            console.log('🔑 Проверяем сессию клиента:', clientPhone);
-            
-            const response = await fetch(`${API_BASE}/api/client/session`, {
-                headers: { 'Authorization': `Bearer ${clientToken}` }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.authenticated) {
-                    console.log('✅ Клиент уже авторизован');
-                    
-                    // 2. Проверяем сохраненный код барбера
-                    const savedBarberCode = localStorage.getItem('last_barber_code') || 'barber';
-                    
-                    // 3. Переходим сразу в панель
-                    window.location.href = `${API_BASE}/client-panel?code=${savedBarberCode}`;
-                    return;
-                }
-            }
-        }
-        
-        // 4. Проверяем Telegram авторизацию
-        const telegramUser = localStorage.getItem('telegram_user');
-        if (telegramUser) {
-            console.log('📱 Telegram пользователь обнаружен');
-            
-            const userData = JSON.parse(telegramUser);
-            const phone = userData.phone || '';
-            
-            if (phone) {
-                // Авторизуемся автоматически через Telegram
-                const response = await fetch(`${API_BASE}/api/client/auth`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        phone: phone,
-                        password: '123456' // Стандартный пароль
-                    })
-                });
+        async function checkAutoLogin() {
+            try {
+                // 1. Проверяем сохраненный токен клиента
+                const clientToken = localStorage.getItem('clientToken');
+                const clientPhone = localStorage.getItem('clientPhone');
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        localStorage.setItem('clientToken', data.token);
-                        localStorage.setItem('clientPhone', phone);
-                        
-                        // Переходим к выбору барбера
-                        window.location.href = `${API_BASE}/client-profile`;
-                        return;
+                if (clientToken && clientPhone) {
+                    console.log('🔑 Проверяем сессию клиента:', clientPhone);
+                    
+                    const response = await fetch(`${API_BASE}/api/client/session`, {
+                        headers: { 'Authorization': `Bearer ${clientToken}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.authenticated) {
+                            console.log('✅ Клиент уже авторизован');
+                            
+                            // 2. Проверяем сохраненный код барбера
+                            const savedBarberCode = localStorage.getItem('last_barber_code') || 'barber';
+                            
+                            // 3. Переходим сразу в панель
+                            window.location.href = `${API_BASE}/client-panel?code=${savedBarberCode}`;
+                            return;
+                        }
                     }
                 }
+                
+                // 4. Проверяем Telegram авторизацию
+                const telegramUser = localStorage.getItem('telegram_user');
+                if (telegramUser) {
+                    console.log('📱 Telegram пользователь обнаружен');
+                    
+                    const userData = JSON.parse(telegramUser);
+                    const phone = userData.phone || '';
+                    
+                    if (phone) {
+                        // Авторизуемся автоматически через Telegram
+                        const response = await fetch(`${API_BASE}/api/client/auth`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                phone: phone,
+                                password: '123456' // Стандартный пароль
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                localStorage.setItem('clientToken', data.token);
+                                localStorage.setItem('clientPhone', phone);
+                                
+                                // Переходим к выбору барбера
+                                window.location.href = `${API_BASE}/client-profile`;
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+                console.log('👤 Требуется ручной вход');
+                
+            } catch (error) {
+                console.error('❌ Ошибка автоматического входа:', error);
+            }
+        }
+
+        // Вызываем проверку при загрузке
+        setTimeout(checkAutoLogin, 500);
+        
+        // Показать модальное окно успеха
+        function showSuccessModal(message) {
+            const modal = document.getElementById('successModal');
+            const messageElement = document.getElementById('successModalMessage');
+            
+            if (modal && messageElement) {
+                messageElement.textContent = message;
+                modal.style.display = 'flex';
+                
+                // Автоматическое закрытие и редирект через 4 секунды
+                setTimeout(() => {
+                    closeSuccessModal();
+                    window.location.href = '/';
+                }, 4000);
             }
         }
         
-        console.log('👤 Требуется ручной вход');
+        function closeSuccessModal() {
+            const modal = document.getElementById('successModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
         
-    } catch (error) {
-        console.error('❌ Ошибка автоматического входа:', error);
-    }
-}
-
-// Вызываем проверку при загрузке
-setTimeout(checkAutoLogin, 500);
+        function goHome() {
+            closeSuccessModal();
+            window.location.href = '/';
+        }
+        
+        // Проверяем, нужно ли показать окно успеха после записи
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            showSuccessModal('Вы успешно записались к барберу! Через 4 секунды вы будете перенаправлены на главную страницу.');
+        }
     </script>
 </body>
 </html>
-
