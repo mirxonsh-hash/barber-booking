@@ -243,7 +243,7 @@ const BarberSystem = {
         localStorage.removeItem('barberToken');
         localStorage.removeItem('barberData');
         localStorage.removeItem('barberBookings');
-        window.location.href = '/barber-login.html';
+        window.location.href = '/barber-login'; // ИЗМЕНЕНО: убрали .html
     },
 
     // Получить текущего барбера
