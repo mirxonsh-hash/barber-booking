@@ -907,20 +907,24 @@
                     setTimeout(() => notification.remove(), 300);
                 }, 3000);
             }
-            
-            async function checkAuth() {
-                try {
-                    const response = await BarberSystem.checkAuth();
-                    if (!response.authenticated) {
-                        window.location.href = '/barber-login?from=profile';
-                    } else {
-                        loadProfile();
-                    }
-                } catch (error) {
-                    console.error('Ошибка проверки авторизации:', error);
-                    window.location.href = '/barber-login.html';
-                }
-            }
+        async function checkAuth() {
+    try {
+        const token = localStorage.getItem('barberToken') || localStorage.getItem('barber_token');
+
+        if (!token) {
+            window.location.href = '/barber-login?from=profile';
+            return;
+        }
+
+        // Токен есть — загружаем профиль
+        loadProfile();
+
+    } catch (error) {
+        console.error('Ошибка проверки авторизации:', error);
+        window.location.href = '/barber-login.html';
+    }
+}
+
             
             checkAuth();
         });
