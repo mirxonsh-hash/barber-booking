@@ -56,7 +56,7 @@ const BarberSystem = {
             token = urlToken;
             localStorage.setItem('barber_token', token);
         }
-    }
+    },
 
     // 3. Если токена всё ещё нет — значит не авторизован
     if (!token) {
@@ -331,4 +331,5 @@ window.BarberSystem = BarberSystem;
 //     console.log('✅ BarberSystem API загружен');
 //     console.log('🔗 Сервер:', BarberSystem.baseURL);
 // });
+
 
