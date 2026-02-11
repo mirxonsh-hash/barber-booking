@@ -44,26 +44,49 @@ const BarberSystem = {
     },
 
     // Проверка авторизации
-    checkAuth: async function() {
-        const token = localStorage.getItem('barberToken');
-        if (!token) {
-            return { authenticated: false };
+    checkAuth: async function () {
+    // 1. Пытаемся взять токен из localStorage
+    let token = localStorage.getItem('barber_token');
+
+    // 2. Если нет — пробуем взять из URL (?token=...)
+    if (!token) {
+        const params = new URLSearchParams(window.location.search);
+        const urlToken = params.get('token');
+        if (urlToken) {
+            token = urlToken;
+            localStorage.setItem('barber_token', token);
         }
-        
-        try {
-            const response = await fetch(`${this.baseURL}/api/barber/check`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            
-            const data = await response.json();
+    }
+
+    // 3. Если токена всё ещё нет — значит не авторизован
+    if (!token) {
+        return { authenticated: false };
+    }
+
+    try {
+        const response = await fetch(`${this.API_BASE}/api/barber/check`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.authenticated) {
             return data;
-        } catch (error) {
-            console.error('Ошибка проверки авторизации:', error);
+        } else {
+            // Токен есть, но невалидный
+            localStorage.removeItem('barber_token');
+            localStorage.removeItem('barber_code');
+            localStorage.removeItem('barber_name');
             return { authenticated: false };
         }
-    },
+    } catch (e) {
+        console.error('Ошибка проверки барбера:', e);
+        return { authenticated: false };
+    }
+}
+
 
     // Получить записи барбера
     getBarberAppointments: async function() {
@@ -308,3 +331,4 @@ window.BarberSystem = BarberSystem;
 //     console.log('✅ BarberSystem API загружен');
 //     console.log('🔗 Сервер:', BarberSystem.baseURL);
 // });
+
