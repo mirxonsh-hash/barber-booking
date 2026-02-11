@@ -598,21 +598,22 @@
             };
             
             function loadProfile() {
-                const savedProfile = localStorage.getItem('barber_profile');
-                const savedBarber = BarberSystem.getCurrentBarber();
-                
-                if (savedProfile) {
-                    try {
-                        profileData = JSON.parse(savedProfile);
-                    } catch (e) {
-                        console.error('Ошибка загрузки профиля:', e);
-                    }
-                }
-                
-                if (savedBarber) {
-                    profileData.name = savedBarber.name || profileData.name;
-                    profileData.code = savedBarber.code || profileData.code;
-                }
+    const savedProfile = localStorage.getItem('barber_profile');
+    const savedBarber = BarberSystem.getCurrentBarber();
+
+    if (!savedBarber) {
+        // Нет данных барбера → обратно на логин
+        window.location.href = '/barber-login';
+        return;
+    }
+
+    if (savedProfile) {
+        try {
+            profileData = JSON.parse(savedProfile);
+        } catch (e) {
+            console.error('Ошибка загрузки профиля:', e);
+        }
+    }
                 
                 document.getElementById('inputName').value = profileData.name;
                 document.getElementById('inputPhone').value = profileData.phone || '';
@@ -907,6 +908,8 @@
                     setTimeout(() => notification.remove(), 300);
                 }, 3000);
             }
+
+            
         async function checkAuth() {
     try {
         const token = localStorage.getItem('barberToken') || localStorage.getItem('barber_token');
