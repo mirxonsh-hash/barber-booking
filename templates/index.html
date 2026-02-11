@@ -1368,50 +1368,85 @@
             }
         }
         
-        // Настройка ввода телефона
+        // Настройка ввода телефона - ИСПРАВЛЕННАЯ ВЕРСИЯ
         function setupPhoneInput() {
             const phoneInput = document.getElementById('phoneInput');
             
             phoneInput.addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
                 
-                // ИСПРАВЛЕНИЕ: Строго 9 цифр
-                value = value.substring(0, 9);
+                // Ограничиваем 9 цифрами (без пробелов)
+                if (value.length > 9) {
+                    value = value.substring(0, 9);
+                }
                 
-                // Форматируем номер
-                let formatted = '';
-                if (value.length > 0) {
-                    if (value.length <= 2) {
-                        formatted = value;
-                    } else if (value.length <= 5) {
-                        formatted = `${value.substring(0, 2)} ${value.substring(2)}`;
-                    } else if (value.length <= 7) {
-                        formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5)}`;
-                    } else {
-                        formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5, 7)} ${value.substring(7, 9)}`;
-                    }
+                // Форматируем номер только после того, как есть 9 цифр
+                let formatted = value;
+                if (value.length >= 9) {
+                    formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5, 7)} ${value.substring(7, 9)}`;
+                } else if (value.length > 7) {
+                    formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5)}`;
+                } else if (value.length > 5) {
+                    formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5)}`;
+                } else if (value.length > 2) {
+                    formatted = `${value.substring(0, 2)} ${value.substring(2)}`;
                 }
                 
                 e.target.value = formatted;
+                
+                // Показываем предупреждение, если введено больше 9 цифр
+                if (value.length > 9) {
+                    phoneInput.style.borderColor = '#dc3545';
+                    phoneInput.style.boxShadow = '0 0 0 2px rgba(220, 53, 69, 0.2)';
+                } else {
+                    phoneInput.style.borderColor = '';
+                    phoneInput.style.boxShadow = '';
+                }
             });
             
             phoneInput.addEventListener('keypress', function(e) {
                 // Разрешаем только цифры
                 if (!/\d/.test(e.key)) {
                     e.preventDefault();
+                    return;
                 }
+                
+                // Проверяем, не превысили ли мы уже 9 цифр
+                const currentValue = this.value.replace(/\D/g, '');
+                if (currentValue.length >= 9) {
+                    e.preventDefault();
+                    return;
+                }
+            });
+            
+            phoneInput.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const numbers = pastedText.replace(/\D/g, '');
+                
+                if (numbers.length > 9) {
+                    this.value = numbers.substring(0, 9);
+                } else {
+                    this.value = numbers;
+                }
+                
+                // Триггерим событие input для форматирования
+                const inputEvent = new Event('input');
+                this.dispatchEvent(inputEvent);
             });
         }
         
-        // Отправка регистрации
+        // Отправка регистрации - ИСПРАВЛЕННАЯ ВЕРСИЯ
         function submitRegistration() {
             const phoneInput = document.getElementById('phoneInput');
             let phoneValue = phoneInput.value.replace(/\s+/g, '');
             
-            // ИСПРАВЛЕНИЕ: Проверяем СТРОГО 9 цифр
+            // Проверяем точно 9 цифр
             if (!phoneValue || phoneValue.length !== 9) {
-                alert('Пожалуйста, введите РОВНО 9 цифр номера телефона');
+                alert('Пожалуйста, введите РОВНО 9 цифр номера телефона (например: 911234567)');
                 phoneInput.focus();
+                phoneInput.style.borderColor = '#dc3545';
+                phoneInput.style.boxShadow = '0 0 0 2px rgba(220, 53, 69, 0.2)';
                 return;
             }
             
@@ -1419,8 +1454,23 @@
             if (!/^\d{9}$/.test(phoneValue)) {
                 alert('Номер телефона должен содержать только цифры');
                 phoneInput.focus();
+                phoneInput.style.borderColor = '#dc3545';
                 return;
             }
+            
+            // Проверяем что номер начинается с 90, 91, 93, 94, 95, 97, 98, 99
+            const validPrefixes = ['90', '91', '93', '94', '95', '97', '98', '99'];
+            const prefix = phoneValue.substring(0, 2);
+            if (!validPrefixes.includes(prefix)) {
+                alert('Номер телефона должен начинаться с: 90, 91, 93, 94, 95, 97, 98, 99');
+                phoneInput.focus();
+                phoneInput.style.borderColor = '#dc3545';
+                return;
+            }
+            
+            // Сбрасываем стили ошибки
+            phoneInput.style.borderColor = '';
+            phoneInput.style.boxShadow = '';
             
             // Форматируем номер
             const fullPhone = `+998${phoneValue}`;
