@@ -644,12 +644,13 @@
                 document.getElementById('statClients').textContent = '0';
                 document.getElementById('statIncome').textContent = '0';
                 
-                profileData.stats = {
-                    ...profileData.stats,
-                    appointments: stats.total,
-                    clients: stats.completed,
-                    income: stats.total * 15000
-                };
+               profileData.stats = {
+    ...profileData.stats,
+    appointments: stats.total,
+    clients: stats.completed,
+    income: stats.total * 15000
+};
+
             }
             
             const saveProfileBtn = document.getElementById('saveProfileBtn');
