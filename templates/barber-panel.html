@@ -241,25 +241,6 @@
                 });
             }
             
-            const copyCodeBtn = document.getElementById('copyCodeBtn');
-            if (copyCodeBtn) {
-                copyCodeBtn.addEventListener('click', function() {
-                    const code = document.getElementById('masterCode').textContent;
-                    navigator.clipboard.writeText(code)
-                        .then(() => {
-                            const originalText = this.innerHTML;
-                            this.innerHTML = '<i class="fas fa-check"></i> Скопировано';
-                            setTimeout(() => {
-                                this.innerHTML = originalText;
-                            }, 2000);
-                            showNotification('Код скопирован в буфер обмена', 'success');
-                        })
-                        .catch(() => {
-                            showNotification('Не удалось скопировать код', 'error');
-                        });
-                });
-            }
-            
             function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
                 notification.className = `alert alert-${type}`;
@@ -300,5 +281,6 @@
     </script>
 </body>
 </html>
+
 
 
