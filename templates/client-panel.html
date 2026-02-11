@@ -6,129 +6,6 @@
     <title>Запись к барберу | iWant</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-
-        /* Стеклянный эффект для всех элементов */
-        .container, .header, .service-card, .date-option, 
-        .time-slot, .form-input, .summary-card, .btn,
-        .back-btn, .profile-btn, .barber-avatar {
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            background: rgba(26, 26, 26, 0.7) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            box-shadow: 
-                0 4px 6px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover, .service-card:hover, .date-option:hover,
-        .time-slot:hover:not(.disabled), .back-btn:hover,
-        .profile-btn:hover {
-            background: rgba(74, 111, 165, 0.4) !important;
-            transform: translateY(-2px);
-            box-shadow: 
-                0 8px 12px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            border-color: rgba(74, 111, 165, 0.3) !important;
-        }
-        
-        .service-card.selected, .date-option.selected,
-        .time-slot.selected {
-            background: rgba(74, 111, 165, 0.3) !important;
-            border-color: rgba(74, 111, 165, 0.5) !important;
-        }
-        
-        .btn-secondary {
-            background: rgba(51, 51, 51, 0.7) !important;
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(74, 111, 165, 0.4) !important;
-        }
-        
-        .form-input:focus {
-            background: rgba(34, 34, 34, 0.8) !important;
-            border-color: rgba(74, 111, 165, 0.5) !important;
-            box-shadow: 
-                0 0 0 2px rgba(74, 111, 165, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-        
-        .error-message, .success-message {
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        /* Модальное окно успеха */
-        .success-modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        
-        .success-modal {
-            background: rgba(26, 26, 26, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            max-width: 400px;
-            width: 90%;
-            animation: modalAppear 0.5s ease-out;
-        }
-        
-        @keyframes modalAppear {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-        
-        .success-icon {
-            font-size: 60px;
-            color: #4a6fa5;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        .success-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: white;
-        }
-        
-        .success-message {
-            color: #aaa;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-        
-        /* Базовые стили */
         * {
             margin: 0;
             padding: 0;
@@ -137,22 +14,31 @@
         }
         
         body {
+            background: #0a0a0a;
             min-height: 100vh;
         }
         
         .container {
             max-width: 500px;
             margin: 0 auto;
+            background: #1a1a1a;
             min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border-left: 1px solid #333;
+            border-right: 1px solid #333;
         }
         
         .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
             color: white;
             padding: 25px 20px;
             position: relative;
+            border-bottom: 1px solid #333;
         }
         
         .back-btn {
+            background: none;
+            border: none;
             color: white;
             font-size: 20px;
             cursor: pointer;
@@ -168,15 +54,21 @@
             transition: background 0.3s;
         }
         
+        .back-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
         .profile-btn {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
             cursor: pointer;
+            border: 2px solid #4a6fa5;
             position: absolute;
             top: 25px;
             right: 20px;
+            background: #222;
         }
         
         .profile-btn img {
@@ -189,6 +81,7 @@
         .profile-btn .avatar-placeholder {
             width: 100%;
             height: 100%;
+            background: linear-gradient(135deg, #4a6fa5 0%, #0a0a0a 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -206,6 +99,7 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
+            background: #222;
             margin: 0 auto 15px;
             display: flex;
             align-items: center;
@@ -213,6 +107,7 @@
             font-size: 32px;
             font-weight: bold;
             color: #4a6fa5;
+            border: 3px solid #333;
         }
         
         .barber-name {
@@ -302,9 +197,22 @@
         }
         
         .service-card {
+            border: 2px solid #333;
             border-radius: 12px;
             padding: 18px;
             cursor: pointer;
+            transition: all 0.3s;
+            background: #222;
+        }
+        
+        .service-card:hover {
+            border-color: #4a6fa5;
+            background: rgba(74, 111, 165, 0.1);
+        }
+        
+        .service-card.selected {
+            border-color: #4a6fa5;
+            background: rgba(74, 111, 165, 0.15);
         }
         
         .service-name {
@@ -333,10 +241,22 @@
         }
         
         .date-option {
+            border: 2px solid #333;
             border-radius: 10px;
             padding: 15px;
             text-align: center;
             cursor: pointer;
+            transition: all 0.3s;
+            background: #222;
+        }
+        
+        .date-option:hover {
+            border-color: #4a6fa5;
+        }
+        
+        .date-option.selected {
+            border-color: #4a6fa5;
+            background: rgba(74, 111, 165, 0.15);
         }
         
         .date-day {
@@ -363,20 +283,36 @@
         }
         
         .time-slot {
+            border: 2px solid #333;
             border-radius: 8px;
             padding: 12px;
             text-align: center;
             cursor: pointer;
+            transition: all 0.3s;
+            background: #222;
             color: #fff;
+        }
+        
+        .time-slot:hover {
+            border-color: #4a6fa5;
+        }
+        
+        .time-slot.selected {
+            border-color: #4a6fa5;
+            background: rgba(74, 111, 165, 0.15);
         }
         
         .time-slot.disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            background: #1a1a1a;
+            border-color: #222;
             color: #666;
         }
         
         .time-slot.disabled:hover {
+            border-color: #222;
+            background: #1a1a1a;
             color: #666;
         }
         
@@ -394,6 +330,8 @@
         .form-input {
             width: 100%;
             padding: 14px;
+            background: #222;
+            border: 2px solid #333;
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.3s;
@@ -401,23 +339,37 @@
         }
         
         .form-input:focus {
+            border-color: #4a6fa5;
             outline: none;
         }
         
         .btn {
             width: 100%;
             padding: 16px;
+            background: #4a6fa5;
             color: white;
             border: none;
             border-radius: 12px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s;
             margin-top: 10px;
         }
         
         .btn:hover {
+            background: #5a7fb5;
+            transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(74, 111, 165, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #444;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .btn:disabled {
@@ -428,16 +380,18 @@
         }
         
         .summary-card {
+            background: #222;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 25px;
+            border: 1px solid #333;
         }
         
         .summary-item {
             display: flex;
             justify-content: space-between;
             padding: 10px 0;
-            border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+            border-bottom: 1px solid #333;
             color: #fff;
         }
         
@@ -461,6 +415,12 @@
             padding: 40px 20px;
         }
         
+        .success-icon {
+            font-size: 60px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        
         .error-message {
             background: rgba(220, 53, 69, 0.1);
             color: #dc3545;
@@ -469,6 +429,7 @@
             margin-bottom: 20px;
             text-align: center;
             display: none;
+            border: 1px solid rgba(220, 53, 69, 0.3);
         }
         
         .loading-spinner {
@@ -489,10 +450,13 @@
         .appointment-success {
             text-align: center;
             padding: 40px 20px;
+            background: #1a1a1a;
             border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             margin: 20px auto;
             max-width: 600px;
             animation: fadeIn 0.5s;
+            border: 1px solid #333;
         }
         
         .appointment-success-icon {
@@ -502,16 +466,18 @@
         }
         
         .appointment-details {
+            background: #222;
             padding: 20px;
             border-radius: 10px;
             text-align: left;
             margin: 20px 0;
+            border: 1px solid #333;
         }
         
         .appointment-details p {
             margin: 10px 0;
             padding: 5px 0;
-            border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+            border-bottom: 1px solid #333;
             color: #fff;
         }
         
@@ -524,6 +490,8 @@
         }
         
         .btn-primary {
+            background: linear-gradient(135deg, #4a6fa5 0%, #1a1a1a 100%);
+            color: white;
             padding: 12px 24px;
             border: none;
             border-radius: 8px;
@@ -531,39 +499,16 @@
             cursor: pointer;
             margin: 10px;
             transition: all 0.3s;
+            border: 1px solid #333;
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(74, 111, 165, 0.4);
         }
-        
-        /* Успешное окно после записи */
-        .booking-success {
-            text-align: center;
-            padding: 40px 20px;
-            background: rgba(26, 26, 26, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin: 20px 0;
-        }
-        
-        .booking-success-icon {
-            font-size: 60px;
-            color: #4a6fa5;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
     </style>
 </head>
 <body>
-
-    <div class="logo">
-        <i class="fas fa-scissors"></i>
-        <span>iWant</span>
-    </div>
     <div class="container" id="clientPanel">
         <div class="header">
             <button class="back-btn" onclick="goBack()">
@@ -689,50 +634,82 @@
             </div>
             
             <div class="step-content" id="step5">
-                <div class="booking-success">
-                    <div class="booking-success-icon">
+                <div class="success-message">
+                    <div class="success-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <h2 style="margin-bottom: 15px; color: #4a6fa5;">Запись подтверждена! 🎉</h2>
+                    <h2 style="margin-bottom: 15px; color: #28a745;">Запись подтверждена! 🎉</h2>
                     <p style="margin-bottom: 10px; color: #aaa;">Барбер <strong id="confirmBarberName"></strong> ожидает вас</p>
                     <p style="margin-bottom: 20px; color: #aaa;"><strong id="confirmDateTime"></strong></p>
-                    
-                    <div class="appointment-details">
-                        <p><strong>Услуга:</strong> <span id="successService"></span></p>
-                        <p><strong>Дата и время:</strong> <span id="successDateTime"></span></p>
-                        <p><strong>Цена:</strong> <span id="successPrice"></span></p>
-                        <p><strong>ID записи:</strong> <span id="successId"></span></p>
-                    </div>
-                    
-                    <p style="margin-bottom: 25px; color: #aaa; font-size: 14px;" id="redirectTimer">Через 3 секунды вы будете перенаправлены...</p>
+                    <p style="margin-bottom: 25px; color: #aaa; font-size: 14px;">На ваш телефон придет SMS с подтверждением</p>
                     <button class="btn" onclick="goToProfile()" style="margin-bottom: 10px;">
-                        <i class="fas fa-user"></i> Перейти в профиль сейчас
+                        <i class="fas fa-user"></i> Перейти в профиль
                     </button>
-                    <button class="btn btn-secondary" onclick="createAnotherAppointment()">
-                        <i class="fas fa-plus"></i> Создать еще одну запись
+                    <button class="btn btn-secondary" onclick="goHome()">
+                        <i class="fas fa-home"></i> На главную
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно успеха -->
-    <div id="successModal" class="success-modal-overlay">
-        <div class="success-modal">
-            <div class="success-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h2 class="success-title">Успешно записались!</h2>
-            <p class="success-message" id="successModalMessage">
-                Вы успешно записались к барберу. Через 4 секунды вы будете перенаправлены на главную страницу.
-            </p>
-            <button class="btn" onclick="goHome()" style="background: rgba(74, 111, 165, 0.2);">
-                Перейти сейчас
-            </button>
-        </div>
-    </div>
-
     <script>
+
+        // ========== ПРОВЕРКА АВТОРИЗАЦИИ ==========
+async function checkAuthBeforePanel() {
+    try {
+        const clientToken = localStorage.getItem('clientToken');
+        
+        if (!clientToken) {
+            console.log('⚠️ Токен не найден, перенаправляем на вход');
+            
+            // Сохраняем код барбера из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const barberCode = urlParams.get('code');
+            
+            if (barberCode) {
+                window.location.href = `${API_BASE}/client-login?code=${barberCode}`;
+            } else {
+                window.location.href = `${API_BASE}/client-login`;
+            }
+            return false;
+        }
+        
+        // Проверяем токен на сервере
+        const response = await fetch(`${API_BASE}/api/client/session`, {
+            headers: { 'Authorization': `Bearer ${clientToken}` }
+        });
+        
+        if (!response.ok) {
+            localStorage.removeItem('clientToken');
+            localStorage.removeItem('clientPhone');
+            
+            window.location.href = `${API_BASE}/client-login`;
+            return false;
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Ошибка проверки авторизации:', error);
+        return true; // Продолжаем работу даже при ошибке
+    }
+}
+
+// Добавьте вызов перед загрузкой данных
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🔐 Проверяем авторизацию...');
+    
+    const isAuthenticated = await checkAuthBeforePanel();
+    if (!isAuthenticated) return;
+    
+    // Остальной ваш код...
+    console.log('🚀 Клиентская панель загружается...');
+    loadUserAvatar();
+    loadBarberData();
+    generateDates();
+    initSteps();
+});
         // Конфигурация
         const API_BASE = 'https://barber-booking-db.onrender.com';
         
@@ -752,56 +729,11 @@
         // Загрузка при открытии
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Клиентская панель загружается...');
-            
-            // ========== ПРОВЕРКА АВТОРИЗАЦИИ ==========
-            checkAuthBeforePanel().then(isAuthenticated => {
-                if (isAuthenticated) {
-                    loadUserAvatar();
-                    loadBarberData();
-                    generateDates();
-                    initSteps();
-                }
-            });
+            loadUserAvatar();
+            loadBarberData();
+            generateDates();
+            initSteps();
         });
-        
-        // Проверка авторизации
-        async function checkAuthBeforePanel() {
-            try {
-                const clientToken = localStorage.getItem('clientToken');
-                
-                if (!clientToken) {
-                    console.log('⚠️ Токен не найден, перенаправляем на вход');
-                    
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const barberCode = urlParams.get('code');
-                    
-                    if (barberCode) {
-                        window.location.href = `${API_BASE}/client-login?code=${barberCode}`;
-                    } else {
-                        window.location.href = `${API_BASE}/client-login`;
-                    }
-                    return false;
-                }
-                
-                const response = await fetch(`${API_BASE}/api/client/session`, {
-                    headers: { 'Authorization': `Bearer ${clientToken}` }
-                });
-                
-                if (!response.ok) {
-                    localStorage.removeItem('clientToken');
-                    localStorage.removeItem('clientPhone');
-                    
-                    window.location.href = `${API_BASE}/client-login`;
-                    return false;
-                }
-                
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Ошибка проверки авторизации:', error);
-                return true; // Продолжаем работу даже при ошибке
-            }
-        }
         
         // ========== ФУНКЦИИ ПРОФИЛЯ ==========
         function loadUserAvatar() {
@@ -829,6 +761,7 @@
                 avatarImg.style.display = 'block';
                 avatarPlaceholder.style.display = 'none';
             } else {
+                // Генерация аватара по имени
                 const name = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
                 if (name) {
                     const firstLetter = name.charAt(0).toUpperCase();
@@ -847,6 +780,7 @@
         
         // ========== ОСНОВНЫЕ ФУНКЦИИ ЗАПИСИ ==========
         
+        // Инициализация шагов
         function initSteps() {
             const firstStep = document.querySelector('.step[data-step="1"]');
             const firstContent = document.getElementById('step1');
@@ -857,15 +791,10 @@
             }
         }
         
-     async function loadBarberData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const barberCode = urlParams.get('code');
-
-    if (!barberCode) {
-        showError('Код барбера не указан');
-        return;
-    }
-
+        // Загрузка данных барбера
+        async function loadBarberData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const barberCode = urlParams.get('code') || 'barber';
             
             console.log(`🔍 Загрузка данных барбера: ${barberCode}`);
             
@@ -879,10 +808,12 @@
                     loadServices(barberCode);
                 } else {
                     showError('Барбер не найден. Проверьте код.');
+                    // Загружаем демо-услуги даже если барбер не найден
                     loadServices(barberCode);
                 }
             } catch (error) {
                 console.error('❌ Ошибка загрузки барбера:', error);
+                // Демо-данные для тестирования
                 bookingData.barber = {
                     name: "Александр Барбер",
                     code: barberCode,
@@ -893,6 +824,7 @@
             }
         }
         
+        // Показать информацию о барбере
         function displayBarberInfo(barber) {
             document.getElementById('barberName').textContent = barber.name;
             document.getElementById('barberCode').textContent = `Код: ${barber.code}`;
@@ -902,24 +834,29 @@
             document.getElementById('confirmBarberName').textContent = barber.name;
         }
         
+        // Загрузка услуг
         async function loadServices(barberCode) {
             console.log(`📋 Загрузка услуг для барбера: ${barberCode}`);
             
             try {
+                // Пробуем несколько возможных эндпоинтов
                 let services = [];
                 
+                // Вариант 1: /api/barber/{code}/services
                 try {
                     const response1 = await fetch(`${API_BASE}/api/barber/${barberCode}/services`);
                     if (response1.ok) {
                         const result = await response1.json();
                         if (result.success && result.services) {
                             services = result.services;
+                            console.log('✅ Услуги загружены через /api/barber/{code}/services');
                         }
                     }
                 } catch (e) {
                     console.log('❌ Первый эндпоинт не сработал:', e.message);
                 }
                 
+                // Вариант 2: /api/services?barber_code={code}
                 if (services.length === 0) {
                     try {
                         const response2 = await fetch(`${API_BASE}/api/services?barber_code=${barberCode}`);
@@ -927,8 +864,10 @@
                             const result = await response2.json();
                             if (result.success && result.services) {
                                 services = result.services;
+                                console.log('✅ Услуги загружены через /api/services');
                             } else if (Array.isArray(result)) {
                                 services = result;
+                                console.log('✅ Услуги загружены (массив)');
                             }
                         }
                     } catch (e) {
@@ -936,13 +875,16 @@
                     }
                 }
                 
+                // Вариант 3: Попробуем прямой доступ без параметров
                 if (services.length === 0) {
                     try {
                         const response3 = await fetch(`${API_BASE}/api/services`);
                         if (response3.ok) {
                             const result = await response3.json();
                             if (Array.isArray(result) && result.length > 0) {
+                                // Фильтруем услуги по коду барбера
                                 services = result.filter(service => service.barber_code === barberCode);
+                                console.log('✅ Услуги загружены через /api/services и отфильтрованы');
                             }
                         }
                     } catch (e) {
@@ -953,6 +895,7 @@
                 if (services.length > 0) {
                     displayServices(services);
                 } else {
+                    // Если ничего не загрузилось - показываем демо-услуги
                     console.log('⚠️ API не вернул услуги, показываем демо-услуги');
                     showDemoServices();
                 }
@@ -962,6 +905,7 @@
             }
         }
         
+        // Показать демо-услуги
         function showDemoServices() {
             const demoServices = [
                 { id: 1, name: "Мужская стрижка", price: 1500, duration: 45 },
@@ -975,6 +919,7 @@
             displayServices(demoServices);
         }
         
+        // Показать услуги
         function displayServices(services) {
             const container = document.getElementById('servicesList');
             
@@ -989,6 +934,7 @@
                 html = '<div class="loading">Услуги не найдены</div>';
             } else {
                 services.forEach(service => {
+                    // Экранируем кавычки в имени
                     const safeName = service.name.replace(/'/g, "&#39;");
                     html += `
                         <div class="service-card" data-id="${service.id}" onclick="selectService(${service.id}, ${service.price}, '${safeName}')">
@@ -1003,6 +949,7 @@
             container.innerHTML = html;
         }
         
+        // Выбор услуги
         function selectService(id, price, name) {
             document.querySelectorAll('.service-card').forEach(card => {
                 card.classList.remove('selected');
@@ -1018,6 +965,7 @@
             updateSummary();
         }
         
+        // Генерация дат (7 дней вперед)
         function generateDates() {
             const container = document.getElementById('datePicker');
             
@@ -1052,6 +1000,7 @@
             container.innerHTML = html;
         }
         
+        // Выбор даты
         function selectDate(date, displayDate) {
             document.querySelectorAll('.date-option').forEach(option => {
                 option.classList.remove('selected');
@@ -1070,6 +1019,7 @@
             generateTimeSlots();
         }
         
+        // Генерация временных слотов с учетом занятых
         async function generateTimeSlots() {
             const container = document.getElementById('timeSlots');
             
@@ -1086,6 +1036,7 @@
             container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка доступного времени...</div>';
             
             try {
+                // Пробуем получить занятые времена
                 let bookedTimes = [];
                 
                 try {
@@ -1094,6 +1045,7 @@
                         const result = await response.json();
                         if (result.success) {
                             bookedTimes = result.booked_times || [];
+                            console.log(`📅 Занятые времена на ${bookingData.date}:`, bookedTimes);
                         }
                     }
                 } catch (e) {
@@ -1135,7 +1087,7 @@
                 }
                 
                 if (html === '') {
-                    html = '<div class="error-message" style="grid-column: 1 / -1; text-align:center; margin:20px 0; padding:15px; background:rgba(220, 53, 69, 0.1); color:#dc3545; border-radius:8px;">На эту дату все время занято. Выберите другую дату.</div>';
+                    html = '<div class="error-message" style="grid-column: 1 / -1; text-align:center; margin:20px 0; padding:15px; background:rgba(220, 53, 69, 0.1); color:#dc3545; border-radius:8px; border:1px solid rgba(220, 53, 69, 0.3);">На эту дату все время занято. Выберите другую дату.</div>';
                 }
                 
                 container.innerHTML = html;
@@ -1151,6 +1103,7 @@
             }
         }
         
+        // Запасной вариант если API не работает
         function showFallbackTimeSlots() {
             const container = document.getElementById('timeSlots');
             let html = '';
@@ -1171,6 +1124,7 @@
             container.innerHTML = html;
         }
         
+        // Выбор времени
         function selectTime(time) {
             document.querySelectorAll('.time-slot').forEach(slot => {
                 slot.classList.remove('selected');
@@ -1185,6 +1139,7 @@
             }
         }
         
+        // Обновление сводки
         function updateSummary() {
             if (bookingData.service) {
                 document.getElementById('summaryService').textContent = `${bookingData.service.name}`;
@@ -1200,6 +1155,7 @@
             }
         }
         
+        // Навигация по шагам
         function nextStep() {
             if (!validateCurrentStep()) {
                 return;
@@ -1254,6 +1210,7 @@
             }
         }
         
+        // Валидация текущего шага
         function validateCurrentStep() {
             switch(currentStep) {
                 case 1:
@@ -1288,6 +1245,7 @@
             return true;
         }
         
+        // Валидация шага 4
         function validateStep4() {
             const name = document.getElementById('clientName').value.trim();
             const phone = document.getElementById('clientPhone').value.trim();
@@ -1307,12 +1265,14 @@
             return true;
         }
         
+        // Показать подтверждение
         function showConfirmation() {
             if (bookingData.displayDate && bookingData.time) {
                 document.getElementById('confirmDateTime').textContent = `${bookingData.displayDate} в ${bookingData.time}`;
             }
         }
         
+        // Отправка записи на сервер
         async function submitBooking() {
             if (!validateStep4()) {
                 return;
@@ -1332,6 +1292,7 @@
                 
                 console.log('📤 Отправка записи на сервер:', bookingData);
                 
+                // Получаем данные пользователя для отправки telegram_id
                 const savedUser = localStorage.getItem('telegram_user');
                 let telegram_id = null;
                 let first_name = '';
@@ -1367,8 +1328,10 @@
                 console.log('📥 Ответ сервера:', result);
                 
                 if (result.success) {
+                    // Сохраняем барбера для будущих записей
                     localStorage.setItem('last_barber_code', bookingData.barber.code);
                     
+                    // Сохраняем запись в историю
                     const appointment = {
                         id: result.appointment_id,
                         service: bookingData.service.name,
@@ -1380,6 +1343,7 @@
                         status: 'active'
                     };
                     
+                    // Сохраняем в localStorage для быстрого доступа
                     const savedHistory = localStorage.getItem('user_appointments');
                     let history = [];
                     if (savedHistory) {
@@ -1388,12 +1352,14 @@
                     history.unshift(appointment);
                     localStorage.setItem('user_appointments', JSON.stringify(history));
                     
+                    // Обновляем данные пользователя
                     if (savedUser) {
                         const userData = JSON.parse(savedUser);
                         userData.last_barber_code = bookingData.barber.code;
                         localStorage.setItem('telegram_user', JSON.stringify(userData));
                     }
                     
+                    // Показываем экран успеха с таймером
                     showSuccessWithTimer(result);
                     
                 } else {
@@ -1410,7 +1376,9 @@
             }
         }
         
+        // Показываем экран успеха с таймером редиректа
         function showSuccessWithTimer(result) {
+            // Скрываем текущий шаг
             const currentStepElement = document.querySelector(`.step[data-step="${currentStep}"]`);
             const currentContent = document.getElementById(`step${currentStep}`);
             
@@ -1419,6 +1387,7 @@
                 currentContent.classList.remove('active');
             }
             
+            // Показываем шаг успеха
             currentStep = 5;
             const successStepElement = document.querySelector('.step[data-step="5"]');
             const successContent = document.getElementById('step5');
@@ -1428,61 +1397,60 @@
                 successContent.classList.add('active');
             }
             
+            // Обновляем информацию в успешном сообщении
             if (bookingData.displayDate && bookingData.time) {
                 document.getElementById('confirmDateTime').textContent = 
                     `${bookingData.displayDate} в ${bookingData.time}`;
-                document.getElementById('successDateTime').textContent = 
-                    `${bookingData.displayDate} в ${bookingData.time}`;
             }
-            
             document.getElementById('confirmBarberName').textContent = bookingData.barber.name;
-            document.getElementById('successService').textContent = bookingData.service.name;
-            document.getElementById('successPrice').textContent = `${bookingData.service.price} руб.`;
-            document.getElementById('successId').textContent = result.appointment_id;
             
-            // Запускаем таймер редиректа с модальным окном
-            startRedirectTimer();
+            // Добавляем информацию о записи
+            const successMessage = document.querySelector('#step5 .success-message');
+            if (successMessage) {
+                successMessage.innerHTML = `
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 style="margin-bottom: 15px; color: #28a745;">Запись подтверждена! 🎉</h2>
+                    <div style="background: #222; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left; border: 1px solid #333;">
+                        <p style="margin-bottom: 10px; color: #fff;"><strong>Барбер:</strong> ${bookingData.barber.name}</p>
+                        <p style="margin-bottom: 10px; color: #fff;"><strong>Дата и время:</strong> ${bookingData.displayDate} в ${bookingData.time}</p>
+                        <p style="margin-bottom: 10px; color: #fff;"><strong>Услуга:</strong> ${bookingData.service.name}</p>
+                        <p style="margin-bottom: 10px; color: #fff;"><strong>Цена:</strong> ${bookingData.service.price} руб.</p>
+                        <p style="margin-bottom: 10px; color: #fff;"><strong>ID записи:</strong> ${result.appointment_id}</p>
+                    </div>
+                    <p style="margin-bottom: 10px; color: #aaa;">Барбер ожидает вас в указанное время</p>
+                    <p style="margin-bottom: 25px; color: #aaa; font-size: 14px;" id="redirectTimer">Через 5 секунд вы будете перенаправлены в профиль...</p>
+                    <button class="btn" onclick="goToProfile()" style="margin-bottom: 10px; background: #4a6fa5;">
+                        <i class="fas fa-user"></i> Перейти в профиль сейчас
+                    </button>
+                    <button class="btn btn-secondary" onclick="createAnotherAppointment()">
+                        <i class="fas fa-plus"></i> Создать еще одну запись
+                    </button>
+                `;
+                
+                // Запускаем таймер редиректа
+                startRedirectTimer();
+            }
         }
         
-        // Таймер редиректа с модальным окном
-        let redirectTimer = 4;
+        // Таймер редиректа
+        let redirectTimer = 5;
         let timerInterval;
         
         function startRedirectTimer() {
             const timerElement = document.getElementById('redirectTimer');
             if (!timerElement) return;
             
-            timerElement.textContent = `Через ${redirectTimer} секунды вы будете перенаправлены на главную страницу...`;
-            
-            // Показываем модальное окно через 1 секунду
-            setTimeout(() => {
-                showSuccessModal();
-            }, 1000);
-            
             timerInterval = setInterval(() => {
                 redirectTimer--;
-                timerElement.textContent = `Через ${redirectTimer} секунды вы будете перенаправлены на главную страницу...`;
+                timerElement.textContent = `Через ${redirectTimer} секунд вы будете перенаправлены в профиль...`;
                 
                 if (redirectTimer <= 0) {
                     clearInterval(timerInterval);
-                    goHome();
+                    goToProfile();
                 }
             }, 1000);
-        }
-        
-        // Функции для модального окна успеха
-        function showSuccessModal() {
-            const modal = document.getElementById('successModal');
-            if (modal) {
-                modal.style.display = 'flex';
-            }
-        }
-        
-        function closeSuccessModal() {
-            const modal = document.getElementById('successModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
         }
         
         // Функция для создания еще одной записи
@@ -1514,11 +1482,10 @@
         }
         
         function goBack() {
-            window.location.href = '/client-panel';
+            window.location.href = '/client-login';
         }
         
         function goHome() {
-            clearInterval(timerInterval);
             window.location.href = '/';
         }
         
