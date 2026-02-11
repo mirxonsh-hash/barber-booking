@@ -315,6 +315,10 @@ def master_login_page():
 def master_panel_page():
     return redirect('/barber-panel')
 
+@app.route("/barber-bookings")
+def barber_bookings():
+    return render_template("barber-bookings.html")
+
 @app.route('/client/find', methods=['GET', 'POST'])
 def find_barber():
     try:
