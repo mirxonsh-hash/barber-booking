@@ -124,7 +124,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Проверка авторизации барбера - ИСПРАВЛЕНА ДЛЯ RENDER
 async function checkBarberAuth() {
-    const token = localStorage.getItem('barber_token');
+    let token = localStorage.getItem('barber_token');   // ← было const, стало let
+
+    if (!token) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlToken = urlParams.get('token');
+
+        if (urlToken) {
+            localStorage.setItem('barber_token', urlToken);
+            token = urlToken;   // ← ВАЖНО: добавь эту строку
+            console.log('Токен из URL сохранен');
+        } else {
+            window.location.href = API_BASE_URL + '/barber-login';
+            return false;
+        }
+    }
+
     
     if (!token) {
         // Проверяем URL параметр
@@ -211,5 +226,6 @@ window.Auth = {
     logoutBarber,
     API_BASE_URL: API_BASE_URL
 };
+
 
 
