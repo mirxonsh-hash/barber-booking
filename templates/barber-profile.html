@@ -912,7 +912,7 @@
                 try {
                     const response = await BarberSystem.checkAuth();
                     if (!response.authenticated) {
-                        window.location.href = '/barber-login.html';
+                        window.location.href = '/barber-login?from=profile';
                     } else {
                         loadProfile();
                     }
