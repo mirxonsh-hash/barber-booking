@@ -14,6 +14,7 @@ import time
 from dotenv import load_dotenv
 from pathlib import Path
 import traceback
+import urllib.parse
 
 load_dotenv()
 
@@ -255,25 +256,31 @@ def barber_login_page():
 
 @app.route('/barber-panel')
 def barber_panel_page():
-    # Проверка авторизации барбера
-    barber_token = request.args.get('token')
-    if not barber_token:
-        return redirect('/barber-login')
+    # Проверяем токен из localStorage или URL
+    token = request.args.get('token')
+    if not token:
+        # Пробуем получить из сессии или просто показываем страницу
+        return render_template('barber-panel.html')
     
+    # Если есть токен, проверяем его
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM barbers WHERE password_hash = %s', (barber_token,))
+        cursor.execute('SELECT id, name, code FROM barbers WHERE password_hash = %s', (token,))
         barber = cursor.fetchone()
         conn.close()
         
-        if not barber:
-            return redirect('/barber-login')
+        if barber:
+            # Сохраняем данные в сессии
+            session['barber_id'] = barber[0]
+            session['barber_name'] = barber[1]
+            session['barber_code'] = barber[2]
+            session['barber_token'] = token
             
-        return render_template('barber-panel.html')
     except Exception as e:
-        logger.error(f"Ошибка в barber-panel: {e}")
-        return redirect('/barber-login')
+        logger.error(f"Ошибка проверки токена в barber-panel: {e}")
+    
+    return render_template('barber-panel.html')
 
 @app.route('/client-login')
 def client_login_page():
@@ -356,7 +363,6 @@ def client_register():
         
         if telegram_data:
             try:
-                import urllib.parse
                 params = dict(urllib.parse.parse_qsl(telegram_data))
                 user_str = params.get('user')
                 if user_str:
@@ -684,11 +690,50 @@ def get_client_appointments():
 
 # ========== API ДЛЯ БАРБЕРОВ ==========
 
+@app.route('/api/barber/check', methods=['GET'])
+def check_barber_auth():
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'authenticated': False, 'error': 'No token'}), 401
+        
+        token = auth_header.split(' ')[1]
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Проверяем токен (в нашем случае токен = password_hash)
+        cursor.execute('''
+        SELECT id, name, code, phone 
+        FROM barbers 
+        WHERE password_hash = %s
+        ''', (token,))
+        
+        barber = cursor.fetchone()
+        conn.close()
+        
+        if barber:
+            return jsonify({
+                'authenticated': True,
+                'barber': {
+                    'id': barber[0],
+                    'name': barber[1],
+                    'code': barber[2],
+                    'phone': barber[3]
+                }
+            })
+        else:
+            return jsonify({'authenticated': False, 'error': 'Invalid token'}), 401
+            
+    except Exception as e:
+        logger.error(f"❌ Ошибка проверки барбера: {e}")
+        return jsonify({'authenticated': False, 'error': 'Server error'}), 500
+
 @app.route('/api/barber/login', methods=['POST'])
 def barber_login():
     try:
         data = request.json
-        barber_code = data.get('barber_code', '').strip()
+        barber_code = data.get('code', '').strip()
         password = data.get('password', '').strip()
         
         if not barber_code or not password:
@@ -712,17 +757,18 @@ def barber_login():
             conn.close()
             return jsonify({'success': False, 'error': 'Неверный код или пароль'}), 401
         
-        # Генерируем токен (используем password_hash как токен)
-        token = password_hash
-        
         conn.close()
         
         return jsonify({
             'success': True,
-            'token': token,
-            'barber_code': barber[2],
-            'name': barber[1],
-            'redirect_url': f'/barber-panel?token={token}'
+            'token': password_hash,
+            'barber': {
+                'id': barber[0],
+                'name': barber[1],
+                'code': barber[2],
+                'phone': barber[3]
+            },
+            'redirect_url': f'/barber-panel?token={password_hash}'
         })
         
     except Exception as e:
@@ -850,6 +896,65 @@ def get_barber_services(barber_code):
     except Exception as e:
         logger.error(f"❌ Ошибка получения услуг барбера: {e}")
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
+
+@app.route('/api/barber/appointments', methods=['GET'])
+def get_barber_appointments():
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'success': False, 'error': 'Не авторизован'}), 401
+        
+        token = auth_header.split(' ')[1]
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Получаем барбера по токену
+        cursor.execute('SELECT id, code FROM barbers WHERE password_hash = %s', (token,))
+        barber = cursor.fetchone()
+        
+        if not barber:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Барбер не найден'}), 401
+        
+        # Получаем записи барбера
+        cursor.execute('''
+        SELECT id, barber_code, client_name, client_phone, service_name, price, 
+               appointment_date, appointment_time, status, created_at
+        FROM appointments 
+        WHERE barber_code = %s 
+        ORDER BY appointment_date DESC, appointment_time DESC
+        LIMIT 50
+        ''', (barber[1],))
+        
+        appointments = cursor.fetchall()
+        
+        result = []
+        for app in appointments:
+            result.append({
+                'id': app[0],
+                'barber_code': app[1],
+                'client_name': app[2],
+                'client_phone': app[3],
+                'service_name': app[4],
+                'price': app[5],
+                'date': app[6].strftime('%d.%m.%Y'),
+                'time': app[7].strftime('%H:%M'),
+                'status': app[8],
+                'created_at': app[9].strftime('%d.%m.%Y %H:%M')
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'appointments': result,
+            'total': len(result)
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка получения записей барбера: {e}")
+        return jsonify({'success': False, 'error': 'Внутренняя ошибка'}), 500
 
 # ========== API ДЛЯ ЗАПИСЕЙ ==========
 
