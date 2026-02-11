@@ -597,12 +597,11 @@
                 }
             };
             
-            function loadProfile() {
+           function loadProfile() {
     const savedProfile = localStorage.getItem('barber_profile');
     const savedBarber = BarberSystem.getCurrentBarber();
 
     if (!savedBarber) {
-        // Нет данных барбера → обратно на логин
         window.location.href = '/barber-login';
         return;
     }
@@ -614,25 +613,29 @@
             console.error('Ошибка загрузки профиля:', e);
         }
     }
-                
-                document.getElementById('inputName').value = profileData.name;
-                document.getElementById('inputPhone').value = profileData.phone || '';
-                document.getElementById('inputEmail').value = profileData.email || '';
-                document.getElementById('inputBio').value = profileData.bio || '';
-                document.getElementById('inputAddress').value = profileData.address || '';
-                
-                document.getElementById('displayName').textContent = profileData.name;
-                document.getElementById('displayCode').textContent = profileData.code;
-                document.getElementById('profileCode').textContent = profileData.code;
-                document.getElementById('regDate').textContent = profileData.stats.regDate;
-                
-                updateStats();
-                
-                if (profileData.avatar) {
-                    updateAvatar(profileData.avatar);
-                }
-            }
-            
+
+    // ✅ ВАЖНО: подтягиваем реальные данные барбера
+    profileData.name = savedBarber.name || profileData.name;
+    profileData.code = savedBarber.code || profileData.code;
+
+    document.getElementById('inputName').value = profileData.name || '';
+    document.getElementById('inputPhone').value = profileData.phone || '';
+    document.getElementById('inputEmail').value = profileData.email || '';
+    document.getElementById('inputBio').value = profileData.bio || '';
+    document.getElementById('inputAddress').value = profileData.address || '';
+
+    document.getElementById('displayName').textContent = profileData.name;
+    document.getElementById('displayCode').textContent = profileData.code;
+    document.getElementById('profileCode').textContent = profileData.code;
+    document.getElementById('regDate').textContent = profileData.stats.regDate;
+
+    updateStats();
+
+    if (profileData.avatar) {
+        updateAvatar(profileData.avatar);
+    }
+}
+
             function updateStats() {
                 const stats = BarberSystem.getBarberStats();
                 
