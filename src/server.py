@@ -2184,6 +2184,41 @@ def redirect_barber_schedule_html():
 def redirect_barber_services_html():
     return redirect('/barber-services')
 
+# ========== ПЕРЕНАПРАВЛЕНИЯ ДЛЯ БАРБЕРА ==========
+@app.route('/barber-profile')
+def barber_profile_page_redirect():
+    """Перенаправление на страницу профиля с проверкой авторизации"""
+    token = request.args.get('token')
+    
+    if token:
+        # Сохраняем токен из URL
+        return render_template('barber-profile.html', token=token)
+    
+    # Проверяем авторизацию через заголовки
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header[7:]
+        try:
+            decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+            if decoded:
+                return render_template('barber-profile.html')
+        except:
+            pass
+    
+    # Если не авторизован, перенаправляем на логин
+    return redirect('/barber-login')
+
+# Также добавьте проверку для barber-panel
+@app.route('/barber-panel')
+def barber_panel_page_redirect():
+    """Перенаправление на панель с проверкой авторизации"""
+    token = request.args.get('token')
+    
+    if token:
+        return render_template('barber-panel.html', token=token)
+    
+    return render_template('barber-panel.html')
+
 # ========== КОНЕЦ ДОПОЛНИТЕЛЬНЫХ СТРАНИЦ ==========
 
 if __name__ == '__main__':
