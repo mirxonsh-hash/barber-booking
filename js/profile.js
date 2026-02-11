@@ -1,49 +1,60 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('📄 barber-profile.js loaded');
+# В функции init_db(), после создания таблицы barbers добавьте:
+try:
+    cursor.execute("""
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name='barbers' AND column_name='email'
+    """)
+    if not cursor.fetchone():
+        cursor.execute("ALTER TABLE barbers ADD COLUMN email VARCHAR(100)")
+        logger.info("✅ Добавлена колонка 'email' в таблицу barbers")
+except Exception as e:
+    logger.error(f"❌ Ошибка добавления колонки email: {e}")
 
-    const result = await BarberSystem.checkAuth();
+try:
+    cursor.execute("""
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name='barbers' AND column_name='bio'
+    """)
+    if not cursor.fetchone():
+        cursor.execute("ALTER TABLE barbers ADD COLUMN bio TEXT")
+        logger.info("✅ Добавлена колонка 'bio' в таблицу barbers")
+except Exception as e:
+    logger.error(f"❌ Ошибка добавления колонки bio: {e}")
 
-    if (!result.authenticated) {
-        console.warn('⛔ Не авторизован — редирект на login');
-        window.location.href = '/barber-login?from=profile';
-        return;
-    }
+try:
+    cursor.execute("""
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name='barbers' AND column_name='address'
+    """)
+    if not cursor.fetchone():
+        cursor.execute("ALTER TABLE barbers ADD COLUMN address TEXT")
+        logger.info("✅ Добавлена колонка 'address' в таблицу barbers")
+except Exception as e:
+    logger.error(f"❌ Ошибка добавления колонки address: {e}")
 
-    loadProfile();
+try:
+    cursor.execute("""
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name='barbers' AND column_name='avatar_url'
+    """)
+    if not cursor.fetchone():
+        cursor.execute("ALTER TABLE barbers ADD COLUMN avatar_url VARCHAR(255) DEFAULT 'avatar-1'")
+        logger.info("✅ Добавлена колонка 'avatar_url' в таблицу barbers")
+except Exception as e:
+    logger.error(f"❌ Ошибка добавления колонки avatar_url: {e}")
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        BarberSystem.logout();
-    });
-
-    document.getElementById('saveBtn').addEventListener('click', saveProfile);
-});
-
-function loadProfile() {
-    console.log('📥 Загружаем профиль');
-
-    const barber = BarberSystem.getCurrentBarber?.();
-
-    if (!barber) {
-        console.warn('⚠️ Нет barberData в localStorage');
-        return;
-    }
-
-    document.getElementById('inputName').value = barber.name || '';
-    document.getElementById('inputPhone').value = barber.phone || '';
-    document.getElementById('inputEmail').value = barber.email || '';
-}
-
-function saveProfile() {
-    const name = document.getElementById('inputName').value;
-    const phone = document.getElementById('inputPhone').value;
-    const email = document.getElementById('inputEmail').value;
-
-    const barber = BarberSystem.getCurrentBarber?.() || {};
-    barber.name = name;
-    barber.phone = phone;
-    barber.email = email;
-
-    localStorage.setItem('barberData', JSON.stringify(barber));
-
-    alert('✅ Профиль сохранён');
-}
+try:
+    cursor.execute("""
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name='barbers' AND column_name='updated_at'
+    """)
+    if not cursor.fetchone():
+        cursor.execute("ALTER TABLE barbers ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+        logger.info("✅ Добавлена колонка 'updated_at' в таблицу barbers")
+except Exception as e:
+    logger.error(f"❌ Ошибка добавления колонки updated_at: {e}")
