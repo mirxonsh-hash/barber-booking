@@ -978,7 +978,12 @@
         });
         
         function initCharts() {
-            const incomeCtx = document.getElementById('incomeChart').getContext('2d');
+          function initCharts() {
+    const incomeCanvas = document.getElementById('incomeChart');
+    if (!incomeCanvas) return; // ← не падаем, если нет графиков
+    ...
+}
+
             incomeChart = new Chart(incomeCtx, {
                 type: 'line',
                 data: {
@@ -1655,4 +1660,5 @@
     </script>
 </body>
 </html>
+
 
