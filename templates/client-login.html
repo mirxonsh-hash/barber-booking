@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iWant - Вход клиента</title>
+    <title>iWant - Вход для барберов</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* СТИЛИ ИЗ ПЕРВОГО ФАЙЛА (ТОЧНАЯ КОПИЯ) */
@@ -91,9 +91,8 @@
             background: rgba(26, 26, 26, 0.7);
         }
         
-        /* СТЕКЛЯННЫЙ ЭФФЕКТ ДЛЯ ФОРМ */
-        .login-container, .form-input, .phone-input-group,
-        .btn, .form-group, .credentials-box, .credential-item {
+        /* СТЕКЛЯННЫЙ ЭФФЕКТ */
+        .login-container, .form-input, .btn {
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             background: rgba(26, 26, 26, 0.7) !important;
@@ -113,7 +112,7 @@
             border-color: rgba(74, 111, 165, 0.3) !important;
         }
         
-        .form-input:focus, .phone-input:focus {
+        .form-input:focus {
             background: rgba(34, 34, 34, 0.8) !important;
             border-color: rgba(74, 111, 165, 0.5) !important;
             box-shadow: 
@@ -121,7 +120,7 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
-        /* СТИЛИ СТРАНИЦЫ ВХОДА */
+        /* СТИЛИ СТРАНИЦЫ */
         .login-page {
             min-height: calc(100vh - 140px);
             display: flex;
@@ -138,7 +137,7 @@
             text-align: center;
         }
         
-        .login-icon {
+        .barber-icon {
             font-size: 48px;
             color: #4a6fa5;
             margin-bottom: 20px;
@@ -183,36 +182,6 @@
             outline: none;
         }
         
-        .phone-input-group {
-            display: flex;
-            align-items: center;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .phone-prefix {
-            padding: 0 15px;
-            color: #aaa;
-            font-weight: 500;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            background: rgba(34, 34, 34, 0.5);
-        }
-        
-        .phone-input {
-            flex: 1;
-            border: none;
-            padding: 14px;
-            color: #fff;
-            font-size: 16px;
-            background: transparent;
-        }
-        
-        .phone-input:focus {
-            outline: none;
-        }
-        
         .btn {
             width: 100%;
             padding: 16px;
@@ -228,10 +197,6 @@
         
         .btn-primary {
             background: rgba(74, 111, 165, 0.3);
-        }
-        
-        .btn-secondary {
-            background: rgba(51, 51, 51, 0.7);
         }
         
         .form-hint {
@@ -321,34 +286,6 @@
             padding: 20px;
         }
         
-        .modal-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(51, 51, 51, 0.5);
-            display: flex;
-            gap: 10px;
-        }
-        
-        .modal-btn {
-            flex: 1;
-            padding: 14px;
-            border-radius: 8px;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .modal-btn-primary {
-            background: rgba(74, 111, 165, 0.3);
-            color: white;
-        }
-        
-        .modal-btn-secondary {
-            background: rgba(51, 51, 51, 0.7);
-            color: white;
-        }
-        
         /* АДАПТИВ */
         @media (max-width: 480px) {
             .navbar {
@@ -365,10 +302,6 @@
             .login-container {
                 padding: 30px 20px;
             }
-            
-            .modal-container {
-                max-height: 95vh;
-            }
         }
     </style>
 </head>
@@ -383,8 +316,8 @@
                 </a>
                 <ul class="nav-links">
                     <li><a href="/" class="nav-link">Главная</a></li>
-                    <li><a href="/client-login" class="nav-link active">Записаться</a></li>
-                    <li><a href="/barber-login" class="nav-link">Для барберов</a></li>
+                    <li><a href="/client-login" class="nav-link">Записаться</a></li>
+                    <li><a href="/barber-login" class="nav-link active">Для барберов</a></li>
                 </ul>
             </nav>
         </div>
@@ -393,33 +326,27 @@
     <main class="login-page">
         <div class="container">
             <div class="login-container">
-                <div class="login-icon">
-                    <i class="fas fa-calendar-alt"></i>
+                <div class="barber-icon">
+                    <i class="fas fa-user-tie"></i>
                 </div>
-                <h1 class="login-title">Запись к барберу</h1>
+                <h1 class="login-title">Кабинет барбера</h1>
                 <p class="login-subtitle">
-                    Войдите в аккаунт, чтобы записаться<br>
-                    к лучшим мастерам в удобное время
+                    Управляйте записями, клиентами<br>
+                    и финансами в одном месте
                 </p>
                 
-                <form id="clientLoginForm">
+                <form id="barberLoginForm">
                     <div class="form-group">
-                        <label class="form-label">Номер телефона</label>
-                        <div class="phone-input-group">
-                            <div class="phone-prefix">+998</div>
-                            <input 
-                                type="tel" 
-                                class="phone-input"
-                                id="loginPhone"
-                                placeholder="91 123 45 67"
-                                inputmode="numeric"
-                                pattern="[0-9\s]*"
-                                maxlength="11"
-                                required
-                            >
-                        </div>
+                        <label class="form-label">ID барбера</label>
+                        <input 
+                            type="text" 
+                            class="form-input"
+                            id="barberCode"
+                            placeholder="Введите ваш ID"
+                            required
+                        >
                         <div class="form-hint">
-                            Введите 9 цифр номера без кода страны
+                            Уникальный идентификатор (например: barber123)
                         </div>
                     </div>
                     
@@ -428,26 +355,20 @@
                         <input 
                             type="password" 
                             class="form-input"
-                            id="loginPassword"
+                            id="barberPassword"
                             placeholder="Введите пароль"
                             required
                         >
-                        <div class="form-hint">
-                            Пароль отправлен вам в Telegram чат
-                        </div>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Войти
+                        <i class="fas fa-sign-in-alt"></i> Войти в кабинет
                     </button>
                 </form>
                 
                 <div class="login-links">
-                    <a href="javascript:void(0)" onclick="forgotPassword()" class="login-link">
-                        <i class="fas fa-key"></i> Забыли пароль?
-                    </a>
                     <a href="javascript:void(0)" onclick="openRegisterModal()" class="login-link">
-                        <i class="fas fa-user-plus"></i> Нет аккаунта?
+                        <i class="fas fa-user-plus"></i> Зарегистрировать барбера
                     </a>
                 </div>
             </div>
@@ -466,50 +387,31 @@
     <div id="registerModal" class="modal-overlay">
         <div class="modal-container">
             <div class="modal-header">
-                <h3 class="modal-title">Регистрация</h3>
+                <h3 class="modal-title">Регистрация барбера</h3>
                 <button class="close-modal" onclick="closeRegisterModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Введите ваш номер телефона</label>
-                    <div class="phone-input-group">
-                        <div class="phone-prefix">+998</div>
-                        <input 
-                            type="tel" 
-                            class="phone-input"
-                            id="registerPhone"
-                            placeholder="91 123 45 67"
-                            inputmode="numeric"
-                            pattern="[0-9\s]*"
-                            maxlength="11"
-                            required
-                        >
+                <p style="color: #aaa; margin-bottom: 20px;">
+                    Для регистрации нового барбера свяжитесь с администратором:
+                </p>
+                <div style="text-align: center; padding: 20px; background: rgba(34, 34, 34, 0.5); border-radius: 10px;">
+                    <div style="font-size: 18px; color: #4a6fa5; margin-bottom: 10px;">
+                        <i class="fas fa-phone"></i> Телефон
                     </div>
-                    <div class="form-hint">
-                        Регистрация займет 30 секунд. Пароль придет в Telegram.
+                    <div style="font-size: 20px; font-weight: bold;">
+                        +998 (99) 123-45-67
+                    </div>
+                    <div style="margin-top: 15px; font-size: 14px; color: #666;">
+                        или напишите в Telegram: @admin_iwant
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="modal-btn modal-btn-secondary" onclick="closeRegisterModal()">
-                    Отмена
+            <div class="modal-body" style="padding-top: 0;">
+                <button class="btn" onclick="closeRegisterModal()" style="width: 100%;">
+                    Понятно
                 </button>
-                <button class="modal-btn modal-btn-primary" onclick="submitRegister()">
-                    Зарегистрироваться
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно загрузки -->
-    <div id="loadingModal" class="modal-overlay">
-        <div class="modal-container" style="max-width: 300px; text-align: center;">
-            <div class="modal-body" style="padding: 40px 20px;">
-                <div class="spinner" style="width: 40px; height: 40px; border: 3px solid rgba(34, 34, 34, 0.5); border-top: 3px solid #4a6fa5; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                <h3 style="color: #fff; margin-top: 20px;">Авторизация...</h3>
-                <p style="color: #aaa; margin-top: 10px;">Пожалуйста, подождите</p>
             </div>
         </div>
     </div>
@@ -517,216 +419,98 @@
     <script>
         const API_BASE = 'https://barber-booking-db.onrender.com';
         
-        // Проверка существующей сессии
         document.addEventListener('DOMContentLoaded', function() {
-            const clientToken = localStorage.getItem('clientToken');
-            const clientPhone = localStorage.getItem('clientPhone');
+            // Проверка существующей сессии барбера
+            const barberToken = localStorage.getItem('barber_token');
+            const barberCode = localStorage.getItem('barber_code');
             
-            if (clientToken && clientPhone) {
-                // Если уже авторизован, перенаправляем в профиль
-                window.location.href = '/client-profile';
+            if (barberToken && barberCode) {
+                window.location.href = '/barber-finances';
             }
             
-            // Настройка ввода телефона
-            setupPhoneInput('loginPhone');
-            setupPhoneInput('registerPhone');
-            
             // Обработка формы входа
-            document.getElementById('clientLoginForm').addEventListener('submit', function(e) {
+            document.getElementById('barberLoginForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                submitLogin();
+                submitBarberLogin();
             });
         });
         
-        function setupPhoneInput(inputId) {
-            const phoneInput = document.getElementById(inputId);
+        function submitBarberLogin() {
+            const barberCode = document.getElementById('barberCode').value;
+            const password = document.getElementById('barberPassword').value;
             
-            phoneInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                
-                if (value.length > 9) {
-                    value = value.substring(0, 9);
-                }
-                
-                let formatted = value;
-                if (value.length >= 9) {
-                    formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5, 7)} ${value.substring(7, 9)}`;
-                } else if (value.length > 7) {
-                    formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5)}`;
-                } else if (value.length > 5) {
-                    formatted = `${value.substring(0, 2)} ${value.substring(2, 5)} ${value.substring(5)}`;
-                } else if (value.length > 2) {
-                    formatted = `${value.substring(0, 2)} ${value.substring(2)}`;
-                }
-                
-                e.target.value = formatted;
-            });
-        }
-        
-        function submitLogin() {
-            const phoneInput = document.getElementById('loginPhone');
-            const passwordInput = document.getElementById('loginPassword');
-            
-            let phoneValue = phoneInput.value.replace(/\s+/g, '');
-            
-            if (!phoneValue || phoneValue.length !== 9) {
-                alert('Введите 9 цифр номера телефона');
-                phoneInput.focus();
+            if (!barberCode) {
+                alert('Введите ID барбера');
                 return;
             }
             
-            if (!passwordInput.value) {
+            if (!password) {
                 alert('Введите пароль');
-                passwordInput.focus();
                 return;
             }
             
-            const fullPhone = `+998${phoneValue}`;
+            // Показываем спиннер
+            document.getElementById('barberLoginForm').innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="width: 40px; height: 40px; border: 3px solid rgba(34, 34, 34, 0.5); border-top: 3px solid #4a6fa5; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <p style="color: #aaa; margin-top: 15px;">Авторизация...</p>
+                </div>
+            `;
             
-            showLoading();
+            // Добавляем стили для спиннера
+            const style = document.createElement('style');
+            style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
             
-            fetch(`${API_BASE}/api/client/auth`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phone: fullPhone,
-                    password: passwordInput.value
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoading();
-                
-                if (data.success) {
-                    localStorage.setItem('clientToken', data.token);
-                    localStorage.setItem('clientPhone', data.phone);
-                    window.location.href = '/client-profile';
-                } else {
-                    alert('Ошибка входа: ' + (data.error || 'Неверный пароль'));
-                }
-            })
-            .catch(error => {
-                hideLoading();
-                alert('Ошибка соединения с сервером');
-            });
-        }
-        
-        function forgotPassword() {
-            const phoneInput = document.getElementById('loginPhone');
-            let phoneValue = phoneInput.value.replace(/\s+/g, '');
-            
-            if (!phoneValue || phoneValue.length !== 9) {
-                alert('Сначала введите номер телефона');
-                phoneInput.focus();
-                return;
-            }
-            
-            const fullPhone = `+998${phoneValue}`;
-            
-            if (confirm(`Отправить новый пароль на номер ${fullPhone}?`)) {
-                showLoading();
-                
-                fetch(`${API_BASE}/api/client/get-password`, {
+            // Отправляем запрос
+            setTimeout(() => {
+                fetch(`${API_BASE}/api/barber/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        phone: fullPhone
+                        barber_code: barberCode,
+                        password: password
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
-                    hideLoading();
-                    
                     if (data.success) {
-                        alert('Новый пароль отправлен в Telegram чат!');
-                        document.getElementById('loginPassword').value = data.password;
+                        localStorage.setItem('barber_token', data.token);
+                        localStorage.setItem('barber_code', data.barber_code);
+                        localStorage.setItem('barber_name', data.name);
+                        window.location.href = '/barber-finances';
                     } else {
-                        alert('Ошибка: ' + (data.error || 'Пользователь не найден'));
+                        alert('Ошибка входа: ' + (data.error || 'Неверные данные'));
+                        location.reload();
                     }
                 })
                 .catch(error => {
-                    hideLoading();
-                    alert('Ошибка соединения');
+                    alert('Ошибка соединения с сервером');
+                    location.reload();
                 });
-            }
+            }, 1000);
         }
         
         function openRegisterModal() {
             document.getElementById('registerModal').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('registerPhone').focus();
-            }, 100);
         }
         
         function closeRegisterModal() {
             document.getElementById('registerModal').style.display = 'none';
         }
         
-        function submitRegister() {
-            const phoneInput = document.getElementById('registerPhone');
-            let phoneValue = phoneInput.value.replace(/\s+/g, '');
-            
-            if (!phoneValue || phoneValue.length !== 9) {
-                alert('Введите 9 цифр номера телефона');
-                return;
-            }
-            
-            const fullPhone = `+998${phoneValue}`;
-            
-            showLoading();
-            
-            fetch(`${API_BASE}/api/client/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phone: fullPhone,
-                    send_to_telegram: true
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoading();
-                
-                if (data.success) {
-                    alert(`Регистрация успешна! Пароль отправлен в Telegram: ${data.password}`);
-                    closeRegisterModal();
-                    document.getElementById('loginPhone').value = phoneInput.value;
-                } else {
-                    alert('Ошибка: ' + (data.error || 'Не удалось зарегистрироваться'));
-                }
-            })
-            .catch(error => {
-                hideLoading();
-                alert('Ошибка соединения');
-            });
-        }
-        
-        function showLoading() {
-            document.getElementById('loadingModal').style.display = 'flex';
-        }
-        
-        function hideLoading() {
-            document.getElementById('loadingModal').style.display = 'none';
-        }
-        
-        // Закрытие модалок
+        // Закрытие модалки
         document.addEventListener('click', function(event) {
             if (event.target.classList.contains('modal-overlay')) {
                 closeRegisterModal();
-                hideLoading();
             }
         });
         
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeRegisterModal();
-                hideLoading();
             }
         });
     </script>
