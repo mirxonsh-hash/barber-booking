@@ -913,7 +913,8 @@
             }
 
             
-        async function checkAuth() {
+        <script>
+async function checkAuth() {
     try {
         const token = localStorage.getItem('barberToken') || localStorage.getItem('barber_token');
 
@@ -932,7 +933,7 @@
     }
 }
 
-// Запускаем проверку
+// 👉 Запуск проверки
 checkAuth();
 </script>
 </body>
