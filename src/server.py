@@ -263,9 +263,12 @@ def client_login_page():
 
 @app.route('/client-panel')
 def client_panel_page():
-    return render_template('client-panel.html')
+    try:
+        return render_template('client-panel.html')
+    except Exception as e:
+        logger.error(f"Ошибка client-panel: {e}")
+        return "Ошибка загрузки страницы", 500
 
-    
         
         if not barber:
             logger.warning(f"Барбер не найден при открытии client-panel: {code}")
