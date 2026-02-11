@@ -1,10 +1,11 @@
 // js/panel.js - Панель управления барбера
 document.addEventListener('DOMContentLoaded', async function() {
     // Проверяем авторизацию
-    if (!BarberSystem.isAuthenticated()) {
-        window.location.href = 'barber-login.html';
-        return;
-    }
+   const token = localStorage.getItem('barberToken') || localStorage.getItem('barber_token');
+if (!token) {
+    window.location.href = 'barber-login?from=panel';
+    return;
+}
     
     const barber = BarberSystem.getCurrentBarber();
     if (!barber) {
