@@ -315,10 +315,6 @@ def master_login_page():
 def master_panel_page():
     return redirect('/barber-panel')
 
-@app.route("/barber-bookings")
-def barber_bookings():
-    return render_template("barber-bookings")
-
 @app.route('/client/find', methods=['GET', 'POST'])
 def find_barber():
     try:
@@ -2168,9 +2164,9 @@ def barber_schedule_page():
 def barber_services_page():
     return render_template('barber-services.html')
 
-@app.route('/bookings.html')
+@app.route('/barber-bookings')
 def redirect_bookings_html():
-    return redirect('/bookings')
+    return redirect('/barber-bookings.html')
 
 @app.route('/barber-finances.html')
 def redirect_barber_finances_html():
@@ -2187,12 +2183,6 @@ def redirect_barber_schedule_html():
 @app.route('/barber-services.html')
 def redirect_barber_services_html():
     return redirect('/barber-services')
-
-# ========== ПЕРЕНАПРАВЛЕНИЯ ДЛЯ БАРБЕРА ==========
-@app.route('/barber-profile')
-def barber_profile_page_redirect():
-    """Перенаправление на страницу профиля с проверкой авторизации"""
-    token = request.args.get('token')
     
     if token:
         # Сохраняем токен из URL
