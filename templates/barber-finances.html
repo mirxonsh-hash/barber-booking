@@ -19,33 +19,33 @@
             padding: 25px;
             text-align: center;
             backdrop-filter: blur(10px);
-            background: var(--bg-card);
+            background: rgba(26, 26, 26, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-md);
+            border-radius: 12px;
             transition: all 0.3s ease;
         }
         
         .finance-card:hover {
             transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             background: rgba(74, 111, 165, 0.1);
         }
         
         .finance-icon {
             font-size: 32px;
             margin-bottom: 15px;
-            color: var(--primary-color);
+            color: #4a6fa5;
         }
         
         .finance-amount {
             font-size: 36px;
             font-weight: bold;
-            color: var(--text-white);
+            color: #fff;
             margin-bottom: 5px;
         }
         
         .finance-label {
-            color: var(--text-light);
+            color: #aaa;
             font-size: 14px;
             margin-bottom: 10px;
         }
@@ -59,12 +59,12 @@
         
         .change-positive {
             background: rgba(40, 167, 69, 0.1);
-            color: var(--success-color);
+            color: #28a745;
         }
         
         .change-negative {
             background: rgba(220, 53, 69, 0.1);
-            color: var(--error-color);
+            color: #dc3545;
         }
         
         .period-selector {
@@ -78,9 +78,9 @@
         .period-btn {
             padding: 8px 20px;
             border-radius: 20px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(26, 26, 26, 0.7);
+            color: #aaa;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
@@ -89,13 +89,13 @@
         .period-btn:hover {
             background: rgba(74, 111, 165, 0.1);
             border-color: rgba(74, 111, 165, 0.3);
-            color: var(--text-white);
+            color: #fff;
         }
         
         .period-btn.active {
             background: rgba(74, 111, 165, 0.2);
             border-color: rgba(74, 111, 165, 0.5);
-            color: var(--primary-color);
+            color: #4a6fa5;
         }
         
         .charts-container {
@@ -108,16 +108,16 @@
         .chart-card {
             padding: 20px;
             backdrop-filter: blur(10px);
-            background: var(--bg-card);
+            background: rgba(26, 26, 26, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-md);
+            border-radius: 12px;
         }
         
         .chart-title {
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 15px;
-            color: var(--text-white);
+            color: #fff;
             text-align: center;
         }
         
@@ -135,7 +135,7 @@
         .transactions-table th {
             text-align: left;
             padding: 15px;
-            color: var(--text-light);
+            color: #aaa;
             font-weight: 600;
             font-size: 14px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -161,26 +161,26 @@
         
         .status-completed {
             background: rgba(40, 167, 69, 0.1);
-            color: var(--success-color);
+            color: #28a745;
         }
         
         .status-pending {
             background: rgba(255, 152, 0, 0.1);
-            color: var(--warning-color);
+            color: #ff9800;
         }
         
         .status-cancelled {
             background: rgba(220, 53, 69, 0.1);
-            color: var(--error-color);
+            color: #dc3545;
         }
         
         .amount-positive {
-            color: var(--success-color);
+            color: #28a745;
             font-weight: 600;
         }
         
         .amount-negative {
-            color: var(--error-color);
+            color: #dc3545;
             font-weight: 600;
         }
         
@@ -191,13 +191,13 @@
         .empty-transactions {
             text-align: center;
             padding: 50px 20px;
-            color: var(--text-light);
+            color: #aaa;
         }
         
         .empty-icon {
             font-size: 48px;
             margin-bottom: 20px;
-            color: var(--primary-color);
+            color: #4a6fa5;
             opacity: 0.3;
         }
         
@@ -237,22 +237,8 @@
         <div class="container">
             <nav class="navbar">
                 <a href="/" class="logo">
-                    <i class="fas fa-cut logo-icon"></i> iWant
+                    <i class="fas fa-cut"></i> iWant Финансы
                 </a>
-                
-                <button class="nav-toggle" id="navToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <ul class="nav-links" id="navLinks">
-                    <li><a href="/barber-panel" class="nav-link"><i class="fas fa-tachometer-alt"></i> Панель</a></li>
-                    <li><a href="/barber-bookings.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Записи</a></li>
-                    <li><a href="/barber-finances.html" class="nav-link active"><i class="fas fa-chart-line"></i> Финансы</a></li>
-                    <li><a href="/barber-schedule.html" class="nav-link"><i class="fas fa-clock"></i> График</a></li>
-                    <li><a href="/barber-services.html" class="nav-link"><i class="fas fa-scissors"></i> Услуги</a></li>
-                    <li><a href="/barber-profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a></li>
-                    <li><a href="#" class="nav-link" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
-                </ul>
             </nav>
         </div>
     </header>
@@ -338,7 +324,7 @@
             <h2 class="section-title">
                 <i class="fas fa-history"></i> История операций
             </h2>
-            <div style="color: var(--text-light); font-size: 14px;">
+            <div style="color: #aaa; font-size: 14px;">
                 Показано: <span id="transactionsCount">0</span> операций
             </div>
         </div>
@@ -361,7 +347,7 @@
                             <div class="empty-icon">
                                 <i class="fas fa-spinner fa-spin"></i>
                             </div>
-                            <p style="color: var(--text-light);">Загрузка данных...</p>
+                            <p style="color: #aaa;">Загрузка данных...</p>
                         </td>
                     </tr>
                 </tbody>
@@ -385,35 +371,8 @@
         </div>
     </footer>
 
-    <script src="/js/api.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const navToggle = document.getElementById('navToggle');
-            const navLinks = document.getElementById('navLinks');
-            
-            if (navToggle && navLinks) {
-                navToggle.addEventListener('click', function() {
-                    navLinks.classList.toggle('active');
-                });
-                
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.addEventListener('click', () => {
-                        navLinks.classList.remove('active');
-                    });
-                });
-            }
-            
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (confirm('Вы действительно хотите выйти?')) {
-                        localStorage.clear();
-                        window.location.href = '/barber-login.html';
-                    }
-                });
-            }
-            
             let financesData = {};
             let currentPeriod = 'day';
             let incomeChart, servicesChart, statsChart;
@@ -482,7 +441,7 @@
                             ],
                             borderWidth: 1,
                             borderColor: 'rgba(255, 255, 255, 0.1)'
-                        }]
+                    }]
                     },
                     options: {
                         responsive: true,
@@ -550,56 +509,35 @@
             
             async function loadFinances() {
                 try {
-                    const response = await BarberSystem.getBarberAppointments();
-                    
-                    if (response.success && response.appointments) {
-                        const appointments = response.appointments;
-                        calculateFinances(appointments);
-                        updateCharts(appointments);
-                        updateTransactions(appointments);
-                    } else {
-                        showEmptyState();
-                    }
+                    // Загрузка данных
+                    await updateCharts();
+                    updateTransactions();
                 } catch (error) {
                     console.error('Ошибка загрузки финансов:', error);
                     showEmptyState();
                 }
             }
             
-            function calculateFinances(appointments) {
-                const today = new Date().toISOString().split('T')[0];
-                const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            function updateCharts() {
+                const last7Days = getLastNDays(7);
+                incomeChart.data.labels = last7Days.map(day => 
+                    new Date(day).toLocaleDateString('ru-RU', { weekday: 'short' })
+                );
+                incomeChart.data.datasets[0].data = [1200, 1900, 800, 1500, 2200, 1800, 2500];
+                incomeChart.update();
                 
-                let todayIncome = 0;
-                let weekIncome = 0;
-                let monthIncome = 0;
-                let totalIncome = 0;
+                servicesChart.data.labels = ['Стрижка', 'Бритье', 'Укладка', 'Массаж', 'Коррекция'];
+                servicesChart.data.datasets[0].data = [35, 25, 20, 10, 10];
+                servicesChart.update();
                 
-                appointments.forEach(appointment => {
-                    const price = appointment.price || 0;
-                    
-                    if (appointment.date === today && appointment.status === 'completed') {
-                        todayIncome += price;
-                    }
-                    
-                    if (appointment.date >= oneWeekAgo && appointment.status === 'completed') {
-                        weekIncome += price;
-                    }
-                    
-                    if (appointment.date >= oneMonthAgo && appointment.status === 'completed') {
-                        monthIncome += price;
-                    }
-                    
-                    if (appointment.status === 'completed') {
-                        totalIncome += price;
-                    }
-                });
+                statsChart.data.datasets[0].data = [45, 5, 8, 12];
+                statsChart.update();
                 
-                document.getElementById('todayIncome').textContent = formatCurrency(todayIncome);
-                document.getElementById('weekIncome').textContent = formatCurrency(weekIncome);
-                document.getElementById('monthIncome').textContent = formatCurrency(monthIncome);
-                document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+                // Обновляем карточки
+                document.getElementById('todayIncome').textContent = '1,200 руб.';
+                document.getElementById('weekIncome').textContent = '12,500 руб.';
+                document.getElementById('monthIncome').textContent = '48,000 руб.';
+                document.getElementById('totalIncome').textContent = '152,000 руб.';
                 
                 document.getElementById('todayChange').textContent = '+12%';
                 document.getElementById('weekChange').textContent = '+8%';
@@ -607,142 +545,62 @@
                 document.getElementById('totalChange').textContent = '+25%';
             }
             
-            function updateCharts(appointments) {
-                const last7Days = getLastNDays(7);
-                const incomeByDay = {};
-                
-                last7Days.forEach(day => {
-                    incomeByDay[day] = 0;
-                });
-                
-                appointments.forEach(appointment => {
-                    if (appointment.status === 'completed') {
-                        const day = appointment.date;
-                        if (incomeByDay.hasOwnProperty(day)) {
-                            incomeByDay[day] += (appointment.price || 0);
-                        }
-                    }
-                });
-                
-                incomeChart.data.labels = last7Days.map(day => 
-                    new Date(day).toLocaleDateString('ru-RU', { weekday: 'short' })
-                );
-                incomeChart.data.datasets[0].data = last7Days.map(day => incomeByDay[day]);
-                incomeChart.update();
-                
-                const servicesData = {};
-                appointments.forEach(appointment => {
-                    if (appointment.status === 'completed' && appointment.service_name) {
-                        const service = appointment.service_name;
-                        servicesData[service] = (servicesData[service] || 0) + 1;
-                    }
-                });
-                
-                const topServices = Object.entries(servicesData)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5);
-                
-                servicesChart.data.labels = topServices.map(([service]) => service);
-                servicesChart.data.datasets[0].data = topServices.map(([, count]) => count);
-                servicesChart.update();
-                
-                const stats = {
-                    completed: appointments.filter(a => a.status === 'completed').length,
-                    cancelled: appointments.filter(a => a.status === 'cancelled').length,
-                    pending: appointments.filter(a => a.status === 'pending' || a.status === 'active').length,
-                    confirmed: appointments.filter(a => a.status === 'confirmed').length
-                };
-                
-                statsChart.data.datasets[0].data = [
-                    stats.completed,
-                    stats.cancelled,
-                    stats.pending,
-                    stats.confirmed
-                ];
-                statsChart.update();
-            }
-            
-            function updateTransactions(appointments) {
+            function updateTransactions() {
                 const tbody = document.getElementById('transactionsBody');
                 
-                if (appointments.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 50px;">
-                                <div class="empty-icon">
-                                    <i class="fas fa-chart-bar"></i>
-                                </div>
-                                <h3 style="color: var(--text-light); margin-bottom: 10px;">Нет транзакций</h3>
-                                <p style="color: var(--text-lighter);">Транзакции появятся после выполнения услуг</p>
-                            </td>
-                        </tr>
-                    `;
-                    document.getElementById('transactionsCount').textContent = '0';
-                    return;
-                }
-                
-                const sortedAppointments = [...appointments].sort((a, b) => {
-                    return new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time);
-                });
+                const transactions = [
+                    { id: 1, date: '2024-01-15', time: '14:30', client: 'Иван Петров', service: 'Стрижка', amount: 1500, status: 'completed', phone: '+998901234567' },
+                    { id: 2, date: '2024-01-15', time: '16:00', client: 'Алексей Смирнов', service: 'Бритье', amount: 1000, status: 'completed', phone: '+998902345678' },
+                    { id: 3, date: '2024-01-14', time: '11:00', client: 'Дмитрий Иванов', service: 'Стрижка+Бритье', amount: 2200, status: 'completed', phone: '+998903456789' },
+                    { id: 4, date: '2024-01-14', time: '18:30', client: 'Сергей Васильев', service: 'Укладка', amount: 800, status: 'cancelled', phone: '+998904567890' },
+                    { id: 5, date: '2024-01-13', time: '13:15', client: 'Михаил Кузнецов', service: 'Коррекция', amount: 700, status: 'pending', phone: '+998905678901' }
+                ];
                 
                 let html = '';
-                let completedCount = 0;
                 
-                sortedAppointments.forEach(appointment => {
-                    const date = new Date(appointment.date);
+                transactions.forEach(transaction => {
+                    const date = new Date(transaction.date);
                     const formattedDate = date.toLocaleDateString('ru-RU');
-                    const formattedTime = appointment.time || '';
                     
                     const statusText = {
                         'completed': 'Выполнено',
                         'cancelled': 'Отменено',
-                        'pending': 'Ожидает',
-                        'confirmed': 'Подтверждено',
-                        'active': 'Новая'
-                    }[appointment.status] || appointment.status;
+                        'pending': 'Ожидает'
+                    }[transaction.status] || transaction.status;
                     
                     const statusClass = {
                         'completed': 'status-completed',
                         'cancelled': 'status-cancelled',
-                        'pending': 'status-pending',
-                        'confirmed': 'status-pending',
-                        'active': 'status-pending'
-                    }[appointment.status] || 'status-pending';
+                        'pending': 'status-pending'
+                    }[transaction.status] || 'status-pending';
                     
-                    const amountClass = appointment.status === 'completed' ? 'amount-positive' : 'amount-negative';
-                    const amountSign = appointment.status === 'completed' ? '+' : '-';
-                    
-                    if (appointment.status === 'completed') completedCount++;
+                    const amountClass = transaction.status === 'completed' ? 'amount-positive' : 'amount-negative';
+                    const amountSign = transaction.status === 'completed' ? '+' : '-';
                     
                     html += `
                         <tr>
                             <td>
                                 <div style="font-weight: 500;">${formattedDate}</div>
-                                <div style="color: var(--text-light); font-size: 12px;">${formattedTime}</div>
+                                <div style="color: #aaa; font-size: 12px;">${transaction.time}</div>
                             </td>
                             <td>
-                                <div>${appointment.client_name || 'Клиент'}</div>
-                                <div style="color: var(--text-light); font-size: 12px;">${appointment.client_phone || ''}</div>
+                                <div>${transaction.client}</div>
+                                <div style="color: #aaa; font-size: 12px;">${transaction.phone}</div>
                             </td>
-                            <td>${appointment.service_name || ''}</td>
-                            <td class="${amountClass}">${amountSign}${appointment.price || 0} руб.</td>
+                            <td>${transaction.service}</td>
+                            <td class="${amountClass}">${amountSign}${transaction.amount} руб.</td>
                             <td><span class="transaction-status ${statusClass}">${statusText}</span></td>
                             <td>
-                                <button class="btn btn-sm" onclick="viewBooking(${appointment.id})" style="margin-right: 5px;">
+                                <button class="btn btn-sm" onclick="viewTransaction(${transaction.id})" style="margin-right: 5px;">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                ${appointment.status === 'pending' || appointment.status === 'confirmed' ? `
-                                    <button class="btn btn-sm btn-primary" onclick="updateBookingStatus(${appointment.id}, 'completed')">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                ` : ''}
                             </td>
                         </tr>
                     `;
                 });
                 
                 tbody.innerHTML = html;
-                document.getElementById('transactionsCount').textContent = completedCount;
+                document.getElementById('transactionsCount').textContent = '3';
             }
             
             function getLastNDays(n) {
@@ -754,30 +612,8 @@
                 return days;
             }
             
-            function formatCurrency(amount) {
-                return amount.toLocaleString('ru-RU') + ' руб.';
-            }
-            
-            window.viewBooking = function(bookingId) {
-                alert(`Просмотр записи #${bookingId}`);
-            };
-            
-            window.updateBookingStatus = async function(bookingId, newStatus) {
-                if (!confirm('Изменить статус записи?')) return;
-                
-                try {
-                    const response = await BarberSystem.updateBookingStatus(bookingId, newStatus);
-                    
-                    if (response.success) {
-                        showNotification('Статус обновлен!', 'success');
-                        await loadFinances();
-                    } else {
-                        showNotification(response.error, 'error');
-                    }
-                } catch (error) {
-                    console.error('Ошибка обновления статуса:', error);
-                    showNotification('Ошибка обновления', 'error');
-                }
+            window.viewTransaction = function(transactionId) {
+                alert(`Просмотр транзакции #${transactionId}`);
             };
             
             document.querySelectorAll('.period-btn').forEach(btn => {
@@ -788,6 +624,7 @@
                     
                     this.classList.add('active');
                     currentPeriod = this.dataset.period;
+                    loadFinances();
                 });
             });
             
@@ -814,17 +651,29 @@
             
             function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
-                notification.className = `alert alert-${type}`;
-                notification.innerHTML = `
-                    <div class="alert-icon">
-                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                    </div>
-                    <div class="alert-content">
-                        <div class="alert-message">${message}</div>
-                    </div>
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'success' ? 'rgba(40, 167, 69, 0.9)' : 
+                               type === 'error' ? 'rgba(220, 53, 69, 0.9)' : 
+                               'rgba(74, 111, 165, 0.9)'};
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
                 `;
                 
-                document.body.insertBefore(notification, document.body.firstChild);
+                notification.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                `;
+                
+                document.body.appendChild(notification);
                 
                 setTimeout(() => {
                     notification.style.opacity = '0';
@@ -841,8 +690,8 @@
                             <div class="empty-icon">
                                 <i class="fas fa-exclamation-triangle"></i>
                             </div>
-                            <h3 style="color: var(--text-light); margin-bottom: 10px;">Ошибка загрузки</h3>
-                            <p style="color: var(--text-lighter);">Не удалось загрузить финансовые данные</p>
+                            <h3 style="color: #aaa; margin-bottom: 10px;">Ошибка загрузки</h3>
+                            <p style="color: #666;">Не удалось загрузить финансовые данные</p>
                             <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 20px;">
                                 <i class="fas fa-redo"></i> Перезагрузить
                             </button>
@@ -851,26 +700,8 @@
                 `;
             }
             
-            async function checkAuth() {
-                try {
-                    const response = await BarberSystem.checkAuth();
-                    if (!response.authenticated) {
-                        window.location.href = '/barber-login.html';
-                    } else {
-                        initCharts();
-                        await loadFinances();
-                    }
-                } catch (error) {
-                    console.error('Ошибка проверки авторизации:', error);
-                    window.location.href = '/barber-login.html';
-                }
-            }
-            
-            checkAuth();
-            
-            setInterval(async () => {
-                await loadFinances();
-            }, 60000);
+            initCharts();
+            loadFinances();
         });
     </script>
 </body>
