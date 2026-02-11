@@ -857,9 +857,15 @@
             }
         }
         
-        async function loadBarberData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const barberCode = urlParams.get('code') || 'barber';
+     async function loadBarberData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const barberCode = urlParams.get('code');
+
+    if (!barberCode) {
+        showError('Код барбера не указан');
+        return;
+    }
+
             
             console.log(`🔍 Загрузка данных барбера: ${barberCode}`);
             
