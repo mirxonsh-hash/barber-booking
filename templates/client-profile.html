@@ -6,6 +6,31 @@
     <title>iWant - Ваши барберы</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Фоновое фото */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)), 
+                        url('images/fon.jpg') center/cover no-repeat;
+        }
+        
+        /* Стили логотипа */
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
         /* Стеклянный эффект для всех элементов */
         .header, .add-barber-btn, .barber-card, .icon-btn, 
         .modal-content, .form-input, .btn, .fab,
@@ -174,12 +199,6 @@
             top: 0;
             z-index: 100;
             padding-top: max(15px, env(safe-area-inset-top));
-        }
-        
-        .logo-img {
-            height: 40px;
-            width: auto;
-            filter: brightness(0) invert(1);
         }
         
         .icon-btn {
@@ -613,7 +632,10 @@
         <button class="icon-btn" onclick="goBack()">
             <i class="fas fa-arrow-left"></i>
         </button>
-        <img src="/images/logo.gif" alt="iWant" class="logo-img">
+        <a href="/" class="logo">
+            <i class="fas fa-scissors"></i>
+            <span>iWant</span>
+        </a>
         <div class="profile-avatar" id="profileAvatar" onclick="openProfileModal()">
             <span id="avatarInitials">ТК</span>
         </div>
