@@ -317,7 +317,7 @@ def master_panel_page():
 
 @app.route("/barber-bookings")
 def barber_bookings():
-    return render_template("barber-bookings.html")
+    return render_template("barber-bookings")
 
 @app.route('/client/find', methods=['GET', 'POST'])
 def find_barber():
