@@ -263,20 +263,7 @@ def client_login_page():
 
 @app.route('/client-panel')
 def client_panel_page():
-    try:
-        code = request.args.get('code', '').strip()
-        
-        if not code:
-            logger.warning("Код барбера не указан в URL при открытии client-panel")
-            return redirect('/client-login')
-        
-        logger.info(f"Открытие client-panel для кода: {code}")
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, name, phone FROM barbers WHERE code = %s', (code,))
-        barber = cursor.fetchone()
-        conn.close()
+    
         
         if not barber:
             logger.warning(f"Барбер не найден при открытии client-panel: {code}")
