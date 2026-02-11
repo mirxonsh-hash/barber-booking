@@ -925,10 +925,10 @@
         // Токен есть — загружаем профиль
         loadProfile();
 
-    } catch (error) {
-        console.error('Ошибка проверки авторизации:', error);
-        window.location.href = '/barber-login.html';
-    }
+  } catch (error) {
+    console.error('❌ Реальная ошибка в loadProfile():');
+    console.error(error);
+    // window.location.href = '/barber-login.html';  // ⛔️ ВРЕМЕННО УБРАТЬ
 }
 
             
