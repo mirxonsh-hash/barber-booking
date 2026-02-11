@@ -263,6 +263,8 @@ def client_login_page():
 
 @app.route('/client-panel')
 def client_panel_page():
+    return render_template('client-panel.html')
+
     
         
         if not barber:
