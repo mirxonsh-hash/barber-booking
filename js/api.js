@@ -30,7 +30,8 @@ const BarberSystem = {
 
     // ================= Проверка авторизации (ПОЧИНЕНО) =================
     checkAuth: async function () {
-        let token = localStorage.getItem('barber_token');
+        let token = localStorage.getItem('barberToken') || localStorage.getItem('barber_token');
+
 
         // если нет в localStorage — берём из URL
         if (!token) {
@@ -94,3 +95,4 @@ const BarberSystem = {
 
 // Экспорт
 window.BarberSystem = BarberSystem;
+
